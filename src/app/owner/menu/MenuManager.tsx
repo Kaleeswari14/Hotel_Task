@@ -104,7 +104,7 @@ const MEASUREMENT_PROFILES: MeasurementProfile[] = [
     name: "Rice / Biriyani / Meals",
     icon: "🍽️",
     defaultUnit: "Plates",
-    defaultStockType: "BATCH_ESTIMATE",
+    defaultStockType: "NO_TRACKING",
     presets: [
       { name: "Full Plate", multiplier: 1.0, label: "Full Plate (1.0x)" },
       { name: "Half / 1/2 Plate", multiplier: 0.5, label: "1/2 Plate (0.5x)" },
@@ -117,7 +117,7 @@ const MEASUREMENT_PROFILES: MeasurementProfile[] = [
     name: "Tiffin / Idly / Dosa / Snacks",
     icon: "🥟",
     defaultUnit: "Nos",
-    defaultStockType: "EXACT_COUNT",
+    defaultStockType: "NO_TRACKING",
     presets: [
       { name: "Single Piece", multiplier: 1.0, label: "Single (1 pc, 1.0x)" },
       { name: "Set (2 pcs)", multiplier: 2.0, label: "Set (2 pcs, 2.0x)" },
@@ -130,7 +130,7 @@ const MEASUREMENT_PROFILES: MeasurementProfile[] = [
     name: "Tea / Coffee / Juice / Drinks",
     icon: "☕",
     defaultUnit: "Cups",
-    defaultStockType: "BATCH_ESTIMATE",
+    defaultStockType: "NO_TRACKING",
     presets: [
       { name: "Regular Cup", multiplier: 1.0, label: "Regular Cup (1.0x)" },
       { name: "Cutting / Small", multiplier: 0.5, label: "Cutting / Small (0.5x)" },
@@ -143,7 +143,7 @@ const MEASUREMENT_PROFILES: MeasurementProfile[] = [
     name: "Curry / Gravy / Soups / Sides",
     icon: "🍲",
     defaultUnit: "Cups",
-    defaultStockType: "BATCH_ESTIMATE",
+    defaultStockType: "NO_TRACKING",
     presets: [
       { name: "Regular Bowl", multiplier: 1.0, label: "Regular Bowl (1.0x)" },
       { name: "Half Bowl", multiplier: 0.5, label: "Half Bowl (0.5x)" },
@@ -155,7 +155,7 @@ const MEASUREMENT_PROFILES: MeasurementProfile[] = [
     name: "Kg / Grams / Packets",
     icon: "⚖️",
     defaultUnit: "Kg",
-    defaultStockType: "BATCH_ESTIMATE",
+    defaultStockType: "NO_TRACKING",
     presets: [
       { name: "1 Kg", multiplier: 1.0, label: "1 Kg (1.0x)" },
       { name: "500 Grams (1/2 Kg)", multiplier: 0.5, label: "1/2 Kg (0.5x)" },
@@ -1327,49 +1327,61 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
               {/* 5. Inventory Stock Management */}
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-                  <span className="text-xs font-black text-slate-800 uppercase tracking-wider">
-                    Inventory & Stock Tracking
-                  </span>
+                  <div>
+                    <span className="text-xs font-black text-slate-800 uppercase tracking-wider block">
+                      Kitchen Stock Tracking
+                    </span>
+                    <span className="text-[11px] text-slate-500 font-medium">
+                      Select &quot;No Tracking&quot; for dishes made on-demand (Idly, Dosa, Tea, Juice).
+                    </span>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setStockType("NO_TRACKING")}
+                    className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all border text-center cursor-pointer ${
+                      stockType === "NO_TRACKING"
+                        ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
+                    }`}
+                  >
+                    ✨ No Tracking (Unlimited)
+                  </button>
                   <button
                     type="button"
                     onClick={() => setStockType("EXACT_COUNT")}
-                    className={`py-2 px-2.5 rounded-xl text-xs font-bold transition-all border text-center cursor-pointer ${
+                    className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all border text-center cursor-pointer ${
                       stockType === "EXACT_COUNT"
                         ? "bg-slate-900 text-white border-slate-900 shadow-sm"
                         : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
                     }`}
                   >
-                    Exact Count
+                    Exact Count (e.g. Bottles)
                   </button>
                   <button
                     type="button"
                     onClick={() => setStockType("BATCH_ESTIMATE")}
-                    className={`py-2 px-2.5 rounded-xl text-xs font-bold transition-all border text-center cursor-pointer ${
+                    className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all border text-center cursor-pointer ${
                       stockType === "BATCH_ESTIMATE"
                         ? "bg-slate-900 text-white border-slate-900 shadow-sm"
                         : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
                     }`}
                   >
-                    Batch Estimate
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setStockType("NO_TRACKING")}
-                    className={`py-2 px-2.5 rounded-xl text-xs font-bold transition-all border text-center cursor-pointer ${
-                      stockType === "NO_TRACKING"
-                        ? "bg-slate-900 text-white border-slate-900 shadow-sm"
-                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
-                    }`}
-                  >
-                    No Tracking (Unlimited)
+                    Batch Estimate (e.g. Biriyani)
                   </button>
                 </div>
 
-                {stockType !== "NO_TRACKING" && (
-                  <div className="grid grid-cols-3 gap-3 pt-2">
+                {stockType === "NO_TRACKING" ? (
+                  <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900 text-xs font-medium flex items-center gap-2">
+                    <span className="text-base">🟢</span>
+                    <span>
+                      <strong>Unlimited (Always in Stock):</strong> No count needed! Best for continuous kitchen items like <strong>Idly, Dosa, Parotta, Tea, Coffee &amp; Fresh Juices</strong>.
+                    </span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-3 pt-1">
                     <div>
                       <label className="block text-[11px] font-bold text-slate-600 mb-1">
                         Initial Stock Quantity
