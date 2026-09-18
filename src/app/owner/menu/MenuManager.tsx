@@ -89,14 +89,123 @@ const STANDARD_UNITS = [
   "Portions",
 ];
 
-const PORTION_PRESETS = [
-  { name: "Full / Regular", multiplier: 1.0, label: "Full (1.0x)" },
-  { name: "Half / 1/2 Plate", multiplier: 0.5, label: "1/2 Plate (0.5x)" },
-  { name: "Quarter / 1/4 Plate", multiplier: 0.25, label: "1/4 Plate (0.25x)" },
-  { name: "Double / 2 Plates", multiplier: 2.0, label: "2 Plates (2.0x)" },
-  { name: "Set (2 pcs)", multiplier: 1.0, label: "Set (2 pcs)" },
-  { name: "Single Piece", multiplier: 1.0, label: "Single Piece" },
+interface MeasurementProfile {
+  id: string;
+  name: string;
+  icon: string;
+  defaultUnit: string;
+  defaultStockType: "EXACT_COUNT" | "BATCH_ESTIMATE" | "NO_TRACKING";
+  presets: { name: string; multiplier: number; label: string }[];
+}
+
+const MEASUREMENT_PROFILES: MeasurementProfile[] = [
+  {
+    id: "PLATES_RICE",
+    name: "Rice / Biriyani / Meals",
+    icon: "🍽️",
+    defaultUnit: "Plates",
+    defaultStockType: "BATCH_ESTIMATE",
+    presets: [
+      { name: "Full Plate", multiplier: 1.0, label: "Full Plate (1.0x)" },
+      { name: "Half / 1/2 Plate", multiplier: 0.5, label: "1/2 Plate (0.5x)" },
+      { name: "Quarter / 1/4 Plate", multiplier: 0.25, label: "1/4 Plate (0.25x)" },
+      { name: "Family Pack / 2 Plates", multiplier: 2.0, label: "2 Plates (2.0x)" },
+    ],
+  },
+  {
+    id: "PIECES_COUNT",
+    name: "Tiffin / Idly / Dosa / Snacks",
+    icon: "🥟",
+    defaultUnit: "Nos",
+    defaultStockType: "EXACT_COUNT",
+    presets: [
+      { name: "Single Piece", multiplier: 1.0, label: "Single (1 pc, 1.0x)" },
+      { name: "Set (2 pcs)", multiplier: 2.0, label: "Set (2 pcs, 2.0x)" },
+      { name: "Set (3 pcs)", multiplier: 3.0, label: "Set (3 pcs, 3.0x)" },
+      { name: "Plate / Set", multiplier: 1.0, label: "1 Plate / Set (1.0x)" },
+    ],
+  },
+  {
+    id: "DRINKS_CUPS",
+    name: "Tea / Coffee / Juice / Drinks",
+    icon: "☕",
+    defaultUnit: "Cups",
+    defaultStockType: "BATCH_ESTIMATE",
+    presets: [
+      { name: "Regular Cup", multiplier: 1.0, label: "Regular Cup (1.0x)" },
+      { name: "Cutting / Small", multiplier: 0.5, label: "Cutting / Small (0.5x)" },
+      { name: "Large / Mug", multiplier: 1.5, label: "Large / Mug (1.5x)" },
+      { name: "Flask (5 Cups)", multiplier: 5.0, label: "Flask (5 Cups, 5.0x)" },
+    ],
+  },
+  {
+    id: "BOWLS_GRAVY",
+    name: "Curry / Gravy / Soups / Sides",
+    icon: "🍲",
+    defaultUnit: "Cups",
+    defaultStockType: "BATCH_ESTIMATE",
+    presets: [
+      { name: "Regular Bowl", multiplier: 1.0, label: "Regular Bowl (1.0x)" },
+      { name: "Half Bowl", multiplier: 0.5, label: "Half Bowl (0.5x)" },
+      { name: "Full Container", multiplier: 2.0, label: "Full Container (2.0x)" },
+    ],
+  },
+  {
+    id: "CUSTOM_WEIGHT",
+    name: "Kg / Grams / Packets",
+    icon: "⚖️",
+    defaultUnit: "Kg",
+    defaultStockType: "BATCH_ESTIMATE",
+    presets: [
+      { name: "1 Kg", multiplier: 1.0, label: "1 Kg (1.0x)" },
+      { name: "500 Grams (1/2 Kg)", multiplier: 0.5, label: "1/2 Kg (0.5x)" },
+      { name: "250 Grams (1/4 Kg)", multiplier: 0.25, label: "1/4 Kg (0.25x)" },
+      { name: "1 Packet", multiplier: 1.0, label: "1 Packet (1.0x)" },
+    ],
+  },
 ];
+
+const getProfileForCategory = (catName?: string): MeasurementProfile => {
+  if (!catName) return MEASUREMENT_PROFILES[0];
+  const lower = catName.toLowerCase();
+  if (
+    lower.includes("rice") ||
+    lower.includes("biriyani") ||
+    lower.includes("briyani") ||
+    lower.includes("meal") ||
+    lower.includes("lunch")
+  ) {
+    return MEASUREMENT_PROFILES[0];
+  }
+  if (
+    lower.includes("drink") ||
+    lower.includes("tea") ||
+    lower.includes("coffee") ||
+    lower.includes("juice") ||
+    lower.includes("beverage") ||
+    lower.includes("shake") ||
+    lower.includes("water")
+  ) {
+    return MEASUREMENT_PROFILES[2];
+  }
+  if (
+    lower.includes("curry") ||
+    lower.includes("gravy") ||
+    lower.includes("soup") ||
+    lower.includes("side")
+  ) {
+    return MEASUREMENT_PROFILES[3];
+  }
+  if (
+    lower.includes("sweet") ||
+    lower.includes("bakery") ||
+    lower.includes("kg") ||
+    lower.includes("snack pack")
+  ) {
+    return MEASUREMENT_PROFILES[4];
+  }
+  return MEASUREMENT_PROFILES[1];
+};
 
 const ALL_SESSIONS = ["MORNING", "AFTERNOON", "SNACKS", "NIGHT"];
 
@@ -119,18 +228,18 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
   const [editingFood, setEditingFood] = useState<FoodItem | null>(null);
   const [foodName, setFoodName] = useState("");
   const [foodCategory, setFoodCategory] = useState(categories[0]?.id || "");
+  const [measurementProfileId, setMeasurementProfileId] = useState<string>("PLATES_RICE");
   const [foodDescription, setFoodDescription] = useState("");
   const [foodDietary, setFoodDietary] = useState<"VEG" | "NON_VEG" | "EGG">("VEG");
-  const [foodMealSessions, setFoodMealSessions] = useState<string[]>(ALL_SESSIONS);
-  const [stockType, setStockType] = useState<"EXACT_COUNT" | "BATCH_ESTIMATE" | "NO_TRACKING">("EXACT_COUNT");
-  const [foodInitialStock, setFoodInitialStock] = useState("30");
-  const [foodMinThreshold, setFoodMinThreshold] = useState("8");
-  const [foodUnitName, setFoodUnitName] = useState("Nos");
+  const [foodMealSessions, setFoodMealSessions] = useState<string[]>([]);
+  const [stockType, setStockType] = useState<"EXACT_COUNT" | "BATCH_ESTIMATE" | "NO_TRACKING">("BATCH_ESTIMATE");
+  const [foodInitialStock, setFoodInitialStock] = useState("");
+  const [foodMinThreshold, setFoodMinThreshold] = useState("");
+  const [foodUnitName, setFoodUnitName] = useState("Plates");
   const [customUnit, setCustomUnit] = useState("");
   const [isCustomUnit, setIsCustomUnit] = useState(false);
-  const [editingPortionIdx, setEditingPortionIdx] = useState<number | null>(null);
   const [portions, setPortions] = useState<Portion[]>([
-    { portionName: "Full / Regular", unitMultiplier: 1.0, price: 60, packingCharge: 0 },
+    { portionName: "Full Plate", unitMultiplier: 1.0, price: 0, packingCharge: 0 },
   ]);
 
   const [loading, setLoading] = useState(false);
@@ -155,14 +264,56 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
     }
   };
 
+  // Active measurement profile
+  const activeProfile =
+    MEASUREMENT_PROFILES.find((p) => p.id === measurementProfileId) || MEASUREMENT_PROFILES[0];
+
+  // Handle Category Change (auto-suggest measurement profile)
+  const handleCategoryChange = (newCatId: string) => {
+    setFoodCategory(newCatId);
+    const cat = categories.find((c) => c.id === newCatId);
+    if (cat) {
+      const suggested = getProfileForCategory(cat.name);
+      setMeasurementProfileId(suggested.id);
+      setFoodUnitName(suggested.defaultUnit);
+      setStockType(suggested.defaultStockType);
+      setIsCustomUnit(false);
+      setCustomUnit("");
+    }
+  };
+
+  // Handle Measurement Profile Change
+  const handleProfileChange = (profId: string) => {
+    setMeasurementProfileId(profId);
+    const prof = MEASUREMENT_PROFILES.find((p) => p.id === profId);
+    if (prof) {
+      setFoodUnitName(prof.defaultUnit);
+      setStockType(prof.defaultStockType);
+      setIsCustomUnit(false);
+      setCustomUnit("");
+    }
+  };
+
   // Portion helpers
   const handleAddPortion = () => {
-    const newIdx = portions.length;
     setPortions([
       ...portions,
-      { portionName: "Half / 1/2 Plate", unitMultiplier: 0.5, price: 40, packingCharge: 0 },
+      { portionName: "", unitMultiplier: 1.0, price: 0, packingCharge: 0 },
     ]);
-    setEditingPortionIdx(newIdx);
+  };
+
+  const handleAddPresetPortion = (preset: { name: string; multiplier: number }) => {
+    // If the only portion is empty, replace it
+    if (portions.length === 1 && !portions[0].portionName.trim() && !portions[0].price) {
+      setPortions([
+        { portionName: preset.name, unitMultiplier: preset.multiplier, price: 0, packingCharge: 0 },
+      ]);
+      return;
+    }
+    setPortions([
+      ...portions,
+      { portionName: preset.name, unitMultiplier: preset.multiplier, price: 0, packingCharge: 0 },
+    ]);
   };
 
   const handleRemovePortion = (idx: number) => {
@@ -171,24 +322,11 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
       return;
     }
     setPortions(portions.filter((_, i) => i !== idx));
-    if (editingPortionIdx === idx) {
-      setEditingPortionIdx(null);
-    } else if (editingPortionIdx !== null && editingPortionIdx > idx) {
-      setEditingPortionIdx(editingPortionIdx - 1);
-    }
   };
 
   const handlePortionChange = (idx: number, field: keyof Portion, value: any) => {
     setPortions(
       portions.map((p, i) => (i === idx ? { ...p, [field]: value } : p))
-    );
-  };
-
-  const applyPortionPreset = (idx: number, preset: { name: string; multiplier: number }) => {
-    setPortions(
-      portions.map((p, i) =>
-        i === idx ? { ...p, portionName: preset.name, unitMultiplier: preset.multiplier } : p
-      )
     );
   };
 
@@ -284,21 +422,29 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
       openAddCategoryModal();
       return;
     }
+    const firstCat = categories[0];
+    const initialProf = firstCat ? getProfileForCategory(firstCat.name) : MEASUREMENT_PROFILES[0];
+
     setEditingFood(null);
     setFoodName("");
-    setFoodCategory(categories[0]?.id || "");
+    setFoodCategory(firstCat?.id || "");
+    setMeasurementProfileId(initialProf.id);
     setFoodDescription("");
     setFoodDietary("VEG");
-    setFoodMealSessions(ALL_SESSIONS);
-    setStockType("EXACT_COUNT");
-    setFoodInitialStock("30");
-    setFoodMinThreshold("8");
-    setFoodUnitName("Nos");
+    setFoodMealSessions([]); // No default active session - user selects!
+    setStockType(initialProf.defaultStockType);
+    setFoodInitialStock(""); // Clean empty input
+    setFoodMinThreshold(""); // Clean empty input
+    setFoodUnitName(initialProf.defaultUnit);
     setIsCustomUnit(false);
     setCustomUnit("");
-    setEditingPortionIdx(null);
     setPortions([
-      { portionName: "Full / Regular", unitMultiplier: 1.0, price: 60, packingCharge: 0 },
+      {
+        portionName: initialProf.presets[0]?.name || "Full Plate",
+        unitMultiplier: initialProf.presets[0]?.multiplier || 1.0,
+        price: 0,
+        packingCharge: 0,
+      },
     ]);
     setFoodModalOpen(true);
   };
@@ -308,17 +454,22 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
     setEditingFood(food);
     setFoodName(food.name);
     setFoodCategory(food.categoryId);
+    const cat = categories.find((c) => c.id === food.categoryId);
+    const prof = getProfileForCategory(cat?.name);
+    setMeasurementProfileId(prof.id);
     setFoodDescription(food.description || "");
     setFoodDietary(food.dietary || "VEG");
     setFoodMealSessions(
-      food.mealTime === "ALL" || !food.mealTime
+      food.mealTime === "ALL"
         ? ALL_SESSIONS
-        : food.mealTime.split(",")
+        : food.mealTime
+        ? food.mealTime.split(",")
+        : []
     );
     setStockType(food.stockType || "EXACT_COUNT");
-    setFoodInitialStock(food.stock ? String(food.stock.currentQuantity) : "30");
-    setFoodMinThreshold(food.stock ? String(food.stock.minThreshold) : "8");
-    
+    setFoodInitialStock(food.stock ? String(food.stock.currentQuantity) : "");
+    setFoodMinThreshold(food.stock ? String(food.stock.minThreshold) : "");
+
     const existingUnit = food.stock ? food.stock.unitName : "Nos";
     if (STANDARD_UNITS.includes(existingUnit)) {
       setFoodUnitName(existingUnit);
@@ -330,7 +481,6 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
       setCustomUnit(existingUnit);
     }
 
-    setEditingPortionIdx(null);
     setPortions(
       food.portions.map((p) => ({
         id: p.id,
@@ -372,13 +522,18 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
         description: foodDescription.trim() || null,
         imageUrl: null,
         dietary: foodDietary,
-        mealTime: foodMealSessions.length === ALL_SESSIONS.length ? "ALL" : foodMealSessions.join(","),
+        mealTime:
+          foodMealSessions.length === 0
+            ? "ALL"
+            : foodMealSessions.length === ALL_SESSIONS.length
+            ? "ALL"
+            : foodMealSessions.join(","),
         stockType,
         initialStock: stockType === "NO_TRACKING" ? 0 : parseFloat(foodInitialStock) || 0,
         minThreshold: stockType === "NO_TRACKING" ? 0 : parseFloat(foodMinThreshold) || 5,
         unitName: finalUnit,
         portions: portions.map((p) => ({
-          portionName: p.portionName.trim(),
+          portionName: p.portionName.trim() || "Regular",
           portionNameTamil: null,
           unitMultiplier: parseFloat(String(p.unitMultiplier)) || 1.0,
           price: parseFloat(String(p.price)) || 0,
@@ -848,8 +1003,8 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
             </div>
 
             <form onSubmit={handleSaveFood} className="space-y-4">
-              {/* 1. Basic Info: Name & Category */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* 1. Basic Info: Name, Category & Measurement Profile */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     Dish Name *
@@ -858,7 +1013,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                     type="text"
                     value={foodName}
                     onChange={(e) => setFoodName(e.target.value)}
-                    placeholder="e.g. Ghee Roast Dosa"
+                    placeholder="e.g. Chicken Biriyani, Idly, Tea"
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     required
                     autoFocus
@@ -871,13 +1026,30 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                   </label>
                   <select
                     value={foodCategory}
-                    onChange={(e) => setFoodCategory(e.target.value)}
+                    onChange={(e) => handleCategoryChange(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
                     required
                   >
                     {categories.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Measurement Profile
+                  </label>
+                  <select
+                    value={measurementProfileId}
+                    onChange={(e) => handleProfileChange(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                  >
+                    {MEASUREMENT_PROFILES.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.icon} {p.name}
                       </option>
                     ))}
                   </select>
@@ -893,7 +1065,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                   <button
                     type="button"
                     onClick={() => setFoodDietary("VEG")}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border flex items-center justify-center gap-1.5 ${
+                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border flex items-center justify-center gap-1.5 cursor-pointer ${
                       foodDietary === "VEG"
                         ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
                         : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
@@ -905,7 +1077,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                   <button
                     type="button"
                     onClick={() => setFoodDietary("NON_VEG")}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border flex items-center justify-center gap-1.5 ${
+                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border flex items-center justify-center gap-1.5 cursor-pointer ${
                       foodDietary === "NON_VEG"
                         ? "bg-rose-600 text-white border-rose-600 shadow-sm"
                         : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
@@ -917,7 +1089,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                   <button
                     type="button"
                     onClick={() => setFoodDietary("EGG")}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border flex items-center justify-center gap-1.5 ${
+                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border flex items-center justify-center gap-1.5 cursor-pointer ${
                       foodDietary === "EGG"
                         ? "bg-amber-400 text-slate-950 border-amber-400 shadow-sm font-black"
                         : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
@@ -941,7 +1113,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                       onClick={selectAllMealSessions}
                       className="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[11px] font-bold rounded-lg transition-colors cursor-pointer"
                     >
-                      ✨ All Day (All Sessions)
+                      ✨ Select All / All Day
                     </button>
                     <button
                       type="button"
@@ -981,236 +1153,155 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
 
               {/* 4. Portions & Pricing Row */}
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200">
                   <div>
                     <span className="text-xs font-black text-slate-800 uppercase tracking-wider block">
-                      Portions & Pricing (₹)
+                      Portions & Pricing ({activeProfile.name})
                     </span>
                     <span className="text-[11px] text-slate-500 font-medium">
-                      Click &quot;Edit&quot; on any portion to modify measurement & price.
+                      Enter quantity/portion name, stock measurement multiplier, and price (₹).
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={handleAddPortion}
-                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-xs"
+                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-xs self-start sm:self-auto shrink-0"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>Add Portion</span>
+                    <span>+ Add Portion Row</span>
                   </button>
                 </div>
 
-                <div className="space-y-2.5">
-                  {portions.map((portion, idx) => {
-                    const isEditing = editingPortionIdx === idx;
-
-                    if (isEditing) {
-                      return (
-                        <div
-                          key={idx}
-                          className="bg-white p-3.5 rounded-xl border-2 border-emerald-500 shadow-sm space-y-3"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-black text-emerald-800 uppercase tracking-wider flex items-center gap-1.5">
-                              <Edit2 className="w-3.5 h-3.5 text-emerald-600" />
-                              Editing Portion #{idx + 1}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => setEditingPortionIdx(null)}
-                              className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
-                            >
-                              <Check className="w-3.5 h-3.5" />
-                              <span>Done / Lock</span>
-                            </button>
-                          </div>
-
-                          {/* Quick Presets */}
-                          <div>
-                            <span className="block text-[11px] font-bold text-slate-600 mb-1">
-                              Quick Measurement Presets:
-                            </span>
-                            <div className="flex flex-wrap gap-1.5">
-                              {PORTION_PRESETS.map((preset, pIdx) => (
-                                <button
-                                  key={pIdx}
-                                  type="button"
-                                  onClick={() => applyPortionPreset(idx, preset)}
-                                  className={`px-2 py-1 text-[11px] font-bold rounded-lg border transition-all cursor-pointer ${
-                                    portion.portionName === preset.name ||
-                                    portion.unitMultiplier === preset.multiplier
-                                      ? "bg-emerald-100 text-emerald-900 border-emerald-400 font-black"
-                                      : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200"
-                                  }`}
-                                >
-                                  {preset.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Editable Fields */}
-                          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
-                            <div className="sm:col-span-4">
-                              <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                                Portion Name *
-                              </label>
-                              <input
-                                type="text"
-                                value={portion.portionName}
-                                onChange={(e) => handlePortionChange(idx, "portionName", e.target.value)}
-                                placeholder="e.g. 1/2 Plate, Full, Single"
-                                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                required
-                              />
-                            </div>
-
-                            <div className="sm:col-span-3">
-                              <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                                Measurement Multiplier
-                              </label>
-                              <div className="relative">
-                                <input
-                                  type="number"
-                                  step="0.05"
-                                  min="0.01"
-                                  value={portion.unitMultiplier}
-                                  onChange={(e) =>
-                                    handlePortionChange(
-                                      idx,
-                                      "unitMultiplier",
-                                      parseFloat(e.target.value) || 1.0
-                                    )
-                                  }
-                                  placeholder="1.0"
-                                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                  required
-                                />
-                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 pointer-events-none">
-                                  x stock
-                                </span>
-                              </div>
-                              <span className="text-[10px] text-slate-400 leading-none">
-                                {portion.unitMultiplier === 0.5
-                                  ? "Deducts 0.5 unit (Half plate)"
-                                  : portion.unitMultiplier === 0.25
-                                  ? "Deducts 0.25 unit (Quarter)"
-                                  : portion.unitMultiplier === 2.0
-                                  ? "Deducts 2 units (Double)"
-                                  : `Deducts ${portion.unitMultiplier} unit(s)`}
-                              </span>
-                            </div>
-
-                            <div className="sm:col-span-3">
-                              <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                                Price (₹) *
-                              </label>
-                              <div className="relative">
-                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                                  ₹
-                                </span>
-                                <input
-                                  type="number"
-                                  step="any"
-                                  min="0"
-                                  value={portion.price}
-                                  onChange={(e) =>
-                                    handlePortionChange(
-                                      idx,
-                                      "price",
-                                      parseFloat(e.target.value) || 0
-                                    )
-                                  }
-                                  placeholder="Price"
-                                  className="w-full pl-5 pr-2 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                  required
-                                />
-                              </div>
-                            </div>
-
-                            <div className="sm:col-span-2">
-                              <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                                Packing (₹)
-                              </label>
-                              <input
-                                type="number"
-                                step="any"
-                                min="0"
-                                value={portion.packingCharge || 0}
-                                onChange={(e) =>
-                                  handlePortionChange(
-                                    idx,
-                                    "packingCharge",
-                                    parseFloat(e.target.value) || 0
-                                  )
-                                }
-                                placeholder="0"
-                                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    }
-
-                    // Locked View Mode
-                    return (
-                      <div
-                        key={idx}
-                        className="bg-white p-2.5 rounded-xl border border-slate-200 hover:border-slate-300 transition-all flex items-center justify-between gap-2"
+                {/* Quick Add Presets for the selected Measurement Profile */}
+                <div>
+                  <span className="block text-[11px] font-bold text-slate-600 mb-1.5">
+                    ⚡ Quick Add Measurement Presets:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {activeProfile.presets.map((preset, pIdx) => (
+                      <button
+                        key={pIdx}
+                        type="button"
+                        onClick={() => handleAddPresetPortion(preset)}
+                        className="px-2.5 py-1 bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 text-xs font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
                       >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-black flex items-center justify-center shrink-0">
-                            {idx + 1}
+                        <Plus className="w-3 h-3 text-emerald-600" />
+                        <span>{preset.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Direct Editable Portion Rows */}
+                <div className="space-y-2 pt-1">
+                  {portions.map((portion, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end"
+                    >
+                      <div className="sm:col-span-4">
+                        <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                          Portion / Size Name *
+                        </label>
+                        <input
+                          type="text"
+                          value={portion.portionName}
+                          onChange={(e) => handlePortionChange(idx, "portionName", e.target.value)}
+                          placeholder="e.g. Full Plate, 1/2 Plate, 1 pc"
+                          className="w-full px-2.5 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                          required
+                        />
+                      </div>
+
+                      <div className="sm:col-span-3">
+                        <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                          Stock Multiplier
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            step="0.05"
+                            min="0.01"
+                            value={portion.unitMultiplier || ""}
+                            onChange={(e) =>
+                              handlePortionChange(
+                                idx,
+                                "unitMultiplier",
+                                parseFloat(e.target.value) || 0
+                              )
+                            }
+                            placeholder="1.0"
+                            className="w-full px-2.5 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            required
+                          />
+                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 pointer-events-none">
+                            x {foodUnitName}
                           </span>
-                          <div className="min-w-0">
-                            <div className="font-bold text-xs text-slate-900 truncate">
-                              {portion.portionName}
-                            </div>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-black rounded border border-emerald-200">
-                                📏 {portion.unitMultiplier}x Stock Deduction
-                              </span>
-                              {portion.packingCharge ? (
-                                <span className="text-[10px] text-slate-500 font-semibold">
-                                  +₹{portion.packingCharge} pack
-                                </span>
-                              ) : null}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 shrink-0">
-                          <div className="text-right">
-                            <span className="text-sm font-black text-slate-900">
-                              ₹{portion.price}
-                            </span>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => setEditingPortionIdx(idx)}
-                            className="px-2.5 py-1.5 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 border border-slate-200 cursor-pointer"
-                            title="Edit Portion"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                            <span>Edit</span>
-                          </button>
-
-                          {portions.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemovePortion(idx)}
-                              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                              title="Delete Portion"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
                         </div>
                       </div>
-                    );
-                  })}
+
+                      <div className="sm:col-span-3">
+                        <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                          Price (₹) *
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                            ₹
+                          </span>
+                          <input
+                            type="number"
+                            step="any"
+                            min="0"
+                            value={portion.price === 0 && !portion.portionName ? "" : portion.price}
+                            onChange={(e) =>
+                              handlePortionChange(
+                                idx,
+                                "price",
+                                parseFloat(e.target.value) || 0
+                              )
+                            }
+                            placeholder="0"
+                            className="w-full pl-6 pr-2.5 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2 flex items-center gap-2">
+                        <div className="flex-1">
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                            Pack (₹)
+                          </label>
+                          <input
+                            type="number"
+                            step="any"
+                            min="0"
+                            value={portion.packingCharge || 0}
+                            onChange={(e) =>
+                              handlePortionChange(
+                                idx,
+                                "packingCharge",
+                                parseFloat(e.target.value) || 0
+                              )
+                            }
+                            placeholder="0"
+                            className="w-full px-2 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                          />
+                        </div>
+
+                        {portions.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemovePortion(idx)}
+                            className="p-2 mb-0.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer shrink-0"
+                            title="Remove Portion"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -1262,13 +1353,13 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                   <div className="grid grid-cols-3 gap-3 pt-2">
                     <div>
                       <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                        Initial Stock
+                        Initial Stock Quantity
                       </label>
                       <input
                         type="number"
                         value={foodInitialStock}
                         onChange={(e) => setFoodInitialStock(e.target.value)}
-                        placeholder="30"
+                        placeholder="e.g. 50"
                         className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                       />
                     </div>
@@ -1280,7 +1371,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                         type="number"
                         value={foodMinThreshold}
                         onChange={(e) => setFoodMinThreshold(e.target.value)}
-                        placeholder="8"
+                        placeholder="e.g. 10"
                         className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                       />
                     </div>
