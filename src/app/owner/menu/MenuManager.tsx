@@ -1260,8 +1260,8 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                         <div className="relative">
                           <input
                             type="number"
-                            step="0.05"
-                            min="0.01"
+                            step="any"
+                            min="0.001"
                             value={portion.unitMultiplier || ""}
                             onChange={(e) =>
                               handlePortionChange(
@@ -1376,6 +1376,8 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                       </label>
                       <input
                         type="number"
+                        step="any"
+                        min="0"
                         value={foodInitialStock}
                         onChange={(e) => setFoodInitialStock(e.target.value)}
                         placeholder="e.g. 50"
@@ -1388,6 +1390,8 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                       </label>
                       <input
                         type="number"
+                        step="any"
+                        min="0"
                         value={foodMinThreshold}
                         onChange={(e) => setFoodMinThreshold(e.target.value)}
                         placeholder="e.g. 10"
