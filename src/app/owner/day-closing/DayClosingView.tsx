@@ -25,6 +25,7 @@ import {
   Settings
 } from "lucide-react";
 import { formatCurrency, formatDateTime, formatHumanStock } from "@/lib/format";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface StockSnapshotItem {
   foodName: string;
@@ -89,6 +90,7 @@ export default function DayClosingView({
   initialPreview,
   initialHistory,
 }: DayClosingViewProps) {
+  const { language, getFoodName, getCategoryName } = useLanguage();
   const [isClosed, setIsClosed] = useState(initialIsClosed);
   const [todayClosing, setTodayClosing] = useState<DayClosingData | null>(initialTodayClosing);
   const [preview, setPreview] = useState(initialPreview);
@@ -507,21 +509,21 @@ ${isClosed && todayClosing?.notes ? `📝 *Closing Notes:* ${todayClosing.notes}
                 {preview.stockSnapshot.map((item, idx) => (
                   <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
                     <td className="p-3 font-bold text-slate-800">
-                      <div>{item.foodName}</div>
+                      <div>{getFoodName({ name: item.foodName })}</div>
                     </td>
-                    <td className="p-3 text-slate-500 font-semibold">{item.category}</td>
+                    <td className="p-3 text-slate-500 font-semibold">{getCategoryName({ name: item.category })}</td>
                     <td className="p-3">
                       {item.dietary === "NON_VEG" ? (
                         <span className="inline-flex items-center text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-50 text-rose-800 border border-rose-200">
-                          🔴 Non-Veg
+                          {language === "ta" ? "🔴 அசைவம்" : "🔴 Non-Veg"}
                         </span>
                       ) : item.dietary === "EGG" ? (
                         <span className="inline-flex items-center text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
-                          🟡 Egg
+                          {language === "ta" ? "🟡 முட்டை" : "🟡 Egg"}
                         </span>
                       ) : (
                         <span className="inline-flex items-center text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-                          🟢 Veg
+                          {language === "ta" ? "🟢 சைவம்" : "🟢 Veg"}
                         </span>
                       )}
                     </td>
@@ -689,7 +691,7 @@ ${isClosed && todayClosing?.notes ? `📝 *Closing Notes:* ${todayClosing.notes}
                   const items: StockSnapshotItem[] = JSON.parse(selectedHistory.closingStockJson);
                   return items.map((item, i) => (
                     <div key={i} className="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl border border-slate-200/80">
-                      <span className="font-bold text-slate-800">{item.foodName} <span className="text-slate-400 font-normal">({item.category})</span></span>
+                      <span className="font-bold text-slate-800">{getFoodName({ name: item.foodName })} <span className="text-slate-400 font-normal">({getCategoryName({ name: item.category })})</span></span>
                       <span className="font-black text-slate-900 font-mono">{formatHumanStock(item.quantity, item.unitName)}</span>
                     </div>
                   ));

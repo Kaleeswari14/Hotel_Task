@@ -23,7 +23,7 @@ import {
   RotateCcw
 } from "lucide-react";
 import { formatCurrency, formatHumanStock } from "@/lib/format";
-import { autoTranslateToTamil } from "@/context/LanguageContext";
+import { autoTranslateToTamil, useLanguage } from "@/context/LanguageContext";
 
 interface Portion {
   id?: string;
@@ -211,6 +211,7 @@ const getProfileForCategory = (catName?: string): MeasurementProfile => {
 const ALL_SESSIONS = ["MORNING", "AFTERNOON", "SNACKS", "NIGHT"];
 
 export default function MenuManager({ initialCategories, initialFoods }: Props) {
+  const { isTamil, getFoodName, getCategoryName, getPortionName } = useLanguage();
   const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [foods, setFoods] = useState<FoodItem[]>(initialFoods);
 
@@ -729,7 +730,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                 : "bg-slate-100 hover:bg-slate-200 text-slate-700"
             }`}
           >
-            All Categories ({foods.length})
+            {isTamil ? "அனைத்து வகைகள்" : "All Categories"} ({foods.length})
           </button>
 
           {categories.map((cat) => {
@@ -745,7 +746,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                       : "bg-slate-100 hover:bg-slate-200 text-slate-700"
                   }`}
                 >
-                  {cat.name} ({count})
+                  {getCategoryName(cat)} ({count})
                 </button>
                 <button
                   type="button"
@@ -768,7 +769,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
         <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pt-2 border-t border-slate-100">
           <span className="text-[11px] font-bold text-slate-400 uppercase mr-1 flex items-center gap-1 shrink-0">
             <Clock className="w-3 h-3 text-slate-400" />
-            <span>Session:</span>
+            <span>{isTamil ? "நேரம்:" : "Session:"}</span>
           </span>
 
           <button
@@ -780,7 +781,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >
-            All Times
+            {isTamil ? "அனைத்து நேரம்" : "All Times"}
           </button>
 
           {MEAL_SESSIONS.map((session) => (
@@ -795,7 +796,17 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
               }`}
             >
               <span>{session.icon}</span>
-              <span>{session.label}</span>
+              <span>
+                {isTamil
+                  ? session.id === "MORNING"
+                    ? "காலை உணவு"
+                    : session.id === "AFTERNOON"
+                    ? "மதிய உணவு"
+                    : session.id === "SNACKS"
+                    ? "மாலை சிற்றுண்டி"
+                    : "இரவு உணவு"
+                  : session.label}
+              </span>
             </button>
           ))}
         </div>
@@ -817,19 +828,19 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-[10px] font-black uppercase text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
-                    {item.category.name}
+                    {getCategoryName(item.category)}
                   </span>
                   {item.dietary === "NON_VEG" ? (
                     <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">
-                      🔴 Non-Veg
+                      🔴 {isTamil ? "அசைவம்" : "Non-Veg"}
                     </span>
                   ) : item.dietary === "EGG" ? (
                     <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
-                      🟡 Egg
+                      🟡 {isTamil ? "முட்டை" : "Egg"}
                     </span>
                   ) : (
                     <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      🟢 Veg
+                      🟢 {isTamil ? "சைவம்" : "Veg"}
                     </span>
                   )}
                 </div>
@@ -854,15 +865,10 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                 </div>
               </div>
 
-              {/* Dish Name */}
+              {/* Dish Name - Pure Single Language */}
               <div>
-                <h3 className="font-black text-slate-900 text-base leading-tight flex items-baseline flex-wrap gap-1">
-                  <span>{item.name}</span>
-                  {(item.nameTamil || autoTranslateToTamil(item.name)) && (
-                    <span className="text-xs font-bold text-emerald-700 font-sans">
-                      ({item.nameTamil || autoTranslateToTamil(item.name)})
-                    </span>
-                  )}
+                <h3 className="font-black text-slate-900 text-base leading-tight">
+                  {getFoodName(item)}
                 </h3>
                 {item.description && (
                   <p className="text-xs text-slate-500 mt-1 line-clamp-2">
@@ -874,7 +880,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
               {/* Portions & Pricing List */}
               <div className="space-y-1.5 pt-2 border-t border-slate-100">
                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  Portions & Prices:
+                  {isTamil ? "அளவுகள் & விலைகள்:" : "Portions & Prices:"}
                 </div>
                 <div className="space-y-1">
                   {item.portions.map((p, pIdx) => (
@@ -882,7 +888,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                       key={pIdx}
                       className="flex items-center justify-between text-xs py-1 px-2 rounded-lg bg-slate-50 border border-slate-100"
                     >
-                      <span className="font-semibold text-slate-700">{p.portionName}</span>
+                      <span className="font-semibold text-slate-700">{getPortionName(p.portionName)}</span>
                       <span className="font-black text-slate-900">{formatCurrency(p.price)}</span>
                     </div>
                   ))}
@@ -894,11 +900,11 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                 <div>
                   {isNoTracking ? (
                     <span className="text-[11px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md">
-                      ♾️ Unlimited Stock
+                      ♾️ {isTamil ? "உடனடி தயாரிப்பு" : "Unlimited Stock"}
                     </span>
                   ) : item.stock ? (
                     <div className="text-xs font-bold">
-                      <span className="text-slate-400 text-[11px]">Stock: </span>
+                      <span className="text-slate-400 text-[11px]">{isTamil ? "இருப்பு: " : "Stock: "}</span>
                       <span
                         className={
                           isOutOfStock
@@ -1127,7 +1133,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                   >
                     {categories.map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.name} {c.nameTamil ? `(${c.nameTamil})` : ""}
+                        {getCategoryName(c)}
                       </option>
                     ))}
                   </select>

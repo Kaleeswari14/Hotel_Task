@@ -11,7 +11,7 @@ interface LanguageContextType {
   t: (key: string) => string;
   getFoodName: (food: { name: string; nameTamil?: string | null }) => string;
   getCategoryName: (cat: { name: string; nameTamil?: string | null }) => string;
-  getPortionName: (portionName: string) => string;
+  getPortionName: (portion: string | { portionName: string; portionNameTamil?: string | null }) => string;
 }
 
 const translations: Record<string, { en: string; ta: string }> = {
@@ -367,7 +367,7 @@ const LanguageContext = createContext<LanguageContextType>({
   t: (key: string) => key,
   getFoodName: (food) => food.name,
   getCategoryName: (cat) => cat.name,
-  getPortionName: (p) => p,
+  getPortionName: (p) => (typeof p === "string" ? p : p?.portionName || ""),
 });
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -421,9 +421,12 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return cat.name;
   };
 
-  const getPortionName = (portionName: string): string => {
-    if (!isTamil) return portionName;
-    const lower = portionName.toLowerCase().trim();
+  const getPortionName = (portion: string | { portionName: string; portionNameTamil?: string | null }): string => {
+    const pName = typeof portion === "string" ? portion : (portion?.portionName || "");
+    const pTamil = typeof portion === "string" ? null : portion?.portionNameTamil;
+    if (!isTamil) return pName;
+    if (pTamil && pTamil.trim().length > 0) return pTamil;
+    const lower = pName.toLowerCase().trim();
     if (lower === "full" || lower === "full plate") return "முழு பிளேட்";
     if (lower === "half" || lower === "half / 1/2 plate" || lower === "1/2 plate") return "அரை பிளேட்";
     if (lower === "quarter" || lower === "quarter / 1/4 plate" || lower === "1/4 plate") return "கால் பிளேட்";
@@ -437,7 +440,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (lower === "1 kg") return "1 கிலோ";
     if (lower === "500 grams (1/2 kg)" || lower === "1/2 kg") return "1/2 கிலோ";
     if (lower === "250 grams (1/4 kg)" || lower === "1/4 kg") return "1/4 கிலோ";
-    return portionName;
+    return pName;
   };
 
   return (

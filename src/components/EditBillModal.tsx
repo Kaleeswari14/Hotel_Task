@@ -16,6 +16,7 @@ import {
   AlertTriangle
 } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface BillItem {
   id?: string;
@@ -54,6 +55,7 @@ export default function EditBillModal({
   onClose,
   onSaveSuccess,
 }: EditBillModalProps) {
+  const { getFoodName, getPortionName } = useLanguage();
   const [orderType, setOrderType] = useState(bill.orderType);
   const [orderReference, setOrderReference] = useState(bill.orderReference);
   const [customerName, setCustomerName] = useState(bill.customerName || "");
@@ -302,7 +304,7 @@ export default function EditBillModal({
                       key={food.id}
                       className="p-2 bg-white rounded-xl border border-slate-200 text-xs flex flex-col justify-between gap-1"
                     >
-                      <span className="font-bold text-slate-900">{food.name}</span>
+                      <span className="font-bold text-slate-900">{getFoodName({ name: food.name, nameTamil: (food as any).nameTamil })}</span>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {food.portions.map((p: any) => (
                           <button
@@ -311,7 +313,7 @@ export default function EditBillModal({
                             onClick={() => addFoodPortion(food, p)}
                             className="px-2 py-0.5 bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 rounded text-[10px] font-bold transition-all"
                           >
-                            + {p.portionName} (₹{p.price})
+                            + {getPortionName({ portionName: p.portionName, portionNameTamil: p.portionNameTamil })} (₹{p.price})
                           </button>
                         ))}
                       </div>
@@ -329,9 +331,9 @@ export default function EditBillModal({
                   className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs"
                 >
                   <div className="flex-1 min-w-0 pr-2">
-                    <div className="font-bold text-slate-900 truncate">{item.foodName}</div>
+                    <div className="font-bold text-slate-900 truncate">{getFoodName({ name: item.foodName, nameTamil: (item as any).foodNameTamil })}</div>
                     <div className="text-[11px] text-slate-500">
-                      {item.portionName} &bull; ₹{item.unitPrice} each
+                      {getPortionName({ portionName: item.portionName, portionNameTamil: (item as any).portionNameTamil })} &bull; ₹{item.unitPrice} each
                     </div>
                   </div>
 

@@ -19,6 +19,7 @@ import {
   Zap
 } from "lucide-react";
 import { formatHumanStock } from "@/lib/format";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface StockItem {
   id: string;
@@ -29,9 +30,10 @@ interface StockItem {
   foodItem: {
     id: string;
     name: string;
+    nameTamil?: string | null;
     categoryId: string;
     stockType?: string;
-    category: { id: string; name: string };
+    category: { id: string; name: string; nameTamil?: string | null };
   };
 }
 
@@ -53,6 +55,7 @@ const STANDARD_UNITS = [
 ];
 
 export default function StockManager({ initialStock }: StockManagerProps) {
+  const { isTamil, getFoodName, getCategoryName } = useLanguage();
   const [stockList, setStockList] = useState<StockItem[]>(initialStock);
   const [filter, setFilter] = useState<"all" | "low" | "out" | "ok" | "unlimited">("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -418,7 +421,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
               }`}
             >
-              {c.name}
+              {getCategoryName(c)}
             </button>
           ))}
         </div>
@@ -429,7 +432,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search dish name..."
+            placeholder={isTamil ? "உணவின் பெயர் தேடுங்கள்..." : "Search dish name..."}
             className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
@@ -441,11 +444,11 @@ export default function StockManager({ initialStock }: StockManagerProps) {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-[11px] uppercase font-bold text-slate-500 tracking-wider">
-                <th className="p-4">Dish &amp; Category</th>
-                <th className="p-4">Current Stock</th>
-                <th className="p-4">Alert Limit</th>
-                <th className="p-4">Status</th>
-                <th className="p-4 text-right">Batch &amp; Stock Actions</th>
+                <th className="p-4">{isTamil ? "உணவு & வகை" : "Dish & Category"}</th>
+                <th className="p-4">{isTamil ? "நடப்பு இருப்பு" : "Current Stock"}</th>
+                <th className="p-4">{isTamil ? "குறைந்தபட்ச அளவு" : "Alert Limit"}</th>
+                <th className="p-4">{isTamil ? "நிலை" : "Status"}</th>
+                <th className="p-4 text-right">{isTamil ? "இருப்பு நடவடிக்கைகள்" : "Batch & Stock Actions"}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">
@@ -453,8 +456,8 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                 const isUnlimited = isItemUnlimited(item);
                 const isOut = !isUnlimited && item.currentQuantity <= 0;
                 const isLow = !isUnlimited && item.currentQuantity > 0 && item.currentQuantity <= item.minThreshold;
-                const dishName = item.foodItem.name;
-                const catName = item.foodItem.category.name;
+                const dishName = getFoodName(item.foodItem);
+                const catName = getCategoryName(item.foodItem.category);
 
                 return (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">

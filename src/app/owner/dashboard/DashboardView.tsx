@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { formatCurrency, formatDateTime, formatHumanStock } from "@/lib/format";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface DashboardViewProps {
   user: { name: string; username: string; role: string } | null;
@@ -70,6 +71,7 @@ export default function DashboardView({
   todayNonVegCount = 0,
   todayEggCount = 0,
 }: DashboardViewProps) {
+  const { isTamil, getFoodName } = useLanguage();
   return (
     <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-6">
       {/* Header */}
@@ -394,19 +396,19 @@ export default function DashboardView({
                     <div>
                       <div className="flex items-center gap-1.5">
                         <span className="font-extrabold text-slate-900 text-xs sm:text-sm">
-                          {item.name}
+                          {getFoodName({ name: item.name, nameTamil: (item as any).nameTamil })}
                         </span>
                         {item.dietary === "NON_VEG" ? (
                           <span className="inline-flex items-center text-[9px] font-black px-1.5 py-0.2 rounded bg-rose-50 text-rose-700 border border-rose-200">
-                            🔴 Non-Veg
+                            🔴 {isTamil ? "அசைவம்" : "Non-Veg"}
                           </span>
                         ) : item.dietary === "EGG" ? (
                           <span className="inline-flex items-center text-[9px] font-black px-1.5 py-0.2 rounded bg-amber-50 text-amber-800 border border-amber-200">
-                            🟡 Egg
+                            🟡 {isTamil ? "முட்டை" : "Egg"}
                           </span>
                         ) : (
                           <span className="inline-flex items-center text-[9px] font-black px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            🟢 Veg
+                            🟢 {isTamil ? "சைவம்" : "Veg"}
                           </span>
                         )}
                       </div>

@@ -29,6 +29,7 @@ import {
   KeyRound
 } from "lucide-react";
 import { formatCurrency, formatDateTime } from "@/lib/format";
+import { useLanguage } from "@/context/LanguageContext";
 import PaymentModal from "@/components/PaymentModal";
 import ThermalReceipt from "@/components/ThermalReceipt";
 import CancelBillModal from "@/components/CancelBillModal";
@@ -141,6 +142,7 @@ function getOrderBadge(orderType: string, orderReference: string) {
 }
 
 export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) {
+  const { isTamil, getFoodName, getPortionName } = useLanguage();
   const [bills, setBills] = useState<Bill[]>(initialBills);
   const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "PAID" | "CANCELLED" | "ALL">("ACTIVE");
   const [typeFilter, setTypeFilter] = useState<"ALL" | "TABLE" | "TOKEN" | "PARCEL">("ALL");
@@ -346,7 +348,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                 : "bg-slate-100 text-slate-700 hover:bg-slate-200"
             }`}
           >
-            ⏳ Unpaid / Active ({activeUnpaidCount})
+            {isTamil ? `⏳ நிலுவை / நடப்பு (${activeUnpaidCount})` : `⏳ Unpaid / Active (${activeUnpaidCount})`}
           </button>
           <button
             onClick={() => setStatusFilter("PAID")}
@@ -356,7 +358,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                 : "bg-slate-100 text-slate-700 hover:bg-slate-200"
             }`}
           >
-            ✅ Paid Bills ({bills.filter((b) => b.status === "PAID").length})
+            {isTamil ? `✅ கட்டிய பில்கள் (${bills.filter((b) => b.status === "PAID").length})` : `✅ Paid Bills (${bills.filter((b) => b.status === "PAID").length})`}
           </button>
           <button
             onClick={() => setStatusFilter("CANCELLED")}
@@ -366,7 +368,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                 : "bg-slate-100 text-slate-700 hover:bg-slate-200"
             }`}
           >
-            🚫 Cancelled ({bills.filter((b) => b.status === "CANCELLED").length})
+            {isTamil ? `🚫 ரத்து பில்கள் (${bills.filter((b) => b.status === "CANCELLED").length})` : `🚫 Cancelled (${bills.filter((b) => b.status === "CANCELLED").length})`}
           </button>
           <button
             onClick={() => setStatusFilter("ALL")}
@@ -376,7 +378,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                 : "bg-slate-100 text-slate-700 hover:bg-slate-200"
             }`}
           >
-            All Bills ({bills.length})
+            {isTamil ? `அனைத்து பில்கள் (${bills.length})` : `All Bills (${bills.length})`}
           </button>
         </div>
 
@@ -387,10 +389,10 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
             onChange={(e) => setTypeFilter(e.target.value as any)}
             className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
           >
-            <option value="ALL">All Types</option>
-            <option value="TABLE">🪑 Tables</option>
-            <option value="TOKEN">🎟️ Tokens</option>
-            <option value="PARCEL">🥡 Parcels</option>
+            <option value="ALL">{isTamil ? "அனைத்து வகைகள்" : "All Types"}</option>
+            <option value="TABLE">{isTamil ? "🪑 டேபிள்" : "🪑 Tables"}</option>
+            <option value="TOKEN">{isTamil ? "🎟️ டோக்கன்" : "🎟️ Tokens"}</option>
+            <option value="PARCEL">{isTamil ? "🥡 பார்சல்" : "🥡 Parcels"}</option>
           </select>
 
           <div className="relative flex-1 md:w-64">
@@ -399,7 +401,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search Bill # or Table..."
+              placeholder={isTamil ? "பில் # அல்லது டேபிள் தேடுங்கள்..." : "Search Bill # or Table..."}
               className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900"
             />
           </div>
@@ -521,8 +523,8 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                       className="flex items-center justify-between text-xs py-1.5 px-2.5 bg-slate-50 rounded-xl border border-slate-100/80"
                     >
                       <div className="font-semibold text-slate-800">
-                        {item.foodName}{" "}
-                        <span className="text-emerald-700 font-bold">({item.portionName})</span>{" "}
+                        {getFoodName({ name: item.foodName, nameTamil: (item as any).foodNameTamil })}{" "}
+                        <span className="text-emerald-700 font-bold">({getPortionName(item.portionName)})</span>{" "}
                         &times; <strong className="text-slate-900">{item.quantity}</strong>
                       </div>
                       <div className="font-black text-slate-800">
@@ -836,9 +838,11 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                     className="flex items-center justify-between text-xs p-2.5 bg-slate-50 rounded-xl border border-slate-100"
                   >
                     <div>
-                      <div className="font-bold text-slate-800">{item.foodName}</div>
+                      <div className="font-bold text-slate-800">
+                        {getFoodName({ name: item.foodName, nameTamil: (item as any).foodNameTamil })}
+                      </div>
                       <div className="text-[11px] text-slate-500">
-                        {item.portionName} &bull; {formatCurrency(item.unitPrice)} &times; {item.quantity}
+                        {getPortionName(item.portionName)} &bull; {formatCurrency(item.unitPrice)} &times; {item.quantity}
                       </div>
                     </div>
                     <div className="font-black text-slate-900 text-sm">
