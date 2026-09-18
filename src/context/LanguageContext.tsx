@@ -93,6 +93,273 @@ const translations: Record<string, { en: string; ta: string }> = {
   "action.filter": { en: "Filter", ta: "வடிகட்டு" },
 };
 
+// Exact food translation dictionary
+const EXACT_FOOD_MAP: Record<string, string> = {
+  // Rice & Meals
+  "rice": "சாதம்",
+  "white rice": "வெள்ளை சாதம்",
+  "boiled rice": "புழுங்கல் அரிசி சாதம்",
+  "tomato rice": "தக்காளி சாதம்",
+  "tiommota rice": "தக்காளி சாதம்",
+  "lemon rice": "எலுமிச்சை சாதம்",
+  "curd rice": "தயிர் சாதம்",
+  "sambar rice": "சாம்பார் சாதம்",
+  "rasam rice": "ரசம் சாதம்",
+  "tamarind rice": "புளியோதரை",
+  "variety rice": "கலவை சாதம்",
+  "fried rice": "ஃப்ரைட் ரைஸ்",
+  "veg fried rice": "சைவ ஃப்ரைட் ரைஸ்",
+  "egg fried rice": "முட்டை ஃப்ரைட் ரைஸ்",
+  "chicken fried rice": "சிக்கன் ஃப்ரைட் ரைஸ்",
+  "schezwan fried rice": "செஸ்வான் ஃப்ரைட் ரைஸ்",
+  "noodles": "நூடுல்ஸ்",
+  "veg noodles": "சைவ நூடுல்ஸ்",
+  "egg noodles": "முட்டை நூடுல்ஸ்",
+  "chicken noodles": "சிக்கன் நூடுல்ஸ்",
+  "meals": "சாப்பாடு",
+  "veg meals": "சைவ சாப்பாடு",
+  "non veg meals": "அசைவ சாப்பாடு",
+  "full meals": "முழு சாப்பாடு",
+  "south indian meals": "தென்னிந்திய சாப்பாடு",
+
+  // Biriyani
+  "biriyani": "பிரியாணி",
+  "briyani": "பிரியாணி",
+  "chicken biriyani": "சிக்கன் பிரியாணி",
+  "mutton biriyani": "மட்டன் பிரியாணி",
+  "egg biriyani": "முட்டை பிரியாணி",
+  "veg biriyani": "சைவ பிரியாணி",
+  "beef biriyani": "பீஃப் பிரியாணி",
+  "fish biriyani": "மீன் பிரியாணி",
+  "prawn biriyani": "இறால் பிரியாணி",
+  "kuska": "குஸ்கா",
+  "empty biriyani": "குஸ்கா",
+
+  // Tiffin & Breakfast
+  "idly": "இட்லி",
+  "idli": "இட்லி",
+  "dosa": "தோசை",
+  "dosai": "தோசை",
+  "plain dosa": "சாதா தோசை",
+  "roast": "ரோஸ்ட்",
+  "ghee roast": "நெய் ரோஸ்ட்",
+  "ghee dosa": "நெய் தோசை",
+  "masala dosa": "மசாலா தோசை",
+  "podi dosa": "பொடி தோசை",
+  "onion dosa": "வெங்காய தோசை",
+  "egg dosa": "முட்டை தோசை",
+  "rava dosa": "ரவா தோசை",
+  "uttapam": "ஊத்தப்பம்",
+  "oothappam": "ஊத்தப்பம்",
+  "onion uttapam": "வெங்காய ஊத்தப்பம்",
+  "poori": "பூரி",
+  "puri": "பூரி",
+  "poori masala": "பூரி மசாலா",
+  "pongal": "பொங்கல்",
+  "ven pongal": "வெண் பொங்கல்",
+  "vada": "வடை",
+  "vadai": "வடை",
+  "sambar vada": "சாம்பார் வடை",
+  "rasam vada": "ரசம் வடை",
+  "curd vada": "தயிர் வடை",
+  "parotta": "பரோட்டா",
+  "parotha": "பரோட்டா",
+  "kothu parotta": "கொத்து பரோட்டா",
+  "egg kothu parotta": "முட்டை கொத்து பரோட்டா",
+  "chicken kothu parotta": "சிக்கன் கொத்து பரோட்டா",
+  "chilly parotta": "சில்லி பரோட்டா",
+  "chapati": "சப்பாத்தி",
+  "chappathi": "சப்பாத்தி",
+  "roti": "ரொட்டி",
+  "naan": "நான்",
+  "butter naan": "பட்டர் நான்",
+  "garlic naan": "பூண்டு நான்",
+  "kulcha": "குல்ச்சா",
+
+  // Starters & Gravies
+  "chicken 65": "சிக்கன் 65",
+  "chilli chicken": "சில்லி சிக்கன்",
+  "pepper chicken": "மிளகு சிக்கன்",
+  "chicken fry": "சிக்கன் வறுவல்",
+  "chicken gravy": "சிக்கன் குழம்பு",
+  "chicken curry": "சிக்கன் கறி",
+  "chicken masala": "சிக்கன் மசாலா",
+  "butter chicken": "பட்டர் சிக்கன்",
+  "mutton fry": "மட்டன் சுக்கா",
+  "mutton gravy": "மட்டன் குழம்பு",
+  "mutton chukka": "மட்டன் சுக்கா",
+  "fish fry": "மீன் வறுவல்",
+  "fish curry": "மீன் குழம்பு",
+  "prawn fry": "இறால் வறுவல்",
+  "prawn gravy": "இறால் தொக்கு",
+  "egg fry": "முட்டை வறுவல்",
+  "egg podimas": "முட்டை பொடிமாஸ்",
+  "omelette": "ஆம்லெட்",
+  "omlet": "ஆம்லெட்",
+  "half boil": "ஹாஃப் பாயில்",
+  "egg gravy": "முட்டை குழம்பு",
+  "paneer butter masala": "பன்னீர் பட்டர் மசாலா",
+  "paneer tikka": "பன்னீர் டிக்கா",
+  "chilli paneer": "சில்லி பன்னீர்",
+  "mushroom fry": "காளான் வறுவல்",
+  "mushroom gravy": "காளான் குழம்பு",
+  "chilli mushroom": "சில்லி காளான்",
+  "gobi 65": "கோபி 65",
+  "gobi manchurian": "கோபி மஞ்சூரியன்",
+  "chilli gobi": "சில்லி கோபி",
+
+  // Drinks & Beverages
+  "tea": "டீ",
+  "coffee": "காபி",
+  "filter coffee": "ஃபில்டர் காபி",
+  "black tea": "பிளாக் டீ",
+  "green tea": "கிரீன் டீ",
+  "lemon tea": "லெமன் டீ",
+  "milk": "பால்",
+  "badam milk": "பாதாம் பால்",
+  "boost": "பூஸ்ட்",
+  "horlicks": "ஹார்லிக்ஸ்",
+  "juice": "ஜூஸ்",
+  "mango juice": "மாம்பழ ஜூஸ்",
+  "apple juice": "ஆப்பிள் ஜூஸ்",
+  "orange juice": "ஆரஞ்சு ஜூஸ்",
+  "sweet lime juice": "சாத்துக்குடி ஜூஸ்",
+  "mosambi juice": "சாத்துக்குடி ஜூஸ்",
+  "pomegranate juice": "மாதுளை ஜூஸ்",
+  "watermelon juice": "தர்பூசணி ஜூஸ்",
+  "pineapple juice": "அன்னாசி ஜூஸ்",
+  "lemon juice": "எலுமிச்சை ஜூஸ்",
+  "lime juice": "எலுமிச்சை ஜூஸ்",
+  "mint lime": "புதினா லெமன்",
+  "fresh juice": "ஃபிரஷ் ஜூஸ்",
+  "rose milk": "ரோஸ் மில்க்",
+  "nannari sarbath": "நன்னாரி சர்பத்",
+  "lassi": "லஸ்ஸி",
+  "sweet lassi": "இனிப்பு லஸ்ஸி",
+  "butter milk": "மோர்",
+  "water bottle": "தண்ணீர் பாட்டில்",
+  "mineral water": "தண்ணீர் பாட்டில்",
+
+  // Categories
+  "drinks": "குளிர் பானங்கள்",
+  "beverages": "பானங்கள்",
+  "desserts": "இனிப்புகள்",
+  "sweets": "இனிப்புகள்",
+  "tiffin": "டிபன்",
+  "breakfast": "காலை உணவு",
+  "lunch": "மதிய உணவு",
+  "dinner": "இரவு உணவு",
+  "snacks": "சிற்றுண்டி",
+  "starters": "ஸ்டார்ட்டர்ஸ்",
+};
+
+// Word-by-word token translator
+const WORD_MAP: Record<string, string> = {
+  "chicken": "சிக்கன்",
+  "mutton": "மட்டன்",
+  "fish": "மீன்",
+  "prawn": "இறால்",
+  "prawns": "இறால்",
+  "egg": "முட்டை",
+  "veg": "சைவ",
+  "non-veg": "அசைவ",
+  "paneer": "பன்னீர்",
+  "mushroom": "காளான்",
+  "gobi": "கோபி",
+  "biriyani": "பிரியாணி",
+  "briyani": "பிரியாணி",
+  "rice": "சாதம்",
+  "fried": "ஃப்ரைட்",
+  "noodles": "நூடுல்ஸ்",
+  "parotta": "பரோட்டா",
+  "parotha": "பரோட்டா",
+  "dosa": "தோசை",
+  "dosai": "தோசை",
+  "roast": "ரோஸ்ட்",
+  "idly": "இட்லி",
+  "idli": "இட்லி",
+  "vada": "வடை",
+  "vadai": "வடை",
+  "poori": "பூரி",
+  "puri": "பூரி",
+  "pongal": "பொங்கல்",
+  "chapati": "சப்பாத்தி",
+  "chappathi": "சப்பாத்தி",
+  "meals": "சாப்பாடு",
+  "curry": "குழம்பு",
+  "gravy": "குழம்பு",
+  "fry": "வறுவல்",
+  "sukka": "சுக்கா",
+  "chukka": "சுக்கா",
+  "masala": "மசாலா",
+  "chilli": "சில்லி",
+  "pepper": "மிளகு",
+  "garlic": "பூண்டு",
+  "ginger": "இஞ்சி",
+  "onion": "வெங்காயம்",
+  "tomato": "தக்காளி",
+  "tiommota": "தக்காளி",
+  "curd": "தயிர்",
+  "sambar": "சாம்பார்",
+  "rasam": "ரசம்",
+  "lemon": "எலுமிச்சை",
+  "mango": "மாம்பழ",
+  "apple": "ஆப்பிள்",
+  "orange": "ஆரஞ்சு",
+  "banana": "வாழைப்பழ",
+  "grape": "திராட்சை",
+  "grapes": "திராட்சை",
+  "watermelon": "தர்பூசணி",
+  "pomegranate": "மாதுளை",
+  "pineapple": "அன்னாசி",
+  "juice": "ஜூஸ்",
+  "shake": "ஷேக்",
+  "milkshake": "மில்க் ஷேக்",
+  "tea": "டீ",
+  "coffee": "காபி",
+  "milk": "பால்",
+  "water": "தண்ணீர்",
+  "soup": "சூப்",
+  "roti": "ரொட்டி",
+  "naan": "நான்",
+  "butter": "பட்டர்",
+  "ghee": "நெய்",
+  "drinks": "பானங்கள்",
+  "beverages": "பானங்கள்",
+  "desserts": "இனிப்புகள்",
+  "sweets": "இனிப்புகள்",
+  "tiffin": "டிபன்",
+  "breakfast": "காலை உணவு",
+  "lunch": "மதிய உணவு",
+  "dinner": "இரவு உணவு",
+  "snacks": "சிற்றுண்டி",
+};
+
+/**
+ * Automatically translates English food dish names or categories to Tamil
+ */
+export function autoTranslateToTamil(englishName: string): string {
+  if (!englishName || !englishName.trim()) return "";
+  const normalized = englishName.trim().toLowerCase();
+
+  // 1. Exact match in dictionary
+  if (EXACT_FOOD_MAP[normalized]) {
+    return EXACT_FOOD_MAP[normalized];
+  }
+
+  // 2. Token-by-token word translation
+  const words = normalized.split(/\s+/);
+  const translatedWords = words.map((w) => WORD_MAP[w] || w);
+  const joined = translatedWords.join(" ");
+
+  // If at least one word was translated to Tamil, return the joined string
+  if (translatedWords.some((w, i) => w !== words[i])) {
+    return joined;
+  }
+
+  return englishName;
+}
+
 const LanguageContext = createContext<LanguageContextType>({
   language: "en",
   setLanguage: () => {},
@@ -136,14 +403,20 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const getFoodName = (food: { name: string; nameTamil?: string | null }): string => {
     if (isTamil) {
-      return (food.nameTamil && food.nameTamil.trim().length > 0) ? food.nameTamil : food.name;
+      if (food.nameTamil && food.nameTamil.trim().length > 0) {
+        return food.nameTamil;
+      }
+      return autoTranslateToTamil(food.name);
     }
     return food.name;
   };
 
   const getCategoryName = (cat: { name: string; nameTamil?: string | null }): string => {
     if (isTamil) {
-      return (cat.nameTamil && cat.nameTamil.trim().length > 0) ? cat.nameTamil : cat.name;
+      if (cat.nameTamil && cat.nameTamil.trim().length > 0) {
+        return cat.nameTamil;
+      }
+      return autoTranslateToTamil(cat.name);
     }
     return cat.name;
   };
@@ -151,14 +424,19 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const getPortionName = (portionName: string): string => {
     if (!isTamil) return portionName;
     const lower = portionName.toLowerCase().trim();
-    if (lower === "full") return "முழு";
-    if (lower === "half") return "அரை";
-    if (lower === "quarter") return "கால்";
-    if (lower === "regular") return "சாதாரண";
-    if (lower === "plate" || lower === "plates") return "பிளேட்";
+    if (lower === "full" || lower === "full plate") return "முழு பிளேட்";
+    if (lower === "half" || lower === "half / 1/2 plate" || lower === "1/2 plate") return "அரை பிளேட்";
+    if (lower === "quarter" || lower === "quarter / 1/4 plate" || lower === "1/4 plate") return "கால் பிளேட்";
+    if (lower === "regular" || lower === "regular cup" || lower === "regular bowl") return "சாதாரண";
+    if (lower === "plate" || lower === "plates" || lower === "1 plate / set") return "பிளேட்";
     if (lower === "cup" || lower === "cups") return "கப்";
-    if (lower === "set" || lower === "sets") return "செட்";
+    if (lower === "set" || lower === "sets" || lower === "set (2 pcs)") return "செட் (2)";
+    if (lower === "set (3 pcs)") return "செட் (3)";
+    if (lower === "single piece" || lower === "single") return "ஒரு எண்";
     if (lower === "nos" || lower === "no") return "எண்";
+    if (lower === "1 kg") return "1 கிலோ";
+    if (lower === "500 grams (1/2 kg)" || lower === "1/2 kg") return "1/2 கிலோ";
+    if (lower === "250 grams (1/4 kg)" || lower === "1/4 kg") return "1/4 கிலோ";
     return portionName;
   };
 

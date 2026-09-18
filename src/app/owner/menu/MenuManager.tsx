@@ -23,6 +23,7 @@ import {
   RotateCcw
 } from "lucide-react";
 import { formatCurrency, formatHumanStock } from "@/lib/format";
+import { autoTranslateToTamil } from "@/context/LanguageContext";
 
 interface Portion {
   id?: string;
@@ -221,12 +222,14 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
   const [catModalOpen, setCatModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categoryName, setCategoryName] = useState("");
+  const [categoryNameTamil, setCategoryNameTamil] = useState("");
   const [categoryOrder, setCategoryOrder] = useState("0");
 
   // Food Item Modal State
   const [foodModalOpen, setFoodModalOpen] = useState(false);
   const [editingFood, setEditingFood] = useState<FoodItem | null>(null);
   const [foodName, setFoodName] = useState("");
+  const [foodNameTamil, setFoodNameTamil] = useState("");
   const [foodCategory, setFoodCategory] = useState(categories[0]?.id || "");
   const [measurementProfileId, setMeasurementProfileId] = useState<string>("PLATES_RICE");
   const [foodDescription, setFoodDescription] = useState("");
@@ -391,6 +394,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
   const openAddCategoryModal = () => {
     setEditingCategory(null);
     setCategoryName("");
+    setCategoryNameTamil("");
     setCategoryOrder(String(categories.length + 1));
     setCatModalOpen(true);
   };
@@ -399,6 +403,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
   const openEditCategoryModal = (cat: Category) => {
     setEditingCategory(cat);
     setCategoryName(cat.name);
+    setCategoryNameTamil(cat.nameTamil || autoTranslateToTamil(cat.name));
     setCategoryOrder(String(cat.displayOrder || 0));
     setCatModalOpen(true);
   };
@@ -421,7 +426,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: categoryName.trim(),
-          nameTamil: null,
+          nameTamil: categoryNameTamil.trim() || autoTranslateToTamil(categoryName.trim()) || null,
           displayOrder: parseInt(categoryOrder, 10) || 0,
         }),
       });
@@ -467,6 +472,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
 
     setEditingFood(null);
     setFoodName("");
+    setFoodNameTamil("");
     setFoodCategory(firstCat?.id || "");
     setMeasurementProfileId(initialProf.id);
     setFoodDescription("");
@@ -493,6 +499,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
   const openEditFoodModal = (food: FoodItem) => {
     setEditingFood(food);
     setFoodName(food.name);
+    setFoodNameTamil(food.nameTamil || autoTranslateToTamil(food.name));
     setFoodCategory(food.categoryId);
     const cat = categories.find((c) => c.id === food.categoryId);
     const prof = getProfileForCategory(cat?.name);
@@ -557,7 +564,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
     try {
       const payload = {
         name: foodName.trim(),
-        nameTamil: null,
+        nameTamil: foodNameTamil.trim() || autoTranslateToTamil(foodName.trim()) || null,
         categoryId: foodCategory,
         description: foodDescription.trim() || null,
         imageUrl: null,
@@ -849,8 +856,13 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
 
               {/* Dish Name */}
               <div>
-                <h3 className="font-black text-slate-900 text-base leading-tight">
-                  {item.name}
+                <h3 className="font-black text-slate-900 text-base leading-tight flex items-baseline flex-wrap gap-1">
+                  <span>{item.name}</span>
+                  {(item.nameTamil || autoTranslateToTamil(item.name)) && (
+                    <span className="text-xs font-bold text-emerald-700 font-sans">
+                      ({item.nameTamil || autoTranslateToTamil(item.name)})
+                    </span>
+                  )}
                 </h3>
                 {item.description && (
                   <p className="text-xs text-slate-500 mt-1 line-clamp-2">
@@ -974,16 +986,36 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
             <form onSubmit={handleSaveCategory} className="space-y-3">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Category Name
+                  Category Name (English) *
                 </label>
                 <input
                   type="text"
                   value={categoryName}
-                  onChange={(e) => setCategoryName(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCategoryName(val);
+                    if (!categoryNameTamil || categoryNameTamil === autoTranslateToTamil(categoryName)) {
+                      setCategoryNameTamil(autoTranslateToTamil(val));
+                    }
+                  }}
                   placeholder="e.g. Tiffin, Biriyani, Meals, Beverages"
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   required
                   autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
+                  <span>Tamil Name (தமிழ் பெயர்)</span>
+                  <span className="text-[10px] text-emerald-600 font-medium">தானியங்கி மொழிபெயர்ப்பு</span>
+                </label>
+                <input
+                  type="text"
+                  value={categoryNameTamil}
+                  onChange={(e) => setCategoryNameTamil(e.target.value)}
+                  placeholder="எ.கா: பிரியாணி, டிபன், சாப்பாடு"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
@@ -1022,7 +1054,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
       )}
 
       {/* ========================================================================= */}
-      {/* ADD / EDIT FOOD DISH MODAL (PURE ENGLISH & NO PICTURE REQUIRED) */}
+      {/* ADD / EDIT FOOD DISH MODAL (WITH TAMIL SUPPORT) */}
       {/* ========================================================================= */}
       {foodModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
@@ -1043,16 +1075,22 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
             </div>
 
             <form onSubmit={handleSaveFood} className="space-y-4">
-              {/* 1. Basic Info: Name, Category & Measurement Profile */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* 1. Basic Info: Name & Tamil Name */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Dish Name *
+                    Dish Name (English) *
                   </label>
                   <input
                     type="text"
                     value={foodName}
-                    onChange={(e) => setFoodName(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFoodName(val);
+                      if (!foodNameTamil || foodNameTamil === autoTranslateToTamil(foodName)) {
+                        setFoodNameTamil(autoTranslateToTamil(val));
+                      }
+                    }}
                     placeholder="e.g. Chicken Biriyani, Idly, Tea"
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     required
@@ -1060,6 +1098,23 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                   />
                 </div>
 
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
+                    <span>Tamil Name (தமிழ் பெயர்)</span>
+                    <span className="text-[10px] text-emerald-600 font-medium">தானியங்கி பரிந்துரை</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={foodNameTamil}
+                    onChange={(e) => setFoodNameTamil(e.target.value)}
+                    placeholder="எ.கா: சிக்கன் பிரியாணி, இட்லி, டீ"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* Category & Measurement Profile */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     Category *
@@ -1072,7 +1127,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                   >
                     {categories.map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.name}
+                        {c.name} {c.nameTamil ? `(${c.nameTamil})` : ""}
                       </option>
                     ))}
                   </select>
