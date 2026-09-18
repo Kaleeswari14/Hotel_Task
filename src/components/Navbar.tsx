@@ -71,23 +71,23 @@ export default function Navbar({ user }: NavbarProps) {
   const isOwner = user.role === "OWNER";
 
   const staffLinks = [
-    { href: "/pos", label: isTamil ? "பில்லிங்" : "POS Bill", icon: UtensilsCrossed, isPrimary: true },
-    { href: "/bills", label: isTamil ? "பில்கள்" : "Bills", icon: Clock },
+    { href: "/pos", label: "POS Bill", icon: UtensilsCrossed, isPrimary: true },
+    { href: "/bills", label: "Bills", icon: Clock },
   ];
 
   const ownerMainLinks = [
-    { href: "/owner/dashboard", label: isTamil ? "டாஷ்போர்டு" : "Dashboard", icon: LayoutDashboard },
-    { href: "/pos", label: isTamil ? "பில்லிங்" : "POS Bill", icon: UtensilsCrossed, isPrimary: true },
-    { href: "/bills", label: isTamil ? "பில்கள்" : "Bills", icon: Clock },
-    { href: "/owner/menu", label: isTamil ? "மெனு" : "Menu", icon: UtensilsCrossed },
-    { href: "/owner/stock", label: isTamil ? "இருப்பு" : "Stock", icon: Boxes },
-    { href: "/owner/payments", label: isTamil ? "கட்டணம்" : "Payments", icon: IndianRupee },
-    { href: "/owner/day-closing", label: isTamil ? "நாள் முடிவு" : "Day Closing", icon: CalendarCheck },
+    { href: "/owner/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/pos", label: "POS Bill", icon: UtensilsCrossed, isPrimary: true },
+    { href: "/bills", label: "Bills", icon: Clock },
+    { href: "/owner/menu", label: "Menu", icon: UtensilsCrossed },
+    { href: "/owner/stock", label: "Stock", icon: Boxes },
+    { href: "/owner/payments", label: "Payments", icon: IndianRupee },
+    { href: "/owner/day-closing", label: "Day Closing", icon: CalendarCheck },
   ];
 
   const ownerIconOnlyLinks = [
-    { href: "/owner/whatsapp", label: "WhatsApp", title: isTamil ? "வாட்ஸ்அப் பில்" : "WhatsApp", icon: MessageSquare, iconColor: "text-emerald-400" },
-    { href: "/owner/cancelled", label: isTamil ? "ரத்து" : "Cancelled", title: isTamil ? "ரத்து செய்த பில்கள்" : "Cancelled Bills", icon: Ban, iconColor: "text-red-400" },
+    { href: "/owner/whatsapp", label: "WhatsApp", title: "WhatsApp Service", icon: MessageSquare, iconColor: "text-emerald-400" },
+    { href: "/owner/cancelled", label: "Cancelled", title: "Cancelled Bills", icon: Ban, iconColor: "text-red-400" },
   ];
 
   const links = isOwner ? ownerMainLinks : staffLinks;
@@ -167,20 +167,9 @@ export default function Navbar({ user }: NavbarProps) {
           </nav>
 
           {/* ========================================================================= */}
-          {/* RIGHT SUITE: LANGUAGE TOGGLE + SINGLE 👤 USER AVATAR DROPDOWN */}
+          {/* RIGHT SUITE: SINGLE 👤 USER AVATAR DROPDOWN */}
           {/* ========================================================================= */}
           <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
-            {/* 1-Click Language Switcher */}
-            <button
-              type="button"
-              onClick={() => setLanguage(isTamil ? "en" : "ta")}
-              className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 shadow-sm flex items-center gap-1 transition-all shrink-0 cursor-pointer"
-              title={isTamil ? "Switch to English" : "தமிழுக்கு மாற்றுக"}
-            >
-              <span>{isTamil ? "🇮🇳" : "🇬🇧"}</span>
-              <span className="text-[11px] font-extrabold">{isTamil ? "தமிழ்" : "EN"}</span>
-            </button>
-
             {/* 👤 USER AVATAR WITH DROPDOWN MENU */}
             <div className="relative" ref={dropdownRef}>
               <button
@@ -191,7 +180,7 @@ export default function Navbar({ user }: NavbarProps) {
                     ? "bg-emerald-600 text-white border-emerald-500 ring-2 ring-emerald-400 shadow-md"
                     : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 hover:border-slate-600"
                 }`}
-                title={isTamil ? "சுயவிவரம் & வெளியேறு" : "User Profile & Logout"}
+                title="User Profile & Logout"
               >
                 <div className="w-5 h-5 rounded-full bg-emerald-500/30 text-emerald-300 flex items-center justify-center font-black">
                   <UserIcon className="w-3 h-3" />
@@ -215,7 +204,7 @@ export default function Navbar({ user }: NavbarProps) {
                           ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
                           : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
                       }`}>
-                        {isOwner ? (isTamil ? "👑 உரிமையாளர் (Owner)" : "👑 Owner Account") : (isTamil ? "👤 பணியாளர் (Staff)" : "👤 Staff Account")}
+                        {isOwner ? "👑 Owner Account" : "👤 Staff Account"}
                       </span>
                     </div>
                   </div>
@@ -228,7 +217,7 @@ export default function Navbar({ user }: NavbarProps) {
                       className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-slate-200 hover:text-white hover:bg-slate-800 rounded-xl transition-all"
                     >
                       <KeyRound className="w-4 h-4 text-emerald-400" />
-                      <span>{isTamil ? "பாஸ்வேர்ட் & கணக்கு அமைப்புகள்" : "Password & Account Settings"}</span>
+                      <span>Password & Account Settings</span>
                     </Link>
 
                     <div className="pt-1 mt-1 border-t border-slate-800">
@@ -242,7 +231,7 @@ export default function Navbar({ user }: NavbarProps) {
                         className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-red-300 hover:text-white hover:bg-red-600 rounded-xl transition-all cursor-pointer"
                       >
                         <LogOut className="w-4 h-4" />
-                        <span>{loggingOut ? "..." : (isTamil ? "வெளியேறு (Logout)" : "Log Out")}</span>
+                        <span>{loggingOut ? "..." : "Log Out"}</span>
                       </button>
                     </div>
                   </div>
@@ -288,7 +277,7 @@ export default function Navbar({ user }: NavbarProps) {
               className="flex items-center gap-1 text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-xl font-bold transition-colors"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span>{isTamil ? "வெளியேறு" : "Logout"}</span>
+              <span>Log Out</span>
             </button>
           </div>
 

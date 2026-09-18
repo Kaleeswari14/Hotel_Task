@@ -42,17 +42,17 @@ const OFFER_TEMPLATES = [
     badge: "Most Popular",
     badgeColor: "bg-amber-500",
     posterUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&auto=format&fit=crop&q=80",
-    message: `✨ *HOTEL JB — வார இறுதி சிறப்பு பிரியாணி திருவிழா!* 🍗🔥
+    message: `✨ *HOTEL JB — Weekend Biriyani Fest!* 🍗🔥
 ━━━━━━━━━━━━━━━━━━
-அன்பான {customer_name},
+Dear {customer_name},
 
-உங்கள் *HOTEL JB*-ல் இந்த சனி & ஞாயிற்றுக்கிழமை மட்டும் அனைத்து வகையான சீரக சம்பா & பாசுமதி பிரியாணிகளுக்கு *15% நேரடி தள்ளுபடி*! 🥘
+Enjoy a *15% direct discount* on all Seeraga Samba & Basmati Biriyanis this Saturday & Sunday at *HOTEL JB*! 🥘
 
 🏷️ Coupon Code: *BIRIYANI15*
-📍 இடம்: HOTEL JB, Main Road
-📞 பார்சல் & முன்பதிவு: 9876543210
+📍 Location: HOTEL JB, Main Road
+📞 Orders & Booking: 9876543210
 
-குடும்பத்துடன் வந்து சுவைத்து மகிழுங்கள்! 🙏✨`,
+Bring your family and taste the freshness! 🙏✨`,
   },
   {
     id: "meals_special",
@@ -60,35 +60,35 @@ const OFFER_TEMPLATES = [
     badge: "Lunch Rush",
     badgeColor: "bg-emerald-600",
     posterUrl: "https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?w=800&auto=format&fit=crop&q=80",
-    message: `✨ *HOTEL JB — மதிய சைவ & அசைவ சாப்பாடு தள்ளுபடி!* 🍱
+    message: `✨ *HOTEL JB — Lunch Special Meal Discount!* 🍱
 ━━━━━━━━━━━━━━━━━━
-வணக்கம் {customer_name}!
+Hello {customer_name}!
 
-இன்று மதியம் எங்கள் உணவகத்தில் தலைவாழை இலை சாப்பாட்டிற்கு *₹50 சிறப்பு தள்ளுபடி* வழங்கப்படுகிறது! 🍛
+Enjoy a special *₹50 discount* on our traditional banana leaf lunch meals today! 🍛
 
 🏷️ Coupon Code: *LUNCH50*
-🕒 நேரம்: 12:00 PM முதல் 3:30 PM வரை
-📍 HOTEL JB
+🕒 Timing: 12:00 PM to 3:30 PM
+📍 Location: HOTEL JB
 
-சுடச்சுட சாப்பிட உடனே வாருங்கள்! 🙏`,
+Visit us today for hot and fresh food! 🙏`,
   },
   {
     id: "new_dish",
-    title: "🍄 New Dish Launch — காளான் பிரியாணி",
+    title: "🍄 New Dish Launch — Mushroom Biriyani",
     badge: "New Launch",
     badgeColor: "bg-purple-600",
     posterUrl: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=800&auto=format&fit=crop&q=80",
-    message: `🍄 *HOTEL JB — புதிய ஸ்பெஷல் காளான் பிரியாணி அறிமுகம்!* ✨
+    message: `🍄 *HOTEL JB — Special Mushroom Biriyani Launch!* ✨
 ━━━━━━━━━━━━━━━━━━
-அன்புள்ள {customer_name},
+Dear {customer_name},
 
-எங்கள் மெனுவில் புதிதாக செட்டிநாடு ஸ்டைல் *ஸ்பெஷல் காளான் பிரியாணி (Kalan Biriyani)* அறிமுகமாகியுள்ளது! 
+We have newly launched Chettinad Style *Special Mushroom Biriyani (Kalan Biriyani)* in our menu!
 
-🎁 *அறிமுக சலுகை:*
-முதல் 50 வாடிக்கையாளர்களுக்கு *10% தள்ளுபடி* + இலவச இனிப்பு!
+🎁 *Launch Offer:*
+First 50 customers get a *10% Discount* + Free Sweet!
 
 🏷️ Promo Code: *KALAN10*
-இன்றே சுவைத்து உங்களது கருத்துக்களைப் பகிருங்கள்! 🌟`,
+Visit us today and share your feedback! 🌟`,
   },
   {
     id: "flat_promo",
@@ -96,16 +96,16 @@ const OFFER_TEMPLATES = [
     badge: "All Customers",
     badgeColor: "bg-blue-600",
     posterUrl: "",
-    message: `✨ *HOTEL JB — உங்களுக்கு சிறப்பு 10% தள்ளுபடி கூப்பன்!* 🎁
+    message: `✨ *HOTEL JB — Special 10% Discount Coupon for You!* 🎁
 ━━━━━━━━━━━━━━━━━━
-வணக்கம் {customer_name}!
+Hello {customer_name}!
 
-HOTEL JB-ன் பிரியமான வாடிக்கையாளரான உங்களுக்கு எங்களது நன்றி! உங்களது அடுத்த பில்லிங்கில் *10% தள்ளுபடி* பெற இந்த கூப்பனைப் பயன்படுத்துங்கள்.
+Thank you for being a valued customer at HOTEL JB. Use this coupon on your next billing to receive a *10% discount*!
 
 🏷️ Promo Code: *HOTEL10*
-📆 சலுகை காலம்: இந்த வாரம் முழுவதும்
+📆 Validity: All this week
 
-நன்றி! மீண்டும் வருக! 🙏`,
+Thank you! Visit again! 🙏`,
   },
 ];
 

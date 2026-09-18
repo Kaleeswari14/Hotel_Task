@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { Printer, X } from "lucide-react";
 import { formatCurrency, formatDateTime } from "@/lib/format";
-import { useLanguage } from "@/context/LanguageContext";
 
 interface BillItem {
   id: string;
@@ -49,7 +48,6 @@ interface ThermalReceiptProps {
 }
 
 export default function ThermalReceipt({
-
   bill,
   initialMode,
   isReprint = false,
@@ -58,7 +56,6 @@ export default function ThermalReceipt({
 }: ThermalReceiptProps) {
   // Determine default receipt mode based on bill status if not explicitly passed
   const defaultMode = initialMode || (bill.status === "PAID" ? "PAYMENT_RECEIPT" : "ORDER_SLIP");
-  const { isTamil, language } = useLanguage();
   const [receiptMode, setReceiptMode] = useState<"ORDER_SLIP" | "PAYMENT_RECEIPT">(defaultMode);
   const [paperWidth, setPaperWidth] = useState<"58mm" | "80mm">("80mm");
 
@@ -198,10 +195,10 @@ export default function ThermalReceipt({
           <div className="py-2 border-b border-dashed border-slate-400">
             {/* Table Header Columns */}
             <div className="flex justify-between font-bold pb-1 text-[10px] uppercase border-b border-dashed border-slate-300 gap-1">
-              <span className="flex-1 text-left truncate">{isTamil ? "உணவு (அளவு)" : "ITEM (PORTION)"}</span>
-              {receiptMode === "PAYMENT_RECEIPT" && <span className="w-12 text-right shrink-0">{isTamil ? "விலை" : "RATE"}</span>}
-              <span className="w-8 text-right shrink-0">{isTamil ? "எண்" : "QTY"}</span>
-              <span className="w-14 text-right shrink-0">{isTamil ? "தொகை" : "TOTAL"}</span>
+              <span className="flex-1 text-left truncate">ITEM (PORTION)</span>
+              {receiptMode === "PAYMENT_RECEIPT" && <span className="w-12 text-right shrink-0">RATE</span>}
+              <span className="w-8 text-right shrink-0">QTY</span>
+              <span className="w-14 text-right shrink-0">TOTAL</span>
             </div>
 
             {/* Line Items */}
@@ -251,27 +248,25 @@ export default function ThermalReceipt({
             {receiptMode === "ORDER_SLIP" ? (
               <div className="mt-1 p-1.5 bg-amber-50 border border-dashed border-amber-300 rounded text-center">
                 <div className="text-[10px] font-black text-amber-900 uppercase">
-                  ⚠️ {isTamil ? "ஆர்டர் சீட்டு (UNPAID)" : "UNPAID ORDER SLIP"}
+                  ⚠️ UNPAID ORDER SLIP
                 </div>
                 <div className="text-[9px] text-amber-700">
-                  {isTamil ? "பணத்தை கேஷ் கவுண்டரில் செலுத்தவும்." : "Please show this slip & pay at the cash counter."}
+                  Please show this slip & pay at the cash counter.
                 </div>
               </div>
             ) : (
               <div className="pt-0.5 space-y-0.5">
                 <div className="flex justify-between text-[11px] font-black text-emerald-800 gap-1">
                   <span className="truncate">
-                    {isTamil ? "செலுத்திய முறை (" : "PAID VIA "}
-                    {primaryPayment?.paymentMethod || "CASH"}
-                    {isTamil ? "):" : ":"}
+                    PAID VIA {primaryPayment?.paymentMethod || "CASH"}:
                   </span>
                   <span className="font-mono shrink-0">
                     ₹{(bill.paidAmount > 0 ? bill.paidAmount : bill.totalAmount).toFixed(0)}
                   </span>
                 </div>
                 <div className="flex justify-between text-[10px] font-black text-emerald-700">
-                  <span>{isTamil ? "பில் நிலை:" : "STATUS:"}</span>
-                  <span className="uppercase">{isTamil ? "முழுவதும் செலுத்தப்பட்டது (PAID)" : "PAID IN FULL"}</span>
+                  <span>STATUS:</span>
+                  <span className="uppercase">PAID IN FULL</span>
                 </div>
               </div>
             )}

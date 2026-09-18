@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { sendWhatsAppBillAndOffer } from "@/lib/whatsapp";
-import { useLanguage } from "@/context/LanguageContext";
 
 interface PaymentModalProps {
   bill: {
@@ -37,7 +36,6 @@ export default function PaymentModal({
   onClose,
   onPaymentSuccess,
 }: PaymentModalProps) {
-  const { isTamil, language } = useLanguage();
   const [paymentMethod, setPaymentMethod] = useState<"CASH" | "UPI" | "CARD">(initialPaymentMethod);
   const [tenderAmount, setTenderAmount] = useState<string>(String(bill.balanceAmount));
   const [notes, setNotes] = useState("");
@@ -105,7 +103,7 @@ export default function PaymentModal({
             <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
               Bill #{bill.billNumber} &bull; {bill.orderReference}
             </span>
-            <h2 className="text-xl font-black text-slate-900 mt-1">{isTamil ? "பணம் பெறுதல்" : "Collect Payment"}</h2>
+            <h2 className="text-xl font-black text-slate-900 mt-1">Collect Payment</h2>
           </div>
           <button
             onClick={onClose}
@@ -127,7 +125,7 @@ export default function PaymentModal({
           <div className="p-4 bg-slate-900 text-white rounded-2xl flex items-center justify-between shadow-inner">
             <div>
               <div className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-                {isTamil ? "மொத்த நிலுவைத் தொகை" : "Total Balance Due"}
+                Total Balance Due
               </div>
               <div className="text-3xl font-black text-emerald-400 mt-0.5">
                 {formatCurrency(balance)}
@@ -143,7 +141,7 @@ export default function PaymentModal({
           {/* Payment Method Selector */}
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              {isTamil ? "பணம் செலுத்தும் முறை" : "Select Payment Method"}
+              Select Payment Method
             </label>
             <div className="grid grid-cols-3 gap-2.5">
               <button
@@ -159,7 +157,7 @@ export default function PaymentModal({
                 }`}
               >
                 <Banknote className="w-6 h-6 text-emerald-600" />
-                <span>💵 {isTamil ? "ரொக்கம்" : "CASH"}</span>
+                <span>💵 CASH</span>
               </button>
 
               <button
@@ -175,7 +173,7 @@ export default function PaymentModal({
                 }`}
               >
                 <QrCode className="w-6 h-6 text-blue-600" />
-                <span>📱 {isTamil ? "UPI / QR" : "UPI / QR"}</span>
+                <span>📱 UPI / QR</span>
               </button>
 
               <button
@@ -191,7 +189,7 @@ export default function PaymentModal({
                 }`}
               >
                 <CreditCard className="w-6 h-6 text-purple-600" />
-                <span>💳 {isTamil ? "கார்டு" : "CARD"}</span>
+                <span>💳 CARD</span>
               </button>
             </div>
           </div>
@@ -202,7 +200,7 @@ export default function PaymentModal({
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
                   <Calculator className="w-4 h-4 text-emerald-600" />
-                  {isTamil ? "பெற்ற ரொக்கத் தொகை" : "Cash Received (Tender)"}
+                  Cash Received (Tender)
                 </span>
 
                 {/* Quick amount chips */}
@@ -237,7 +235,7 @@ export default function PaymentModal({
 
               {/* Change Return Display */}
               <div className="flex items-center justify-between p-3 bg-emerald-100/70 border border-emerald-300 rounded-xl text-emerald-950">
-                <span className="text-xs font-bold uppercase">{isTamil ? "மீதம் கொடுக்க வேண்டியது:" : "Change to Return:"}</span>
+                <span className="text-xs font-bold uppercase">Change to Return:</span>
                 <span className="text-lg font-black text-emerald-900">
                   {formatCurrency(changeReturn)}
                 </span>
@@ -250,7 +248,7 @@ export default function PaymentModal({
             <div className="p-4 bg-blue-50/60 rounded-2xl border border-blue-200 text-center space-y-2">
               <QrCode className="w-12 h-12 text-blue-600 mx-auto" />
               <div className="text-xs font-bold text-blue-900">
-                {isTamil ? "ஹோட்டல் QR குறியீட்டை ஸ்கேன் செய்து உறுதி செய்யவும்" : "Scan Hotel UPI QR Code & Confirm Payment"}
+                Scan Hotel UPI QR Code &amp; Confirm Payment
               </div>
               <div className="text-[11px] text-blue-700">
                 Amount to receive: <strong>{formatCurrency(balance)}</strong>
@@ -290,7 +288,7 @@ export default function PaymentModal({
               ) : (
                 <>
                   <CheckCircle2 className="w-5 h-5" />
-                  <span>Confirm & Mark PAID ({formatCurrency(balance)})</span>
+                  <span>Confirm &amp; Mark PAID ({formatCurrency(balance)})</span>
                 </>
               )}
             </button>

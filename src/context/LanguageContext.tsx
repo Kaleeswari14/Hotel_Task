@@ -172,47 +172,31 @@ const translations: Record<string, { en: string; ta: string }> = {
 };
 
 const LanguageContext = createContext<LanguageContextType>({
-  language: "ta",
+  language: "en",
   setLanguage: () => {},
-  isTamil: true,
+  isTamil: false,
   t: (key: string) => key,
 });
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguageState] = useState<Language>("ta");
-
-  useEffect(() => {
-    try {
-      const savedLang = localStorage.getItem("hotel_pos_lang") as Language;
-      if (savedLang === "en" || savedLang === "ta") {
-        setLanguageState(savedLang);
-      }
-    } catch {
-      // Ignore localStorage errors
-    }
-  }, []);
+  const [language, setLanguageState] = useState<Language>("en");
 
   const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
-    try {
-      localStorage.setItem("hotel_pos_lang", lang);
-    } catch {
-      // Ignore localStorage errors
-    }
+    setLanguageState("en");
   };
 
   const t = (key: string): string => {
     const item = translations[key];
     if (!item) return key;
-    return language === "ta" ? item.ta : item.en;
+    return item.en;
   };
 
   return (
     <LanguageContext.Provider
       value={{
-        language,
+        language: "en",
         setLanguage,
-        isTamil: language === "ta",
+        isTamil: false,
         t,
       }}
     >

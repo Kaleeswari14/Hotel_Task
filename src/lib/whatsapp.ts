@@ -32,18 +32,18 @@ export function generateAttractiveShortMessage(bill: WhatsAppBillPayload): strin
 
   return `✨ *${hotelName.toUpperCase()}* ✨
 ━━━━━━━━━━━━━━━━━━
-🙏 வணக்கம் *${bill.customerName || "அன்பான வாடிக்கையாளரே"}*!
-நமது உணவகத்திற்கு வருகை தந்ததற்கு நன்றி! ❤️
+🙏 Welcome *${bill.customerName || "Valued Customer"}*!
+Thank you for dining with us! ❤️
 
 🧾 *Bill No:* #${bill.billNumber} (${bill.orderReference})
 💰 *Paid Total:* ₹${bill.totalAmount.toFixed(0)} (${bill.status || "PAID"})
 
 🎁 *10% OFF Special Offer:*
-அடுத்த முறை வரும்போது *10% தள்ளுபடி* பெற இந்த Promo Code-ஐ பயன்படுத்தவும்:
+Use this promo code on your next visit to enjoy *10% Discount*:
 👉 Promo Code: *HOTEL10* 👈
 
 📍 ${hotelAddress}
-⭐ *மீண்டும் வருக! Have a wonderful day!* ⭐`;
+⭐ *Please visit again! Have a wonderful day!* ⭐`;
 }
 
 /**

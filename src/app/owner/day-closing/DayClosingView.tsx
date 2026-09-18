@@ -28,7 +28,6 @@ import { formatCurrency, formatDateTime, formatHumanStock } from "@/lib/format";
 
 interface StockSnapshotItem {
   foodName: string;
-  nameTamil?: string | null;
   category: string;
   dietary?: string;
   quantity: number;
@@ -130,31 +129,31 @@ export default function DayClosingView({
     showToast(`✅ Owner WhatsApp Number set to +91 ${clean.slice(-10)}`);
   };
 
-  // Build Night Summary text
+  // Build Night Summary text (Pure English)
   const buildNightSummaryText = () => {
     const data = isClosed && todayClosing ? todayClosing : preview;
     const hotelName = process.env.NEXT_PUBLIC_HOTEL_NAME || "HOTEL JB";
 
     return `🏨 *${hotelName} — NIGHT CLOSING REPORT* 🌙
-📅 *தேதி (Date):* ${todayDate}
+📅 *Date:* ${todayDate}
 
-💰 *விற்பனை & வசூல் விவரம் (Sales & Collections):*
-• மொத்த பில்கள் (Total Bills): ${data.paidBills}
-• மொத்த விற்பனை (Total Sales): ${formatCurrency(data.totalSales)}
-• வசூலான தொகை (Collected): ${formatCurrency(data.totalCollected)}
-• நிலுவை தொகை (Outstanding): ${formatCurrency(data.outstandingAmount)}
+💰 *Sales & Collections:*
+• Total Paid Bills: ${data.paidBills}
+• Total Sales: ${formatCurrency(data.totalSales)}
+• Total Collected: ${formatCurrency(data.totalCollected)}
+• Outstanding Unpaid: ${formatCurrency(data.outstandingAmount)}
 
-🥗 *உணவு வகை வாரியாக விற்பனை (Dietary Breakdown):*
-• 🟢 Pure Veg (சைவ விற்பனை): ${formatCurrency(preview.todayVegSales || 0)} (${preview.todayVegCount || 0} portions)
-• 🔴 Non-Veg (அசைவ விற்பனை): ${formatCurrency(preview.todayNonVegSales || 0)} (${preview.todayNonVegCount || 0} portions)
-• 🟡 Egg (முட்டை விற்பனை): ${formatCurrency(preview.todayEggSales || 0)} (${preview.todayEggCount || 0} portions)
+🥗 *Dietary Breakdown:*
+• 🟢 Pure Veg: ${formatCurrency(preview.todayVegSales || 0)} (${preview.todayVegCount || 0} portions)
+• 🔴 Non-Veg: ${formatCurrency(preview.todayNonVegSales || 0)} (${preview.todayNonVegCount || 0} portions)
+• 🟡 Egg: ${formatCurrency(preview.todayEggSales || 0)} (${preview.todayEggCount || 0} portions)
 
-💵 *பணம் செலுத்திய முறை (Payment Breakdown):*
-• ரொக்கம் (Cash in Hand): ${formatCurrency(data.cashCollected)}
-• யுபிஐ (UPI / GPay): ${formatCurrency(data.upiCollected)}
-• கார்டு (Card): ${formatCurrency(data.cardCollected)}
+💵 *Payment Channel Breakdown:*
+• Cash in Hand: ${formatCurrency(data.cashCollected)}
+• UPI / Online: ${formatCurrency(data.upiCollected)}
+• Card: ${formatCurrency(data.cardCollected)}
 
-${isClosed && todayClosing?.notes ? `📝 *குறிப்பு (Closing Notes):* ${todayClosing.notes}\n` : ""}
+${isClosed && todayClosing?.notes ? `📝 *Closing Notes:* ${todayClosing.notes}\n` : ""}
 ✅ *Day Status:* ${isClosed ? "CLOSED & SETTLED" : "ACTIVE PREVIEW"}
 *** End of Day Summary ***`;
   };
@@ -422,17 +421,17 @@ ${isClosed && todayClosing?.notes ? `📝 *குறிப்பு (Closing Not
         </div>
       </div>
 
-      {/* Dietary Classification Sales Breakdown (Veg vs Non-Veg vs Egg) */}
+      {/* Dietary Classification Sales Breakdown */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
         <h2 className="text-base font-black text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
           <UtensilsCrossed className="w-5 h-5 text-emerald-600" />
-          Dietary Sales Breakdown (சைவம் &amp; அசைவம் விற்பனை)
+          Dietary Sales Breakdown
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="p-4 rounded-xl bg-emerald-50/80 border border-emerald-300 flex items-center justify-between">
             <div>
-              <div className="text-xs font-black text-emerald-900 uppercase">🟢 Pure Veg Sales (சைவம்)</div>
+              <div className="text-xs font-black text-emerald-900 uppercase">🟢 Pure Veg Sales</div>
               <div className="text-2xl font-black text-emerald-800 mt-1">
                 {formatCurrency(preview.todayVegSales || 0)}
               </div>
@@ -445,7 +444,7 @@ ${isClosed && todayClosing?.notes ? `📝 *குறிப்பு (Closing Not
 
           <div className="p-4 rounded-xl bg-rose-50/80 border border-rose-300 flex items-center justify-between">
             <div>
-              <div className="text-xs font-black text-rose-900 uppercase">🔴 Non-Veg Sales (அசைவம்)</div>
+              <div className="text-xs font-black text-rose-900 uppercase">🔴 Non-Veg Sales</div>
               <div className="text-2xl font-black text-rose-800 mt-1">
                 {formatCurrency(preview.todayNonVegSales || 0)}
               </div>
@@ -458,7 +457,7 @@ ${isClosed && todayClosing?.notes ? `📝 *குறிப்பு (Closing Not
 
           <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-300 flex items-center justify-between">
             <div>
-              <div className="text-xs font-black text-amber-900 uppercase">🟡 Egg Sales (முட்டை)</div>
+              <div className="text-xs font-black text-amber-900 uppercase">🟡 Egg Sales</div>
               <div className="text-2xl font-black text-amber-800 mt-1">
                 {formatCurrency(preview.todayEggSales || 0)}
               </div>
@@ -473,7 +472,7 @@ ${isClosed && todayClosing?.notes ? `📝 *குறிப்பு (Closing Not
 
       {/* Closing Stock Inventory Snapshot & Closure Action Form */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Closing Stock Snapshot (7 cols) */}
+        {/* Closing Stock Snapshot */}
         <div className="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
@@ -500,7 +499,6 @@ ${isClosed && todayClosing?.notes ? `📝 *குறிப்பு (Closing Not
                   <tr key={idx} className="hover:bg-slate-50">
                     <td className="p-2 font-bold text-slate-800">
                       <div>{item.foodName}</div>
-                      {item.nameTamil && <div className="text-[10px] text-slate-400 font-normal">{item.nameTamil}</div>}
                     </td>
                     <td className="p-2 text-slate-500">{item.category}</td>
                     <td className="p-2">
@@ -528,7 +526,7 @@ ${isClosed && todayClosing?.notes ? `📝 *குறிப்பு (Closing Not
           </div>
         </div>
 
-        {/* Day Closing Action Box (5 cols) */}
+        {/* Day Closing Action Box */}
         <div className="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 pb-3 border-b border-slate-100 mb-4">
@@ -590,7 +588,7 @@ ${isClosed && todayClosing?.notes ? `📝 *குறிப்பு (Closing Not
           </div>
 
           <div className="text-center text-[10px] text-slate-400 font-medium mt-4">
-            Hotel POS &bull; End-of-Day Ledger & Inventory Integrity
+            Hotel POS &bull; End-of-Day Ledger &amp; Inventory Integrity
           </div>
         </div>
       </div>

@@ -29,7 +29,6 @@ import {
   KeyRound
 } from "lucide-react";
 import { formatCurrency, formatDateTime } from "@/lib/format";
-import { useLanguage } from "@/context/LanguageContext";
 import PaymentModal from "@/components/PaymentModal";
 import ThermalReceipt from "@/components/ThermalReceipt";
 import CancelBillModal from "@/components/CancelBillModal";
@@ -76,22 +75,22 @@ interface BillsQueueProps {
 }
 
 // Live Elapsed Time Helper with color-coding
-function getElapsedInfo(createdAt: string, nowTime: number, isTamil: boolean) {
+function getElapsedInfo(createdAt: string, nowTime: number) {
   const created = new Date(createdAt).getTime();
   const diffMs = Math.max(0, nowTime - created);
   const diffMins = Math.floor(diffMs / 60000);
 
   let text = "";
   if (diffMins < 1) {
-    text = isTamil ? "இப்போதுதான்" : "< 1m ago";
+    text = "< 1m ago";
   } else if (diffMins === 1) {
-    text = isTamil ? "1 நிமிடம் முன்பு" : "1m ago";
+    text = "1m ago";
   } else if (diffMins < 60) {
-    text = isTamil ? `${diffMins} நிமி முன்பு` : `${diffMins}m ago`;
+    text = `${diffMins}m ago`;
   } else {
     const hrs = Math.floor(diffMins / 60);
     const rem = diffMins % 60;
-    text = isTamil ? `${hrs} மணி ${rem} நிமி` : `${hrs}h ${rem}m ago`;
+    text = `${hrs}h ${rem}m ago`;
   }
 
   let status: "fresh" | "warning" | "urgent" = "fresh";
@@ -105,17 +104,17 @@ function getElapsedInfo(createdAt: string, nowTime: number, isTamil: boolean) {
 }
 
 // Table & Order Type Badge Helper with high contrast styling
-function getOrderBadge(orderType: string, orderReference: string, isTamil: boolean) {
+function getOrderBadge(orderType: string, orderReference: string) {
   const refLower = (orderReference || "").toLowerCase();
   const typeLower = (orderType || "").toLowerCase();
-  const isParcel = typeLower === "parcel" || refLower.includes("parcel") || refLower.includes("takeaway") || refLower.includes("பார்சல்");
-  const isToken = typeLower === "token" || refLower.includes("token") || refLower.includes("டோக்கன்");
+  const isParcel = typeLower === "parcel" || refLower.includes("parcel") || refLower.includes("takeaway");
+  const isToken = typeLower === "token" || refLower.includes("token");
 
   if (isParcel) {
     return {
       type: "PARCEL",
       icon: "🥡",
-      title: isTamil ? "பார்சல் / Parcel" : "Takeaway / Parcel",
+      title: "Takeaway / Parcel",
       subText: orderReference && orderReference !== "Parcel" && orderReference !== "Takeaway" ? orderReference : null,
       pillClass: "bg-amber-500 text-slate-950 border border-amber-400 font-black shadow-xs",
     };
@@ -125,7 +124,7 @@ function getOrderBadge(orderType: string, orderReference: string, isTamil: boole
     return {
       type: "TOKEN",
       icon: "🎟️",
-      title: orderReference || (isTamil ? "டோக்கன்" : "Token"),
+      title: orderReference || "Token",
       subText: null,
       pillClass: "bg-purple-950 text-purple-200 border border-purple-700 font-black shadow-xs",
     };
@@ -135,14 +134,13 @@ function getOrderBadge(orderType: string, orderReference: string, isTamil: boole
   return {
     type: "TABLE",
     icon: "🪑",
-    title: orderReference || (isTamil ? "டேபிள்" : "Table"),
+    title: orderReference || "Table",
     subText: null,
     pillClass: "bg-slate-950 text-emerald-400 border border-slate-700 font-black shadow-xs",
   };
 }
 
 export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) {
-  const { language, setLanguage, isTamil, t } = useLanguage();
   const [bills, setBills] = useState<Bill[]>(initialBills);
   const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "PAID" | "CANCELLED" | "ALL">("ACTIVE");
   const [typeFilter, setTypeFilter] = useState<"ALL" | "TABLE" | "TOKEN" | "PARCEL">("ALL");
@@ -204,15 +202,15 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
     }
   };
 
-  // Permission Guard for Editing Bill
+  // Safe Action Guard: Requires Owner Auth if staff attempts edit/cancel
   const requestEditBill = (bill: Bill) => {
     if (userRole === "OWNER") {
       setEditBill(bill);
     } else {
       setPermissionModal({
         isOpen: true,
-        title: `Authorize Edit Bill #${bill.billNumber}`,
-        description: `Editing active Bill #${bill.billNumber} (${bill.orderReference}) requires Owner authorization password.`,
+        title: "Owner Authorization Required",
+        description: `Editing items in Bill #${bill.billNumber} requires owner security verification.`,
         onAuthorized: () => {
           setPermissionModal(null);
           setEditBill(bill);
@@ -221,15 +219,14 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
     }
   };
 
-  // Permission Guard for Cancelling/Deleting Bill
   const requestCancelBill = (bill: Bill) => {
     if (userRole === "OWNER") {
       setCancelBill(bill);
     } else {
       setPermissionModal({
         isOpen: true,
-        title: `Authorize Cancel Bill #${bill.billNumber}`,
-        description: `Cancelling/deleting Bill #${bill.billNumber} (${bill.orderReference}) requires Owner authorization password.`,
+        title: "Owner Authorization Required",
+        description: `Cancelling Bill #${bill.billNumber} (${formatCurrency(bill.totalAmount)}) requires owner security verification.`,
         onAuthorized: () => {
           setPermissionModal(null);
           setCancelBill(bill);
@@ -238,54 +235,52 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
     }
   };
 
-  // On bill edit success
-  const handleEditSuccess = (updatedBill: any) => {
-    setEditBill(null);
-    showToast(`Bill #${updatedBill.billNumber} updated successfully!`);
-    setBills((prev) => prev.map((b) => (b.id === updatedBill.id ? updatedBill : b)));
-    if (viewBill && viewBill.id === updatedBill.id) {
-      setViewBill(updatedBill);
-    }
-  };
-
-  // On payment success: update state, show toast & launch Thermal Receipt
-  const handlePaymentSuccess = (updatedBill: Bill, payment: any) => {
+  const handlePaymentSuccess = (updatedBill: any) => {
     setPaymentBill(null);
-    showToast(`Payment of ${formatCurrency(payment.amount)} confirmed! Bill #${updatedBill.billNumber} is PAID.`);
+    showToast(`🎉 Bill #${updatedBill.billNumber} marked as PAID! Printing receipt...`);
     setBills((prev) => prev.map((b) => (b.id === updatedBill.id ? updatedBill : b)));
     setReceiptInitialMode("PAYMENT_RECEIPT");
-    setReceiptBill(updatedBill);
     setIsReprint(false);
+    setReceiptBill(updatedBill);
   };
 
-  // On cancel success
+  const handleEditSuccess = (updatedBill: any) => {
+    setEditBill(null);
+    showToast(`✅ Bill #${updatedBill.billNumber} items successfully updated!`);
+    setBills((prev) => prev.map((b) => (b.id === updatedBill.id ? updatedBill : b)));
+  };
+
   const handleCancelSuccess = (cancelledBillId: string) => {
     setCancelBill(null);
-    showToast("Bill cancelled successfully.");
+    showToast(`🚫 Bill marked as CANCELLED and returned items to kitchen inventory.`);
     setBills((prev) =>
-      prev.map((b) => (b.id === cancelledBillId ? { ...b, status: "CANCELLED" as const } : b))
+      prev.map((b) =>
+        b.id === cancelledBillId ? { ...b, status: "CANCELLED" as const } : b
+      )
     );
-    if (viewBill && viewBill.id === cancelledBillId) {
-      setViewBill(null);
-    }
   };
 
-  // Filtered Bills
+  // Filter & Search Logic
   const filteredBills = bills.filter((b) => {
     const matchesStatus =
-      statusFilter === "ACTIVE"
-        ? b.status === "UNPAID" || b.status === "PARTIAL"
-        : statusFilter === "ALL"
+      statusFilter === "ALL"
         ? true
+        : statusFilter === "ACTIVE"
+        ? b.status === "UNPAID" || b.status === "PARTIAL"
         : b.status === statusFilter;
 
-    const matchesType = typeFilter === "ALL" ? true : b.orderType === typeFilter;
+    const matchesType =
+      typeFilter === "ALL"
+        ? true
+        : b.orderType === typeFilter;
 
+    const query = searchQuery.toLowerCase().trim();
     const matchesSearch =
-      !searchQuery.trim() ||
-      String(b.billNumber).includes(searchQuery.trim()) ||
-      b.orderReference.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.createdBy.name.toLowerCase().includes(searchQuery.toLowerCase());
+      !query ||
+      b.billNumber.toString().includes(query) ||
+      b.orderReference.toLowerCase().includes(query) ||
+      (b.customerName && b.customerName.toLowerCase().includes(query)) ||
+      (b.customerPhone && b.customerPhone.includes(query));
 
     return matchesStatus && matchesType && matchesSearch;
   });
@@ -309,9 +304,9 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-black text-slate-900">{isTamil ? "ரசீதுகள் & நிலுவைப் பட்டியல்" : "Active & Unpaid Bills Queue"}</h1>
+            <h1 className="text-2xl font-black text-slate-900">Active &amp; Unpaid Bills Queue</h1>
             <span className="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-amber-300">
-              {activeUnpaidCount} {isTamil ? "நிலுவை" : "Pending"}
+              {activeUnpaidCount} Pending
             </span>
           </div>
           <p className="text-slate-500 text-sm mt-1">
@@ -334,7 +329,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
             className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            <span>{isTamil ? "+ புதிய பில் போடு" : "+ Create New Bill"}</span>
+            <span>+ Create New Bill</span>
           </Link>
         </div>
       </div>
@@ -371,7 +366,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                 : "bg-slate-100 text-slate-700 hover:bg-slate-200"
             }`}
           >
-            🚫 {isTamil ? "ரத்து செய்தவை" : "Cancelled"} ({bills.filter((b) => b.status === "CANCELLED").length})
+            🚫 Cancelled ({bills.filter((b) => b.status === "CANCELLED").length})
           </button>
           <button
             onClick={() => setStatusFilter("ALL")}
@@ -381,7 +376,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                 : "bg-slate-100 text-slate-700 hover:bg-slate-200"
             }`}
           >
-            {isTamil ? "அனைத்து பில்கள்" : "All Bills"} ({bills.length})
+            All Bills ({bills.length})
           </button>
         </div>
 
@@ -417,10 +412,9 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
           const isUnpaid = bill.status === "UNPAID";
           const isPartial = bill.status === "PARTIAL";
           const isPaid = bill.status === "PAID";
-          const isCancelled = bill.status === "CANCELLED";
 
-          const orderBadge = getOrderBadge(bill.orderType, bill.orderReference, isTamil);
-          const elapsed = getElapsedInfo(bill.createdAt, nowTime, isTamil);
+          const orderBadge = getOrderBadge(bill.orderType, bill.orderReference);
+          const elapsed = getElapsedInfo(bill.createdAt, nowTime);
 
           return (
             <div
@@ -549,7 +543,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                       </div>
                     )}
                     <div className="text-xs font-semibold text-slate-500">
-                      {isUnpaid ? (isTamil ? "செலுத்த வேண்டிய பாக்கி:" : "Balance Due:") : (isTamil ? "பில் மொத்தம்:" : "Bill Total:")}
+                      {isUnpaid ? "Balance Due:" : "Bill Total:"}
                     </div>
                   </div>
                   <div className="text-right">
@@ -574,7 +568,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                           className="flex-1 py-3 px-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs sm:text-sm transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5 active:scale-[0.98]"
                         >
                           <IndianRupee className="w-4 h-4" />
-                          <span>{isTamil ? `பணம் வசூல் (${formatCurrency(bill.balanceAmount)})` : `Collect (${formatCurrency(bill.balanceAmount)})`}</span>
+                          <span>Collect ({formatCurrency(bill.balanceAmount)})</span>
                         </button>
 
                         {/* Quick UPI Button */}
@@ -592,7 +586,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                         </button>
                       </div>
 
-                      {/* Secondary Clean Actions Row: Slip (Print), Edit, and Safe (•••) Dropdown */}
+                      {/* Secondary Actions Row: Slip (Print), Edit, and Safe Dropdown */}
                       <div className="flex items-center justify-between gap-1.5 text-xs pt-0.5">
                         {/* 1. Slip (Print) */}
                         <button
@@ -606,7 +600,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                           title="Print Kitchen / Token Order Slip"
                         >
                           <Receipt className="w-3.5 h-3.5 text-amber-700" />
-                          <span>{isTamil ? "ஸ்லிப்" : "Slip"}</span>
+                          <span>Slip</span>
                         </button>
 
                         {/* 2. Edit (Owner Protected) */}
@@ -617,7 +611,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                           title="Edit Bill Items / Quantities"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
-                          <span>{isTamil ? "மாற்றுக" : "Edit"}</span>
+                          <span>Edit</span>
                         </button>
 
                         {/* 3. Safe Options Dropdown (•••) */}
@@ -652,7 +646,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                                 className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2 transition-colors"
                               >
                                 <Eye className="w-4 h-4 text-slate-500" />
-                                <span>{isTamil ? "விவரங்கள் பார்க்க" : "View Full Details"}</span>
+                                <span>View Full Details</span>
                               </button>
 
                               <div className="h-px bg-slate-100 my-1"></div>
@@ -667,7 +661,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                                 className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-rose-700 hover:bg-rose-50 flex items-center gap-2 transition-colors"
                               >
                                 <Ban className="w-4 h-4 text-rose-600" />
-                                <span>{isTamil ? "பில் ரத்து செய்க" : "Cancel / Void Bill"}</span>
+                                <span>Cancel / Void Bill</span>
                               </button>
                             </div>
                           )}
@@ -682,7 +676,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                         className="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5"
                       >
                         <Eye className="w-3.5 h-3.5" />
-                        <span>{isTamil ? "விவரங்கள்" : "View Details"}</span>
+                        <span>View Details</span>
                       </button>
 
                       <button
@@ -695,18 +689,18 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                         className="py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-[0.98]"
                       >
                         <Printer className="w-4 h-4 text-emerald-400" />
-                        <span>{isTamil ? "ரசீது அச்சிடு" : "Reprint Receipt"}</span>
+                        <span>Reprint Receipt</span>
                       </button>
                     </div>
                   ) : (
                     <div className="flex items-center justify-between p-2.5 bg-red-50 rounded-xl border border-red-200 text-xs">
-                      <span className="font-bold text-red-700">{isTamil ? "ரத்து செய்யப்பட்ட பில்" : "Cancelled Bill"}</span>
+                      <span className="font-bold text-red-700">Cancelled Bill</span>
                       <button
                         type="button"
                         onClick={() => setViewBill(bill)}
                         className="px-2.5 py-1 bg-white hover:bg-red-100 text-red-800 font-bold rounded-lg border border-red-300 text-[11px]"
                       >
-                        {isTamil ? "காரணம் பார்க்க" : "View Reason"}
+                        View Reason
                       </button>
                     </div>
                   )}
@@ -719,11 +713,11 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
         {filteredBills.length === 0 && (
           <div className="col-span-full bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400">
             <Clock className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-            <h3 className="font-bold text-slate-700 text-base">{isTamil ? "பில்கள் எதுவும் இல்லை" : "No bills found in this view"}</h3>
+            <h3 className="font-bold text-slate-700 text-base">No bills found in this view</h3>
             <p className="text-xs text-slate-400 mt-1">
               {statusFilter === "ACTIVE"
-                ? (isTamil ? "தற்போது நிலுவையில் உள்ள பில்கள் எதுவும் இல்லை." : "There are currently no unpaid bills waiting in queue.")
-                : (isTamil ? "வேறு வடிகட்டி அல்லது தேடலை முயற்சிக்கவும்." : "Try changing your filter or search query.")}
+                ? "There are currently no unpaid bills waiting in queue."
+                : "Try changing your filter or search query."}
             </p>
           </div>
         )}

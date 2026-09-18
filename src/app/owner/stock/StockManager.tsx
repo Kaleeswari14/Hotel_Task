@@ -19,7 +19,6 @@ import {
   Zap
 } from "lucide-react";
 import { formatHumanStock } from "@/lib/format";
-import { useLanguage } from "@/context/LanguageContext";
 
 interface StockItem {
   id: string;
@@ -30,9 +29,8 @@ interface StockItem {
   foodItem: {
     id: string;
     name: string;
-    nameTamil?: string | null;
     categoryId: string;
-    category: { id: string; name: string; nameTamil?: string | null };
+    category: { id: string; name: string };
   };
 }
 
@@ -41,7 +39,6 @@ interface StockManagerProps {
 }
 
 export default function StockManager({ initialStock }: StockManagerProps) {
-  const { language, setLanguage, isTamil, t } = useLanguage();
   const [stockList, setStockList] = useState<StockItem[]>(initialStock);
   const [filter, setFilter] = useState<"all" | "low" | "out" | "ok">("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -87,10 +84,8 @@ export default function StockManager({ initialStock }: StockManagerProps) {
 
   // 1-Click Manual Override: Set Stock to 0 (Mark as Out of Stock when kitchen runs out)
   const handleMarkOutOfStock = async (item: StockItem) => {
-    const dishName = isTamil ? (item.foodItem.nameTamil || item.foodItem.name) : item.foodItem.name;
-    const confirmMsg = isTamil
-      ? `"${dishName}"-ன் மாவு/இருப்பு தீர்ந்துவிட்டதா? உடனே இருப்பை 0 (Out of Stock) ஆக்கவா?`
-      : `Did batter/stock run out for "${dishName}" in kitchen? Set stock to 0 immediately?`;
+    const dishName = item.foodItem.name;
+    const confirmMsg = `Did batter/stock run out for "${dishName}" in kitchen? Set stock to 0 immediately?`;
     if (!confirm(confirmMsg)) return;
 
     try {
@@ -104,11 +99,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
         }),
       });
       if (!res.ok) throw new Error("Failed to update stock");
-      showToast(
-        isTamil
-          ? `🚫 ${dishName} இருப்பு 0 (Out of Stock) ஆக்கப்பட்டது!`
-          : `🚫 ${dishName} marked Out of Stock (0)!`
-      );
+      showToast(`🚫 ${dishName} marked Out of Stock (0)!`);
       await refreshStock();
     } catch (err: any) {
       alert(err.message);
@@ -117,7 +108,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
 
   // Quick Restock / Add Batch Shortcut (+30, +50, +100)
   const handleQuickAdd = async (item: StockItem, amount: number) => {
-    const dishName = isTamil ? (item.foodItem.nameTamil || item.foodItem.name) : item.foodItem.name;
+    const dishName = item.foodItem.name;
     try {
       const res = await fetch("/api/stock", {
         method: "POST",
@@ -129,11 +120,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
         }),
       });
       if (!res.ok) throw new Error("Failed to restock");
-      showToast(
-        isTamil
-          ? `+${amount} ${item.unitName} "${dishName}" உடன் சேர்க்கப்பட்டது!`
-          : `Added +${amount} ${item.unitName} to "${dishName}"!`
-      );
+      showToast(`Added +${amount} ${item.unitName} to "${dishName}"!`);
       await refreshStock();
     } catch (err: any) {
       alert(err.message);
@@ -172,15 +159,8 @@ export default function StockManager({ initialStock }: StockManagerProps) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to update stock");
 
-      const dishName = isTamil
-        ? (selectedStock.foodItem.nameTamil || selectedStock.foodItem.name)
-        : selectedStock.foodItem.name;
-
-      showToast(
-        isTamil
-          ? `${dishName} இருப்பு வெற்றிகரமாக மாற்றப்பட்டது!`
-          : `Stock updated for ${dishName}!`
-      );
+      const dishName = selectedStock.foodItem.name;
+      showToast(`Stock updated for ${dishName}!`);
       setModalOpen(false);
       setSelectedStock(null);
       await refreshStock();
@@ -217,7 +197,6 @@ export default function StockManager({ initialStock }: StockManagerProps) {
     const matchesSearch =
       !searchQuery.trim() ||
       item.foodItem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item.foodItem.nameTamil && item.foodItem.nameTamil.toLowerCase().includes(searchQuery.toLowerCase())) ||
       item.foodItem.category.name.toLowerCase().includes(searchQuery.toLowerCase());
 
     return matchesFilter && matchesCat && matchesSearch;
@@ -237,12 +216,10 @@ export default function StockManager({ initialStock }: StockManagerProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div>
           <h1 className="text-2xl font-black text-slate-900">
-            {isTamil ? "சரக்கு இருப்பு & Batch கண்காணிப்பு" : "Kitchen Batch & Stock Tracking"}
+            Kitchen Batch &amp; Stock Tracking
           </h1>
           <p className="text-slate-500 text-sm mt-1">
-            {isTamil
-              ? "இட்லி/தோசை மாவு Batch கணக்கு, குறைந்த இருப்பு எச்சரிக்கை மற்றும் உடனடி Out of Stock பட்டன்."
-              : "Estimate-based batch yields (Idly, Dosa, Rice), low-stock warnings & 1-click Out of Stock override."}
+            Estimate-based batch yields (Idly, Dosa, Rice), low-stock warnings &amp; 1-click Out of Stock override.
           </p>
         </div>
 
@@ -251,11 +228,11 @@ export default function StockManager({ initialStock }: StockManagerProps) {
           className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-all border border-slate-300 flex items-center gap-2 self-start sm:self-auto"
         >
           <RefreshCw className="w-4 h-4" />
-          <span>{isTamil ? "புதுப்பி" : "Refresh Stock"}</span>
+          <span>Refresh Stock</span>
         </button>
       </div>
 
-      {/* Overview Stat Banners (All / Out of Stock / Low Stock / In Stock) */}
+      {/* Overview Stat Banners */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <div
           onClick={() => setFilter("all")}
@@ -267,12 +244,12 @@ export default function StockManager({ initialStock }: StockManagerProps) {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs uppercase font-bold tracking-wider opacity-80">
-              {isTamil ? "மொத்த உணவுகள்" : "Tracked Dishes"}
+              Tracked Dishes
             </span>
             <Boxes className="w-5 h-5" />
           </div>
           <div className="text-3xl font-black mt-2">{totalItems}</div>
-          <div className="text-xs opacity-70 mt-1">{isTamil ? "அனைத்து மெனு வகைகள்" : "All menu items"}</div>
+          <div className="text-xs opacity-70 mt-1">All menu items</div>
         </div>
 
         <div
@@ -287,15 +264,13 @@ export default function StockManager({ initialStock }: StockManagerProps) {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs uppercase font-bold tracking-wider opacity-90">
-              {isTamil ? "இருப்பு முடிந்தது (0)" : "Out of Stock (0)"}
+              Out of Stock (0)
             </span>
             <Ban className="w-5 h-5 text-red-500" />
           </div>
           <div className="text-3xl font-black mt-2">{outOfStockItems.length}</div>
           <div className="text-xs opacity-80 mt-1">
-            {outOfStockItems.length > 0
-              ? (isTamil ? "🚫 POS-ல் ஆர்டர் லாக்" : "🚫 Blocked in POS")
-              : (isTamil ? "முடிந்த உணவுகள் இல்லை" : "None out of stock")}
+            {outOfStockItems.length > 0 ? "🚫 Blocked in POS" : "None out of stock"}
           </div>
         </div>
 
@@ -311,15 +286,13 @@ export default function StockManager({ initialStock }: StockManagerProps) {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs uppercase font-bold tracking-wider opacity-90">
-              {isTamil ? "குறைந்த இருப்பு அலர்ட்" : "Low Stock Alerts"}
+              Low Stock Alerts
             </span>
             <AlertTriangle className="w-5 h-5 text-amber-600" />
           </div>
           <div className="text-3xl font-black mt-2">{lowStockItems.length}</div>
           <div className="text-xs opacity-80 mt-1">
-            {lowStockItems.length > 0
-              ? (isTamil ? "⚠️ புது Batch தயார் செய்க" : "⚠️ Prepare next batch")
-              : (isTamil ? "எச்சரிக்கை இல்லை" : "All batches good")}
+            {lowStockItems.length > 0 ? "⚠️ Prepare next batch" : "All batches good"}
           </div>
         </div>
 
@@ -333,12 +306,12 @@ export default function StockManager({ initialStock }: StockManagerProps) {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs uppercase font-bold tracking-wider opacity-80">
-              {isTamil ? "போதுமான இருப்பு" : "Healthy Stock"}
+              Healthy Stock
             </span>
             <CheckCircle className="w-5 h-5 text-emerald-600" />
           </div>
           <div className="text-3xl font-black mt-2">{inStockItems.length}</div>
-          <div className="text-xs opacity-70 mt-1">{isTamil ? "விற்பனைக்கு தயார்" : "Ready for orders"}</div>
+          <div className="text-xs opacity-70 mt-1">Ready for orders</div>
         </div>
       </div>
 
@@ -353,7 +326,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                 : "bg-slate-100 text-slate-700 hover:bg-slate-200"
             }`}
           >
-            {isTamil ? "அனைத்து வகைகள்" : "All Categories"}
+            All Categories
           </button>
           {categories.map((c) => (
             <button
@@ -365,7 +338,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
               }`}
             >
-              {isTamil ? (c.nameTamil || c.name) : c.name}
+              {c.name}
             </button>
           ))}
         </div>
@@ -376,7 +349,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={isTamil ? "உணவு பெயரை தேடுக..." : "Search dish name..."}
+            placeholder="Search dish name..."
             className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
@@ -388,19 +361,19 @@ export default function StockManager({ initialStock }: StockManagerProps) {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-[11px] uppercase font-bold text-slate-500 tracking-wider">
-                <th className="p-4">{isTamil ? "உணவு & வகை" : "Dish & Category"}</th>
-                <th className="p-4">{isTamil ? "தற்போதைய இருப்பு" : "Current Stock"}</th>
-                <th className="p-4">{isTamil ? "எச்சரிக்கை வரம்பு" : "Alert Limit"}</th>
-                <th className="p-4">{isTamil ? "நிலை" : "Status"}</th>
-                <th className="p-4 text-right">{isTamil ? "Batch & இருப்பு செயல்கள்" : "Batch & Stock Actions"}</th>
+                <th className="p-4">Dish &amp; Category</th>
+                <th className="p-4">Current Stock</th>
+                <th className="p-4">Alert Limit</th>
+                <th className="p-4">Status</th>
+                <th className="p-4 text-right">Batch &amp; Stock Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">
               {filteredList.map((item) => {
                 const isOut = item.currentQuantity <= 0;
                 const isLow = !isOut && item.currentQuantity <= item.minThreshold;
-                const dishName = isTamil ? (item.foodItem.nameTamil || item.foodItem.name) : item.foodItem.name;
-                const catName = isTamil ? (item.foodItem.category.nameTamil || item.foodItem.category.name) : item.foodItem.category.name;
+                const dishName = item.foodItem.name;
+                const catName = item.foodItem.category.name;
 
                 return (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
@@ -422,24 +395,24 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                       <div className="text-xs font-semibold text-slate-700">
                         {item.minThreshold} {item.unitName}
                       </div>
-                      <div className="text-[10px] text-slate-400">{isTamil ? "குறைந்தபட்ச வரம்பு" : "Min. Threshold"}</div>
+                      <div className="text-[10px] text-slate-400">Min. Threshold</div>
                     </td>
 
                     <td className="p-4">
                       {isOut ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-red-100 text-red-900 border border-red-300">
                           <Ban className="w-3.5 h-3.5 text-red-600" />
-                          <span>{isTamil ? "இருப்பு முடிந்தது" : "OUT OF STOCK"}</span>
+                          <span>OUT OF STOCK</span>
                         </span>
                       ) : isLow ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-900 border border-amber-300">
                           <AlertTriangle className="w-3.5 h-3.5 text-amber-700" />
-                          <span>{isTamil ? "குறைந்த இருப்பு ⚠️" : "LOW STOCK ⚠️"}</span>
+                          <span>LOW STOCK ⚠️</span>
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300">
                           <CheckCircle className="w-3.5 h-3.5 text-emerald-700" />
-                          <span>{isTamil ? "இருப்பில் உள்ளது" : "IN STOCK"}</span>
+                          <span>IN STOCK</span>
                         </span>
                       )}
                     </td>
@@ -452,10 +425,10 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                             type="button"
                             onClick={() => handleMarkOutOfStock(item)}
                             className="px-2.5 py-1.5 bg-red-50 hover:bg-red-600 hover:text-white text-red-700 text-xs font-black rounded-lg border border-red-200 hover:border-red-600 transition-all flex items-center gap-1 shadow-2xs"
-                            title={isTamil ? "சமையலறையில் மாவு தீர்ந்துவிட்டது? இருப்பை 0 ஆக்க கிளிக் செய்க" : "Kitchen batter ran out? Click to set stock to 0"}
+                            title="Kitchen batter ran out? Click to set stock to 0"
                           >
                             <Ban className="w-3.5 h-3.5" />
-                            <span>{isTamil ? "0 ஆக்கு" : "Out of Stock"}</span>
+                            <span>Out of Stock</span>
                           </button>
                         )}
 
@@ -463,21 +436,21 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                         <button
                           onClick={() => handleQuickAdd(item, 30)}
                           className="px-2 py-1 bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition-colors"
-                          title={isTamil ? "+30 Batch சேர்க்க" : "Add +30 batch yield"}
+                          title="Add +30 batch yield"
                         >
                           +30
                         </button>
                         <button
                           onClick={() => handleQuickAdd(item, 50)}
                           className="px-2 py-1 bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition-colors"
-                          title={isTamil ? "+50 Batch சேர்க்க" : "Add +50 batch yield"}
+                          title="Add +50 batch yield"
                         >
                           +50
                         </button>
                         <button
                           onClick={() => handleQuickAdd(item, 100)}
                           className="px-2 py-1 bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition-colors"
-                          title={isTamil ? "+100 Batch சேர்க்க" : "Add +100 batch yield"}
+                          title="Add +100 batch yield"
                         >
                           +100
                         </button>
@@ -486,7 +459,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                         <button
                           onClick={() => openAdjustModal(item)}
                           className="p-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg shadow-2xs transition-colors ml-1"
-                          title={isTamil ? "முழுமையான Batch / இருப்பு அமைப்புகள்" : "Custom Batch & Stock Details"}
+                          title="Custom Batch &amp; Stock Details"
                         >
                           <SlidersHorizontal className="w-4 h-4 text-emerald-400" />
                         </button>
@@ -499,7 +472,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
               {filteredList.length === 0 && (
                 <tr>
                   <td colSpan={5} className="p-8 text-center text-slate-400">
-                    {isTamil ? "தேடலுக்குரிய உணவுகள் எதுவும் இல்லை." : "No items match the current stock filter or search."}
+                    No items match the current stock filter or search.
                   </td>
                 </tr>
               )}
@@ -515,10 +488,10 @@ export default function StockManager({ initialStock }: StockManagerProps) {
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <div>
                 <h3 className="font-extrabold text-lg text-slate-900">
-                  {isTamil ? "Batch & இருப்பு அமைத்தல்" : "Update Batch & Stock"}
+                  Update Batch &amp; Stock
                 </h3>
                 <p className="text-xs text-slate-500 font-semibold mt-0.5">
-                  {isTamil ? (selectedStock.foodItem.nameTamil || selectedStock.foodItem.name) : selectedStock.foodItem.name} &bull; {isTamil ? "தற்போதைய இருப்பு:" : "Current:"}{" "}
+                  {selectedStock.foodItem.name} &bull; Current:{" "}
                   <span className="font-bold text-slate-800">
                     {formatHumanStock(selectedStock.currentQuantity, selectedStock.unitName)}
                   </span>
@@ -536,7 +509,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
               {/* Batch Action Mode: 1. ADD TO EXISTING vs 2. START FRESH (REPLACE) */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  {isTamil ? "Batch சேர்க்கும் முறை:" : "Batch Update Method:"}
+                  Batch Update Method:
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -548,9 +521,9 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                         : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                     }`}
                   >
-                    <div className="font-black">+ {isTamil ? "பழையதுடன் கூட்டு" : "Add to Current"}</div>
+                    <div className="font-black">+ Add to Current</div>
                     <div className="text-[10px] opacity-80">
-                      {isTamil ? "பழைய மாவு + புது மாவு" : "Old + New Batch"}
+                      Old + New Batch
                     </div>
                   </button>
 
@@ -563,9 +536,9 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                         : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                     }`}
                   >
-                    <div className="font-black">🔄 {isTamil ? "புது Batch (மாற்று)" : "Start Fresh Batch"}</div>
+                    <div className="font-black">🔄 Start Fresh Batch</div>
                     <div className="text-[10px] opacity-80">
-                      {isTamil ? "புதிய எண்ணிக்கை மட்டும்" : "Replace with New Count"}
+                      Replace with New Count
                     </div>
                   </button>
                 </div>
@@ -575,8 +548,8 @@ export default function StockManager({ initialStock }: StockManagerProps) {
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
                   {adjustMode === "ADD"
-                    ? (isTamil ? "புதிய Batch அளவு (Estimated Yield):" : "Estimated Batch Yield to Add:")
-                    : (isTamil ? "நேரடி இருப்பு எண்ணிக்கை (Exact Count):" : "Exact Count to Set:")}
+                    ? "Estimated Batch Yield to Add:"
+                    : "Exact Count to Set:"}
                 </label>
 
                 <div className="flex items-center gap-1.5 mb-2">
@@ -611,7 +584,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    {isTamil ? "குறைந்த இருப்பு அலர்ட்" : "Low Stock Alert At"}
+                    Low Stock Alert At
                   </label>
                   <input
                     type="number"
@@ -626,7 +599,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    {isTamil ? "அலகு (Unit)" : "Unit Name"}
+                    Unit Name
                   </label>
                   <input
                     type="text"
@@ -649,7 +622,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                   }}
                   className="px-3 py-2 bg-red-50 text-red-700 hover:bg-red-600 hover:text-white border border-red-200 hover:border-red-600 text-xs font-bold rounded-xl transition-all"
                 >
-                  🚫 {isTamil ? "0 ஆக்கு (Out of Stock)" : "Set to 0 (Out of Stock)"}
+                  🚫 Set to 0 (Out of Stock)
                 </button>
 
                 <div className="flex items-center gap-2">
@@ -658,7 +631,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                     onClick={() => setModalOpen(false)}
                     className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
                   >
-                    {isTamil ? "ரத்து" : "Cancel"}
+                    Cancel
                   </button>
 
                   <button
@@ -666,7 +639,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                     disabled={loading}
                     className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-md shadow-emerald-600/20 disabled:opacity-50"
                   >
-                    {loading ? "..." : (isTamil ? "சேமிக்கவும்" : "Save Batch")}
+                    {loading ? "..." : "Save Batch"}
                   </button>
                 </div>
               </div>

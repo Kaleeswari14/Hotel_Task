@@ -241,7 +241,7 @@ export default function EditBillModal({
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                Customer Name (வாடிக்கையாளர்):
+                Customer Name:
               </label>
               <input
                 type="text"

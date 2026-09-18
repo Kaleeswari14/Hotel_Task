@@ -24,22 +24,17 @@ import {
   CreditCard,
   Printer,
   Check,
-  Image as ImageIcon,
   User,
-  Phone,
-  Languages
+  Phone
 } from "lucide-react";
 import { formatCurrency, formatHumanStock } from "@/lib/format";
 import ThermalReceipt from "@/components/ThermalReceipt";
 import PaymentModal from "@/components/PaymentModal";
 import { sendWhatsAppBillAndOffer } from "@/lib/whatsapp";
-import { useLanguage } from "@/context/LanguageContext";
-
 
 interface Portion {
   id: string;
   portionName: string;
-  portionNameTamil?: string | null;
   unitMultiplier: number;
   price: number;
   packingCharge?: number;
@@ -48,14 +43,12 @@ interface Portion {
 interface FoodItem {
   id: string;
   name: string;
-  nameTamil?: string | null;
   categoryId: string;
   description: string | null;
-  imageUrl: string | null;
   dietary?: string;
   mealTime?: string;
   stockType?: "EXACT_COUNT" | "BATCH_ESTIMATE" | "NO_TRACKING" | string;
-  category: { id: string; name: string; nameTamil?: string | null };
+  category: { id: string; name: string };
   portions: Portion[];
   stock: {
     currentQuantity: number;
@@ -66,16 +59,13 @@ interface FoodItem {
 interface Category {
   id: string;
   name: string;
-  nameTamil?: string | null;
 }
 
 interface CartItem {
   foodItemId: string;
   foodName: string;
-  foodNameTamil?: string | null;
   portionId: string;
   portionName: string;
-  portionNameTamil?: string | null;
   unitMultiplier: number;
   unitPrice: number;
   quantity: number;
@@ -130,14 +120,11 @@ export default function PosTerminal({
     };
   }, []);
 
-  // Language state from global context
-  const { language: lang, setLanguage: setLang, isTamil, t } = useLanguage();
-
-  // Order Type & Reference State (Defaulted for direct fast counter billing)
+  // Order Type & Reference State
   const [orderType] = useState<"TABLE" | "TOKEN" | "PARCEL">("TOKEN");
   const [orderReference] = useState("Counter");
 
-  // Customer Info State (Optional for billing & WhatsApp thank you message)
+  // Customer Info State (Optional for billing & WhatsApp receipt)
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
 
@@ -164,54 +151,13 @@ export default function PosTerminal({
     setTimeout(() => setToastMsg(null), 4000);
   };
 
-  // Switch Language & update all existing items in cart
-  const handleLangChange = (newLang: "ta" | "en") => {
-    setLang(newLang);
-  };
-
-  // Automatically sync cart item names whenever global language changes
-  React.useEffect(() => {
-    setCart((prev) =>
-      prev.map((item) => {
-        const food = foodList.find((f) => f.id === item.foodItemId);
-        const portion = food?.portions.find((p) => p.id === item.portionId);
-        const newFoodName =
-          lang === "ta"
-            ? (food?.nameTamil || item.foodNameTamil || item.foodName)
-            : (food?.name || item.foodName);
-        const newPortionName =
-          lang === "ta"
-            ? (portion?.portionNameTamil || item.portionNameTamil || item.portionName)
-            : (portion?.portionName || item.portionName);
-        return {
-          ...item,
-          foodName: newFoodName,
-          portionName: newPortionName,
-        };
-      })
-    );
-  }, [lang, foodList]);
-
-  // Add portion to cart (Strictly pure Tamil in "ta" mode, strictly pure English in "en" mode)
+  // Add portion to cart
   const addToCart = (food: FoodItem, portion: Portion) => {
     // Check if food item is Out of Stock (0 quantity, skipped for NO_TRACKING)
     if (food.stockType !== "NO_TRACKING" && food.stock && food.stock.currentQuantity <= 0) {
-      showToast(
-        lang === "ta"
-          ? `🚫 "${food.nameTamil || food.name}" இருப்பு முடிந்துவிட்டது! சமையலறையில் புது Batch சேர்க்கவும்.`
-          : `🚫 "${food.name}" is Out of Stock! Please prepare a new batch.`
-      );
+      showToast(`🚫 "${food.name}" is Out of Stock! Please prepare a new batch.`);
       return;
     }
-
-    const displayName =
-      lang === "ta"
-        ? (food.nameTamil || food.name)
-        : food.name;
-    const displayPortion =
-      lang === "ta"
-        ? (portion.portionNameTamil || portion.portionName)
-        : portion.portionName;
 
     setCart((prev) => {
       const existingIdx = prev.findIndex(
@@ -224,8 +170,6 @@ export default function PosTerminal({
             ? {
                 ...item,
                 quantity: item.quantity + 1,
-                foodName: displayName,
-                portionName: displayPortion,
               }
             : item
         );
@@ -234,11 +178,9 @@ export default function PosTerminal({
           ...prev,
           {
             foodItemId: food.id,
-            foodName: displayName,
-            foodNameTamil: food.nameTamil,
+            foodName: food.name,
             portionId: portion.id,
-            portionName: displayPortion,
-            portionNameTamil: portion.portionNameTamil,
+            portionName: portion.portionName,
             unitMultiplier: portion.unitMultiplier,
             unitPrice: portion.price,
             quantity: 1,
@@ -282,29 +224,17 @@ export default function PosTerminal({
   const grandTotal = Math.max(0, subtotal - discountVal);
   const totalItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  // Prepare bill items strictly matching active language mode
+  // Prepare bill items
   const prepareBillItems = () => {
-    return cart.map((item) => {
-      const food = foodList.find((f) => f.id === item.foodItemId);
-      const portion = food?.portions.find((p) => p.id === item.portionId);
-      const foodName =
-        lang === "ta"
-          ? (food?.nameTamil || item.foodNameTamil || item.foodName)
-          : (food?.name || item.foodName);
-      const portionName =
-        lang === "ta"
-          ? (portion?.portionNameTamil || item.portionNameTamil || item.portionName)
-          : (portion?.portionName || item.portionName);
-      return {
-        foodItemId: item.foodItemId,
-        foodName,
-        portionId: item.portionId,
-        portionName,
-        unitMultiplier: item.unitMultiplier,
-        unitPrice: item.unitPrice,
-        quantity: item.quantity,
-      };
-    });
+    return cart.map((item) => ({
+      foodItemId: item.foodItemId,
+      foodName: item.foodName,
+      portionId: item.portionId,
+      portionName: item.portionName,
+      unitMultiplier: item.unitMultiplier,
+      unitPrice: item.unitPrice,
+      quantity: item.quantity,
+    }));
   };
 
   // 1. INSTANT PAY & AUTO-PRINT (1-CLICK / ENTER KEY CHECKOUT)
@@ -414,89 +344,6 @@ export default function PosTerminal({
     }
   };
 
-  // 3. Create UNPAID Bill silently without printing
-  const handleCreateUnpaidBill = async () => {
-    if (cart.length === 0) {
-      alert("Please add at least one food item to the bill");
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const res = await fetch("/api/bills", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderType: "TOKEN",
-          orderReference: "Counter",
-          customerName: customerName.trim() || null,
-          customerPhone: customerPhone.trim() || null,
-          items: prepareBillItems(),
-          discount: discountVal,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to create bill");
-
-      showToast(`✅ Bill #${data.billNumber} saved to UNPAID queue! Ready for next order.`);
-      clearCart();
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // 4. Open Detailed Payment Modal (For change calculation or split)
-  const handleOpenDetailedPayment = async () => {
-    if (cart.length === 0) {
-      alert("Please add at least one food item to the bill");
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const res = await fetch("/api/bills", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderType,
-          orderReference: orderReference.trim(),
-          customerName: customerName.trim() || null,
-          customerPhone: customerPhone.trim() || null,
-          items: prepareBillItems(),
-          discount: discountVal,
-        }),
-      });
-
-      const bill = await res.json();
-      if (!res.ok) throw new Error(bill.error || "Failed to create bill");
-
-      setPaymentBill(bill);
-      clearCart();
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // On payment success from modal
-  const handlePaymentComplete = (updatedBill: any, payment: any) => {
-    setPaymentBill(null);
-    showToast(`🎉 Payment of ${formatCurrency(payment.amount)} confirmed for Bill #${updatedBill.billNumber}!`);
-    
-    // Auto-send WhatsApp Bill & Special Offer if customer phone is provided
-    if (updatedBill?.customerPhone) {
-      sendWhatsAppBillAndOffer(updatedBill);
-    }
-
-    setReceiptInitialMode("PAYMENT_RECEIPT");
-    setReceiptAutoPrint(true);
-    setReceiptBill(updatedBill);
-  };
-
   // Keyboard Shortcuts: Enter = Instant Cash & Print; Shift+Enter = Order Slip
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -522,9 +369,9 @@ export default function PosTerminal({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [cart, submitting, orderType, orderReference, discountVal]);
+  }, [cart, submitting, discountVal]);
 
-  // Filtered Food Items (Matches English & Tamil Names + Meal Timing Session + Dietary)
+  // Filtered Food Items
   const filteredFoods = foodList.filter((f) => {
     const matchesCategory = selectedCatId === "all" || f.categoryId === selectedCatId;
     const matchesMealSession =
@@ -539,9 +386,7 @@ export default function PosTerminal({
     const matchesSearch =
       !query ||
       f.name.toLowerCase().includes(query) ||
-      (Boolean(f.nameTamil) && f.nameTamil!.toLowerCase().includes(query)) ||
-      f.category.name.toLowerCase().includes(query) ||
-      (Boolean(f.category.nameTamil) && f.category.nameTamil!.toLowerCase().includes(query));
+      f.category.name.toLowerCase().includes(query);
     return matchesCategory && matchesMealSession && matchesDietary && matchesSearch;
   });
 
@@ -557,17 +402,15 @@ export default function PosTerminal({
 
       {/* Main Grid: Left = Food Catalog / Categories, Right = Live Order Cart */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* LEFT COLUMN: Food Catalog (7 cols on lg, 8 on xl) */}
+        {/* LEFT COLUMN: Food Catalog */}
         <div className="lg:col-span-7 xl:col-span-8 space-y-4">
 
-          {/* ========================================================================= */}
-          {/* MEAL SESSION TIMING BAR (Morning / Afternoon / Evening / Night / All) */}
-          {/* ========================================================================= */}
+          {/* MEAL SESSION TIMING BAR */}
           <div className="bg-slate-900 text-white p-2.5 sm:p-3 rounded-2xl flex flex-wrap items-center justify-between gap-2 shadow-sm">
             <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none w-full sm:w-auto">
               <span className="text-[11px] font-black uppercase text-emerald-400 mr-1 flex items-center gap-1 shrink-0">
                 <Clock className="w-3.5 h-3.5" />
-                <span>{lang === "ta" ? "நேரம்:" : "Session:"}</span>
+                <span>Session:</span>
               </span>
 
               <button
@@ -579,7 +422,7 @@ export default function PosTerminal({
                     : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                 }`}
               >
-                🍽️ {lang === "ta" ? "அனைத்து உணவுகள்" : "All Menu"}
+                🍽️ All Menu
               </button>
 
               <button
@@ -592,7 +435,7 @@ export default function PosTerminal({
                 }`}
               >
                 <span>🌅</span>
-                <span>{lang === "ta" ? "காலை உணவு" : "Breakfast"}</span>
+                <span>Breakfast</span>
               </button>
 
               <button
@@ -605,7 +448,7 @@ export default function PosTerminal({
                 }`}
               >
                 <span>☀️</span>
-                <span>{lang === "ta" ? "மதிய உணவு" : "Lunch"}</span>
+                <span>Lunch</span>
               </button>
 
               <button
@@ -618,7 +461,7 @@ export default function PosTerminal({
                 }`}
               >
                 <span>☕</span>
-                <span>{lang === "ta" ? "மாலை / டீ" : "Snacks & Tea"}</span>
+                <span>Snacks & Tea</span>
               </button>
 
               <button
@@ -631,17 +474,17 @@ export default function PosTerminal({
                 }`}
               >
                 <span>🌙</span>
-                <span>{lang === "ta" ? "இரவு உணவு" : "Dinner"}</span>
+                <span>Dinner</span>
               </button>
             </div>
 
             <div className="hidden xl:flex items-center gap-1.5 text-[11px] text-slate-400 font-bold">
-              <span>Current Time:</span>
+              <span>Current Session:</span>
               <span className="text-emerald-400 capitalize">{getCurrentSession().toLowerCase()}</span>
             </div>
           </div>
 
-          {/* Instant Food Search & Dietary Filter Bar */}
+          {/* Instant Food Search & Filter Bar */}
           <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
             {/* Full-Width Fast Food Search Box */}
             <div className="relative w-full">
@@ -650,11 +493,7 @@ export default function PosTerminal({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={
-                  lang === "ta"
-                    ? "🔍 உணவு பெயரை தட்டச்சு செய்து உடனே தேடுக (எ.கா: இட்லி, தோசை, பிரியாணி, காபி)..."
-                    : "🔍 Search any food item instantly (e.g., Dosa, Biriyani, Parotta, Coffee)..."
-                }
+                placeholder="🔍 Search any food item instantly (e.g., Dosa, Biriyani, Parotta, Coffee)..."
                 className="w-full pl-10 sm:pl-11 pr-9 py-2.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-300 focus:border-emerald-500 rounded-xl text-xs sm:text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all shadow-inner"
               />
               {searchQuery && (
@@ -669,63 +508,92 @@ export default function PosTerminal({
               )}
             </div>
 
-            {/* Dietary Type Filter Bar (Pure Veg / Non-Veg / Egg) */}
-            <div className="flex items-center gap-2 pt-2 border-t border-slate-100 overflow-x-auto scrollbar-none">
-              <span className="text-[11px] font-black uppercase text-slate-400 shrink-0">
-                {lang === "ta" ? "வகை:" : "Diet:"}
-              </span>
-              <button
-                type="button"
-                onClick={() => setSelectedDietary("ALL")}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
-                  selectedDietary === "ALL"
-                    ? "bg-slate-900 text-white shadow-xs"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                {lang === "ta" ? "அனைத்தும்" : "All Items"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedDietary("VEG")}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
-                  selectedDietary === "VEG"
-                    ? "bg-emerald-600 text-white shadow-xs"
-                    : "bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100"
-                }`}
-              >
-                <span>🟢</span>
-                <span>{lang === "ta" ? "சைவம் (Pure Veg)" : "Pure Veg"}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedDietary("NON_VEG")}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
-                  selectedDietary === "NON_VEG"
-                    ? "bg-rose-600 text-white shadow-xs"
-                    : "bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100"
-                }`}
-              >
-                <span>🔴</span>
-                <span>{lang === "ta" ? "அசைவம் (Non-Veg)" : "Non-Veg"}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedDietary("EGG")}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
-                  selectedDietary === "EGG"
-                    ? "bg-amber-500 text-slate-950 font-black shadow-xs"
-                    : "bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100"
-                }`}
-              >
-                <span>🟡</span>
-                <span>{lang === "ta" ? "முட்டை (Egg)" : "Egg"}</span>
-              </button>
+            {/* Category and Dietary Type Filter Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+              {/* Category Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCatId("all")}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                    selectedCatId === "all"
+                      ? "bg-emerald-600 text-white shadow-xs"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  All Categories
+                </button>
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelectedCatId(cat.id)}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
+                      selectedCatId === cat.id
+                        ? "bg-emerald-600 text-white shadow-xs"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+
+              {/* Dietary Type Filter */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setSelectedDietary("ALL")}
+                  className={`px-2 py-1 rounded-lg text-xs font-bold transition-all ${
+                    selectedDietary === "ALL"
+                      ? "bg-slate-900 text-white"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  All Diet
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDietary("VEG")}
+                  className={`px-2 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                    selectedDietary === "VEG"
+                      ? "bg-emerald-600 text-white"
+                      : "bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100"
+                  }`}
+                >
+                  <span>🟢</span>
+                  <span>Veg</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDietary("NON_VEG")}
+                  className={`px-2 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                    selectedDietary === "NON_VEG"
+                      ? "bg-rose-600 text-white"
+                      : "bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100"
+                  }`}
+                >
+                  <span>🔴</span>
+                  <span>Non-Veg</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDietary("EGG")}
+                  className={`px-2 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                    selectedDietary === "EGG"
+                      ? "bg-amber-500 text-slate-950 font-black"
+                      : "bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100"
+                  }`}
+                >
+                  <span>🟡</span>
+                  <span>Egg</span>
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Food Items Selection Grid (With Images & Tamil Names) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5">
+          {/* Food Items Selection Grid - High-Density Touch Buttons (NO IMAGES) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {filteredFoods.map((food) => {
               const isNoTracking = food.stockType === "NO_TRACKING";
               const isOut = !isNoTracking && food.stock ? food.stock.currentQuantity <= 0 : false;
@@ -733,86 +601,68 @@ export default function PosTerminal({
               const diet = food.dietary || "VEG";
 
               return (
-              <div
-                key={food.id}
-                className={`bg-white rounded-2xl border overflow-hidden shadow-sm transition-all flex flex-col justify-between group ${
-                  isOut
-                    ? "border-red-200 opacity-80"
-                    : isLow
-                    ? "border-amber-300 hover:border-amber-500 hover:shadow-md"
-                    : "border-slate-200 hover:border-emerald-400 hover:shadow-md"
-                }`}
-              >
-                {/* Food Image Banner or Aesthetic Gradient Fallback */}
-                <div className="h-28 w-full relative overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900">
-                  {food.imageUrl ? (
-                    <img
-                      src={food.imageUrl}
-                      alt={food.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-white/80 p-3">
-                      <UtensilsCrossed className="w-8 h-8 text-emerald-400 mb-1 opacity-80" />
-                      <span className="text-xs font-bold text-slate-200">{food.name}</span>
-                    </div>
-                  )}
-
-                  {/* Category & Dietary Badges */}
-                  <div className="absolute top-2 left-2 flex items-center gap-1">
-                    <span className="text-[10px] font-black uppercase text-white bg-slate-900/85 backdrop-blur-xs px-2 py-0.5 rounded-md shadow-xs">
-                      {lang === "ta" ? (food.category.nameTamil || food.category.name) : food.category.name}
-                    </span>
-                    {diet === "NON_VEG" ? (
-                      <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-xs bg-rose-600 text-white backdrop-blur-xs">
-                        🔴 Non-Veg
-                      </span>
-                    ) : diet === "EGG" ? (
-                      <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-xs bg-amber-400 text-slate-950 backdrop-blur-xs">
-                        🟡 Egg
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-xs bg-emerald-600 text-white backdrop-blur-xs">
-                        🟢 Veg
-                      </span>
-                    )}
-                  </div>
-
-                  {isNoTracking ? (
-                    <span className="absolute bottom-2 right-2 text-[10px] font-black px-2 py-0.5 rounded-md shadow-xs bg-sky-700/90 text-white backdrop-blur-xs">
-                      {lang === "ta" ? "♾️ அன்லிமிடெட்" : "♾️ Unlimited"}
-                    </span>
-                  ) : food.stock ? (
-                    <span className={`absolute bottom-2 right-2 text-[10px] font-black px-2 py-0.5 rounded-md shadow-xs ${
-                      isOut
-                        ? "bg-red-600 text-white"
-                        : isLow
-                        ? "bg-amber-400 text-slate-950 font-black"
-                        : "bg-white/95 text-slate-900"
-                    }`}>
-                      {isOut
-                        ? (lang === "ta" ? "🚫 இருப்பு இல்லை (0)" : "🚫 Out of Stock (0)")
-                        : isLow
-                        ? `⚠️ ${formatHumanStock(food.stock.currentQuantity, food.stock.unitName)} (Low)`
-                        : `Stock: ${formatHumanStock(food.stock.currentQuantity, food.stock.unitName)}`}
-                    </span>
-                  ) : null}
-                </div>
-
-                {/* Content */}
-                <div className="p-3.5 flex-1 flex flex-col justify-between">
+                <div
+                  key={food.id}
+                  className={`bg-white rounded-2xl border p-3.5 shadow-sm transition-all flex flex-col justify-between group ${
+                    isOut
+                      ? "border-red-200 bg-red-50/20 opacity-80"
+                      : isLow
+                      ? "border-amber-300 hover:border-amber-500 hover:shadow-md"
+                      : "border-slate-200 hover:border-emerald-500 hover:shadow-md"
+                  }`}
+                >
+                  {/* Top Bar: Badges & Stock */}
                   <div>
-                    <h3 className="font-black text-slate-900 text-sm leading-snug">
-                      {lang === "ta" ? (food.nameTamil || food.name) : food.name}
+                    <div className="flex items-center justify-between gap-1.5 mb-2">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[10px] font-black uppercase text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                          {food.category.name}
+                        </span>
+                        {diet === "NON_VEG" ? (
+                          <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-200">
+                            🔴 Non-Veg
+                          </span>
+                        ) : diet === "EGG" ? (
+                          <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200">
+                            🟡 Egg
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            🟢 Veg
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Stock Badge */}
+                      {isNoTracking ? (
+                        <span className="text-[10px] font-bold text-slate-400">
+                          ♾️ Stock
+                        </span>
+                      ) : food.stock ? (
+                        <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
+                          isOut
+                            ? "bg-red-100 text-red-700 font-extrabold"
+                            : isLow
+                            ? "bg-amber-100 text-amber-800"
+                            : "bg-emerald-50 text-emerald-700"
+                        }`}>
+                          {isOut
+                            ? "🚫 Out of Stock"
+                            : isLow
+                            ? `⚠️ Low (${formatHumanStock(food.stock.currentQuantity, food.stock.unitName)})`
+                            : `Stock: ${formatHumanStock(food.stock.currentQuantity, food.stock.unitName)}`}
+                        </span>
+                      ) : null}
+                    </div>
+
+                    {/* Dish Name */}
+                    <h3 className="font-extrabold text-slate-900 text-base leading-snug group-hover:text-emerald-700 transition-colors">
+                      {food.name}
                     </h3>
                   </div>
 
-                  {/* Portion Action Buttons (1-click add to cart) */}
+                  {/* Portion Action Buttons (1-Click Add to Cart) */}
                   <div className="mt-3 pt-2.5 border-t border-slate-100 space-y-1.5">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      {lang === "ta" ? "அளவு / போஷன் தேர்வு:" : "Select Portion to Add:"}
-                    </div>
                     <div className="grid grid-cols-1 gap-1.5">
                       {food.portions.map((portion) => (
                         <button
@@ -820,26 +670,27 @@ export default function PosTerminal({
                           type="button"
                           onClick={() => addToCart(food, portion)}
                           disabled={isOut}
-                          className={`w-full flex items-center justify-between px-3 py-1.5 font-bold rounded-xl border transition-all active:scale-[0.98] group/btn ${
+                          className={`w-full flex items-center justify-between px-3 py-2 font-bold rounded-xl border transition-all active:scale-[0.98] group/btn ${
                             isOut
                               ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-60"
-                              : "bg-emerald-50/70 hover:bg-emerald-600 hover:text-white text-emerald-950 border-emerald-200/80 hover:border-emerald-600"
+                              : "bg-slate-50 hover:bg-emerald-600 hover:text-white text-slate-900 border-slate-200 hover:border-emerald-600 shadow-2xs"
                           }`}
                         >
-                          <span className="text-xs">
-                            {lang === "ta" ? (portion.portionNameTamil || portion.portionName) : portion.portionName}
-                            {isOut && <span className="ml-1 text-[10px] text-red-500 font-extrabold">({lang === "ta" ? "முடிந்தது" : "Out"})</span>}
+                          <span className="text-xs font-bold">
+                            {portion.portionName}
+                            {isOut && <span className="ml-1 text-[10px] text-red-500 font-extrabold">(Out)</span>}
                           </span>
                           <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-black">{formatCurrency(portion.price)}</span>
-                            {!isOut && <Plus className="w-3.5 h-3.5 opacity-70 group-hover/btn:opacity-100" />}
+                            <span className="text-xs font-black text-emerald-700 group-hover/btn:text-white">
+                              {formatCurrency(portion.price)}
+                            </span>
+                            {!isOut && <Plus className="w-3.5 h-3.5 opacity-60 group-hover/btn:opacity-100" />}
                           </div>
                         </button>
                       ))}
                     </div>
                   </div>
                 </div>
-              </div>
               );
             })}
 
@@ -850,12 +701,10 @@ export default function PosTerminal({
                 </div>
                 <div>
                   <div className="font-black text-slate-900 text-lg">
-                    {lang === "ta" ? "உணவுகள் இன்னும் சேர்க்கப்படவில்லை" : "No Dishes Added Yet"}
+                    No Dishes Added Yet
                   </div>
                   <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-                    {lang === "ta"
-                      ? "உரிமையாளர் மெனு மேலாளருக்குச் சென்று புதிய உணவுகள் மற்றும் வகைகளை சேர்க்கலாம்."
-                      : "Owner can go to the Menu Manager to add new categories and dishes to start billing."}
+                    Owner can go to the Menu Manager to add new categories and dishes to start billing.
                   </p>
                 </div>
                 <a
@@ -863,24 +712,24 @@ export default function PosTerminal({
                   className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-700/20 transition-all"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>{lang === "ta" ? "உணவுகளை சேர்க்க (Go to Menu Manager)" : "Go to Menu Manager"}</span>
+                  <span>Go to Menu Manager</span>
                 </a>
               </div>
             ) : filteredFoods.length === 0 ? (
               <div className="col-span-full bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400">
                 <UtensilsCrossed className="w-12 h-12 text-slate-300 mx-auto mb-2" />
                 <div className="font-bold text-slate-600 text-sm">
-                  {lang === "ta" ? "உணவுகள் எதுவும் கிடைக்கவில்லை" : "No dishes found"}
+                  No dishes found
                 </div>
                 <div className="text-xs mt-0.5">
-                  {lang === "ta" ? "வேறு பெயரை தட்டச்சு செய்து பார்க்கவும்" : "Try searching with another name."}
+                  Try searching with another food name or selecting a different category.
                 </div>
               </div>
             ) : null}
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Active Order Cart & Bill Generator (5 cols on lg, 4 on xl) */}
+        {/* RIGHT COLUMN: Active Order Cart & Bill Generator */}
         <div className="lg:col-span-5 xl:col-span-4">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl sticky top-20 flex flex-col h-[calc(100vh-6rem)] overflow-hidden">
             {/* Cart Header */}
@@ -888,9 +737,9 @@ export default function PosTerminal({
               <div className="flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-emerald-400" />
                 <div>
-                  <div className="font-extrabold text-sm sm:text-base leading-none">{lang === "ta" ? "தேர்ந்தெடுத்த பில் பட்டியல்" : "Current Bill Cart"}</div>
+                  <div className="font-extrabold text-sm sm:text-base leading-none">Current Bill Cart</div>
                   <div className="text-[11px] text-emerald-300 font-semibold mt-0.5">
-                    {totalItemsCount} {lang === "ta" ? "உணவு பொருட்கள்" : "Items in Cart"}
+                    {totalItemsCount} Items in Cart
                   </div>
                 </div>
               </div>
@@ -902,12 +751,12 @@ export default function PosTerminal({
                   className="text-xs text-red-300 hover:text-red-100 bg-red-900/40 hover:bg-red-900/60 px-2.5 py-1 rounded-lg border border-red-500/30 flex items-center gap-1"
                 >
                   <Trash2 className="w-3 h-3" />
-                  <span>{lang === "ta" ? "அழி" : "Clear"}</span>
+                  <span>Clear</span>
                 </button>
               )}
             </div>
 
-            {/* Customer Information (Optional - Name & Phone for WhatsApp Bill & Offers) */}
+            {/* Customer Information (Optional - Name & Phone for WhatsApp Bill) */}
             <div className="px-3 py-2.5 bg-slate-50 border-b border-slate-200 grid grid-cols-2 gap-2 shrink-0">
               <div className="relative">
                 <User className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -921,7 +770,7 @@ export default function PosTerminal({
                       handleInstantPayAndPrint("CASH");
                     }
                   }}
-                  placeholder={lang === "ta" ? "வாடிக்கையாளர் பெயர்" : "Customer Name"}
+                  placeholder="Customer Name"
                   className="w-full pl-7 pr-2 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-emerald-500 text-slate-800 placeholder:text-slate-400"
                 />
               </div>
@@ -937,14 +786,14 @@ export default function PosTerminal({
                       handleInstantPayAndPrint("CASH");
                     }
                   }}
-                  placeholder={lang === "ta" ? "WhatsApp எண் (Enter ↵)" : "WhatsApp Number (Enter ↵)"}
+                  placeholder="WhatsApp No. (Enter ↵)"
                   maxLength={10}
                   className="w-full pl-7 pr-2 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-emerald-500 text-slate-800 placeholder:text-slate-400"
                 />
               </div>
             </div>
 
-            {/* Cart Items List (Scrollable - Maximized Height & High Visibility) */}
+            {/* Cart Items List */}
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
               {cart.map((item, idx) => (
                 <div
@@ -1003,21 +852,21 @@ export default function PosTerminal({
               {cart.length === 0 && (
                 <div className="h-full min-h-[160px] flex flex-col items-center justify-center text-center p-6 text-slate-400">
                   <UtensilsCrossed className="w-10 h-10 text-slate-300 mb-2" />
-                  <div className="font-bold text-slate-700 text-sm">{lang === "ta" ? "கூடை காலியாக உள்ளது" : "Cart is empty"}</div>
+                  <div className="font-bold text-slate-700 text-sm">Cart is empty</div>
                   <div className="text-xs text-slate-400 mt-0.5 max-w-[200px]">
-                    {lang === "ta" ? "இடப்பக்கத்தில் உள்ள உணவை கிளிக் செய்து சேர்க்கவும்." : "Click any food item on the left to add it to this bill."}
+                    Click any food item on the left to add it to this bill.
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Cart Footer: Compact Summary & Sleek 2-Button Action Bar */}
+            {/* Cart Footer: Compact Summary & 2-Button Action Bar */}
             <div className="p-3 bg-white border-t border-slate-200 shrink-0 space-y-2.5">
               {/* Discount & Totals Row */}
               <div className="flex items-center justify-between text-xs gap-2 pb-1 border-b border-slate-100">
                 <div className="flex items-center gap-1 text-slate-600 font-semibold">
                   <Tag className="w-3 h-3 text-slate-400" />
-                  <span>{lang === "ta" ? "தள்ளுபடி:" : "Discount:"}</span>
+                  <span>Discount:</span>
                   <input
                     type="number"
                     min="0"
@@ -1036,14 +885,14 @@ export default function PosTerminal({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-500 font-medium">{lang === "ta" ? `மொத்தம் (${totalItemsCount}):` : `Total (${totalItemsCount}):`}</span>
+                  <span className="text-slate-500 font-medium">Total ({totalItemsCount}):</span>
                   <span className="text-base font-black text-emerald-700">
                     {formatCurrency(grandTotal)}
                   </span>
                 </div>
               </div>
 
-              {/* ONLY 2 COMPACT ACTION BUTTONS: Instant Cash & Order Slip */}
+              {/* 2 COMPACT ACTION BUTTONS: Instant Cash & Order Slip */}
               <div className="grid grid-cols-2 gap-2">
                 {/* 1. Instant Cash & Print (Primary / Enter) */}
                 <button
@@ -1053,7 +902,7 @@ export default function PosTerminal({
                   className="py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl shadow-xs active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-1.5 text-xs sm:text-sm border border-emerald-500"
                 >
                   <Zap className="w-3.5 h-3.5 text-amber-300" />
-                  <span>{lang === "ta" ? "ரொக்கம் & பில்" : "Cash & Print"}</span>
+                  <span>Cash & Print</span>
                   <span className="text-[10px] bg-emerald-900/70 px-1 py-0.2 rounded font-mono font-bold">↵</span>
                 </button>
 
@@ -1065,13 +914,13 @@ export default function PosTerminal({
                   className="py-2.5 px-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl shadow-xs active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-1.5 text-xs sm:text-sm border border-amber-400"
                 >
                   <Receipt className="w-3.5 h-3.5 text-slate-950" />
-                  <span>{lang === "ta" ? "ஆர்டர் சீட்டு (KOT)" : "Order Slip"}</span>
+                  <span>Order Slip</span>
                   <span className="text-[10px] bg-amber-700/30 px-1 py-0.2 rounded font-mono font-bold">⇧↵</span>
                 </button>
               </div>
 
               <div className="text-center text-[10px] text-slate-400 font-medium">
-                ⌨️ <kbd className="px-1 py-0.2 bg-slate-100 border border-slate-200 text-slate-700 rounded font-mono font-bold">ENTER</kbd> = {lang === "ta" ? "ரொக்க பில்" : "Cash Bill"} &bull; <kbd className="px-1 py-0.2 bg-slate-100 border border-slate-200 text-slate-700 rounded font-mono font-bold">Shift+ENTER</kbd> = {lang === "ta" ? "ஆர்டர் சீட்டு" : "Order Slip"}
+                ⌨️ <kbd className="px-1 py-0.2 bg-slate-100 border border-slate-200 text-slate-700 rounded font-mono font-bold">ENTER</kbd> = Cash Bill &bull; <kbd className="px-1 py-0.2 bg-slate-100 border border-slate-200 text-slate-700 rounded font-mono font-bold">Shift+ENTER</kbd> = Order Slip
               </div>
             </div>
           </div>
@@ -1083,7 +932,7 @@ export default function PosTerminal({
         <PaymentModal
           bill={paymentBill}
           onClose={() => setPaymentBill(null)}
-          onPaymentSuccess={handlePaymentComplete}
+          onPaymentSuccess={() => setPaymentBill(null)}
         />
       )}
 
