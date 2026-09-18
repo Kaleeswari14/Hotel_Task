@@ -506,7 +506,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
         ? food.mealTime.split(",")
         : []
     );
-    setStockType(food.stockType || "EXACT_COUNT");
+    setStockType(food.stockType || "NO_TRACKING");
     setFoodInitialStock(food.stock ? String(food.stock.currentQuantity) : "");
     setFoodMinThreshold(food.stock ? String(food.stock.minThreshold) : "");
 

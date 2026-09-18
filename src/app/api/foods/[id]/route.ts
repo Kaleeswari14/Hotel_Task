@@ -39,7 +39,7 @@ export async function PUT(
     }
 
     const body = await req.json();
-    const { name, nameTamil, categoryId, description, imageUrl, dietary, mealTime, stockType, isActive, portions, minThreshold, unitName } = body;
+    const { name, nameTamil, categoryId, description, imageUrl, dietary, mealTime, stockType, isActive, portions, initialStock, minThreshold, unitName } = body;
 
     // Check if another food item already has this name (case-insensitive)
     if (name && name.trim()) {
@@ -120,17 +120,18 @@ export async function PUT(
         }
       }
 
-      // 3. Update stock threshold and unit if supplied
-      if (minThreshold !== undefined || unitName !== undefined) {
+      // 3. Update stock threshold, quantity, and unit if supplied
+      if (initialStock !== undefined || minThreshold !== undefined || unitName !== undefined) {
         await tx.stock.upsert({
           where: { foodItemId: params.id },
           update: {
+            ...(initialStock !== undefined && { currentQuantity: parseFloat(initialStock) || 0 }),
             ...(minThreshold !== undefined && { minThreshold: parseFloat(minThreshold) }),
             ...(unitName !== undefined && { unitName: unitName.trim() }),
           },
           create: {
             foodItemId: params.id,
-            currentQuantity: 0,
+            currentQuantity: initialStock !== undefined ? parseFloat(initialStock) || 0 : 0,
             minThreshold: minThreshold !== undefined ? parseFloat(minThreshold) : 5,
             unitName: unitName !== undefined ? unitName.trim() : "Plates",
           },
