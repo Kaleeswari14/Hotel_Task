@@ -279,6 +279,26 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
       setStockType(suggested.defaultStockType);
       setIsCustomUnit(false);
       setCustomUnit("");
+      // If portion is empty or untouched default, switch to the new category's primary preset
+      if (
+        portions.length <= 1 &&
+        (!portions[0]?.price ||
+          !portions[0]?.portionName.trim() ||
+          portions[0]?.portionName === "Full Plate" ||
+          portions[0]?.portionName === "Regular Cup" ||
+          portions[0]?.portionName === "Single Piece" ||
+          portions[0]?.portionName === "Regular Bowl" ||
+          portions[0]?.portionName === "1 Kg")
+      ) {
+        setPortions([
+          {
+            portionName: suggested.presets[0]?.name || "Regular",
+            unitMultiplier: suggested.presets[0]?.multiplier || 1.0,
+            price: portions[0]?.price || 0,
+            packingCharge: 0,
+          },
+        ]);
+      }
     }
   };
 
@@ -291,6 +311,26 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
       setStockType(prof.defaultStockType);
       setIsCustomUnit(false);
       setCustomUnit("");
+      // If portion is empty or untouched default, switch to the new profile's primary preset
+      if (
+        portions.length <= 1 &&
+        (!portions[0]?.price ||
+          !portions[0]?.portionName.trim() ||
+          portions[0]?.portionName === "Full Plate" ||
+          portions[0]?.portionName === "Regular Cup" ||
+          portions[0]?.portionName === "Single Piece" ||
+          portions[0]?.portionName === "Regular Bowl" ||
+          portions[0]?.portionName === "1 Kg")
+      ) {
+        setPortions([
+          {
+            portionName: prof.presets[0]?.name || "Regular",
+            unitMultiplier: prof.presets[0]?.multiplier || 1.0,
+            price: portions[0]?.price || 0,
+            packingCharge: 0,
+          },
+        ]);
+      }
     }
   };
 
@@ -1199,7 +1239,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                       key={idx}
                       className="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end"
                     >
-                      <div className="sm:col-span-4">
+                      <div className="sm:col-span-6">
                         <label className="block text-[11px] font-bold text-slate-600 mb-1">
                           Portion / Size Name *
                         </label>
@@ -1207,7 +1247,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                           type="text"
                           value={portion.portionName}
                           onChange={(e) => handlePortionChange(idx, "portionName", e.target.value)}
-                          placeholder="e.g. Full Plate, 1/2 Plate, 1 pc"
+                          placeholder="e.g. Regular Cup, Full Plate, Set (2 pcs)"
                           className="w-full px-2.5 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                           required
                         />
@@ -1240,53 +1280,32 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                         </div>
                       </div>
 
-                      <div className="sm:col-span-3">
-                        <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                          Rate / Price (₹) *
-                        </label>
-                        <div className="relative">
-                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                            ₹
-                          </span>
-                          <input
-                            type="number"
-                            step="any"
-                            min="0"
-                            value={portion.price === 0 && !portion.portionName ? "" : portion.price}
-                            onChange={(e) =>
-                              handlePortionChange(
-                                idx,
-                                "price",
-                                parseFloat(e.target.value) || 0
-                              )
-                            }
-                            placeholder="0"
-                            className="w-full pl-6 pr-2.5 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div className="sm:col-span-2 flex items-center gap-2">
+                      <div className="sm:col-span-3 flex items-end gap-1.5">
                         <div className="flex-1">
-                          <label className="block text-[11px] font-bold text-slate-600 mb-1" title="Extra charge for Parcel container/box">
-                            Parcel ₹
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                            Rate / Price (₹) *
                           </label>
-                          <input
-                            type="number"
-                            step="any"
-                            min="0"
-                            value={portion.packingCharge || 0}
-                            onChange={(e) =>
-                              handlePortionChange(
-                                idx,
-                                "packingCharge",
-                                parseFloat(e.target.value) || 0
-                              )
-                            }
-                            placeholder="0"
-                            className="w-full px-2 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                          />
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                              ₹
+                            </span>
+                            <input
+                              type="number"
+                              step="any"
+                              min="0"
+                              value={portion.price === 0 && !portion.portionName ? "" : portion.price}
+                              onChange={(e) =>
+                                handlePortionChange(
+                                  idx,
+                                  "price",
+                                  parseFloat(e.target.value) || 0
+                                )
+                              }
+                              placeholder="0"
+                              className="w-full pl-6 pr-2.5 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              required
+                            />
+                          </div>
                         </div>
 
                         {portions.length > 1 && (
