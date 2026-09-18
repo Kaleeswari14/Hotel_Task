@@ -38,6 +38,19 @@ interface StockManagerProps {
   initialStock: StockItem[];
 }
 
+const STANDARD_UNITS = [
+  "Nos",
+  "Plates",
+  "Cups",
+  "Sets",
+  "Kg",
+  "Grams",
+  "Liters",
+  "ml",
+  "Packets",
+  "Portions",
+];
+
 export default function StockManager({ initialStock }: StockManagerProps) {
   const [stockList, setStockList] = useState<StockItem[]>(initialStock);
   const [filter, setFilter] = useState<"all" | "low" | "out" | "ok">("all");
@@ -50,7 +63,9 @@ export default function StockManager({ initialStock }: StockManagerProps) {
   const [adjustMode, setAdjustMode] = useState<"ADD" | "SET">("ADD");
   const [adjustQuantity, setAdjustQuantity] = useState("50");
   const [adjustThreshold, setAdjustThreshold] = useState("10");
-  const [adjustUnit, setAdjustUnit] = useState("Pieces");
+  const [adjustUnit, setAdjustUnit] = useState("Nos");
+  const [customUnit, setCustomUnit] = useState("");
+  const [isCustomUnit, setIsCustomUnit] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -133,7 +148,15 @@ export default function StockManager({ initialStock }: StockManagerProps) {
     setAdjustMode("ADD");
     setAdjustQuantity("50");
     setAdjustThreshold(String(item.minThreshold));
-    setAdjustUnit(item.unitName);
+    if (STANDARD_UNITS.includes(item.unitName)) {
+      setAdjustUnit(item.unitName);
+      setIsCustomUnit(false);
+      setCustomUnit("");
+    } else {
+      setAdjustUnit("CUSTOM");
+      setIsCustomUnit(true);
+      setCustomUnit(item.unitName);
+    }
     setModalOpen(true);
   };
 
@@ -141,6 +164,8 @@ export default function StockManager({ initialStock }: StockManagerProps) {
   const handleSaveStock = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedStock) return;
+
+    const finalUnit = isCustomUnit ? (customUnit.trim() || "Nos") : adjustUnit;
 
     setLoading(true);
     try {
@@ -152,7 +177,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
           mode: adjustMode,
           quantity: parseFloat(adjustQuantity) || 0,
           minThreshold: parseFloat(adjustThreshold) || 5,
-          unitName: adjustUnit.trim() || "Pieces",
+          unitName: finalUnit,
         }),
       });
 
@@ -601,14 +626,38 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
                     Unit Name
                   </label>
-                  <input
-                    type="text"
-                    value={adjustUnit}
-                    onChange={(e) => setAdjustUnit(e.target.value)}
-                    placeholder="Pieces, Nos, Plates"
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    required
-                  />
+                  <select
+                    value={isCustomUnit ? "CUSTOM" : adjustUnit}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "CUSTOM") {
+                        setIsCustomUnit(true);
+                      } else {
+                        setIsCustomUnit(false);
+                        setAdjustUnit(val);
+                      }
+                    }}
+                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                  >
+                    {STANDARD_UNITS.map((u) => (
+                      <option key={u} value={u}>
+                        {u}
+                      </option>
+                    ))}
+                    <option value="CUSTOM">+ Custom Unit...</option>
+                  </select>
+
+                  {isCustomUnit && (
+                    <input
+                      type="text"
+                      value={customUnit}
+                      onChange={(e) => setCustomUnit(e.target.value)}
+                      placeholder="Custom unit name"
+                      className="w-full mt-1.5 px-3 py-1.5 bg-white border border-emerald-400 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      autoFocus
+                      required
+                    />
+                  )}
                 </div>
               </div>
 

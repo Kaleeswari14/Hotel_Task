@@ -76,6 +76,30 @@ const MEAL_SESSIONS = [
   { id: "NIGHT", label: "Dinner / Night", icon: "🌙" },
 ];
 
+const STANDARD_UNITS = [
+  "Nos",
+  "Plates",
+  "Cups",
+  "Sets",
+  "Kg",
+  "Grams",
+  "Liters",
+  "ml",
+  "Packets",
+  "Portions",
+];
+
+const PORTION_PRESETS = [
+  { name: "Full / Regular", multiplier: 1.0, label: "Full (1.0x)" },
+  { name: "Half / 1/2 Plate", multiplier: 0.5, label: "1/2 Plate (0.5x)" },
+  { name: "Quarter / 1/4 Plate", multiplier: 0.25, label: "1/4 Plate (0.25x)" },
+  { name: "Double / 2 Plates", multiplier: 2.0, label: "2 Plates (2.0x)" },
+  { name: "Set (2 pcs)", multiplier: 1.0, label: "Set (2 pcs)" },
+  { name: "Single Piece", multiplier: 1.0, label: "Single Piece" },
+];
+
+const ALL_SESSIONS = ["MORNING", "AFTERNOON", "SNACKS", "NIGHT"];
+
 export default function MenuManager({ initialCategories, initialFoods }: Props) {
   const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [foods, setFoods] = useState<FoodItem[]>(initialFoods);
@@ -97,13 +121,16 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
   const [foodCategory, setFoodCategory] = useState(categories[0]?.id || "");
   const [foodDescription, setFoodDescription] = useState("");
   const [foodDietary, setFoodDietary] = useState<"VEG" | "NON_VEG" | "EGG">("VEG");
-  const [foodMealSessions, setFoodMealSessions] = useState<string[]>(["MORNING", "NIGHT"]);
+  const [foodMealSessions, setFoodMealSessions] = useState<string[]>(ALL_SESSIONS);
   const [stockType, setStockType] = useState<"EXACT_COUNT" | "BATCH_ESTIMATE" | "NO_TRACKING">("EXACT_COUNT");
   const [foodInitialStock, setFoodInitialStock] = useState("30");
   const [foodMinThreshold, setFoodMinThreshold] = useState("8");
   const [foodUnitName, setFoodUnitName] = useState("Nos");
+  const [customUnit, setCustomUnit] = useState("");
+  const [isCustomUnit, setIsCustomUnit] = useState(false);
+  const [editingPortionIdx, setEditingPortionIdx] = useState<number | null>(null);
   const [portions, setPortions] = useState<Portion[]>([
-    { portionName: "Regular / Single", unitMultiplier: 1.0, price: 60, packingCharge: 0 },
+    { portionName: "Full / Regular", unitMultiplier: 1.0, price: 60, packingCharge: 0 },
   ]);
 
   const [loading, setLoading] = useState(false);
@@ -130,10 +157,12 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
 
   // Portion helpers
   const handleAddPortion = () => {
+    const newIdx = portions.length;
     setPortions([
       ...portions,
-      { portionName: "New Portion", unitMultiplier: 1.0, price: 50, packingCharge: 0 },
+      { portionName: "Half / 1/2 Plate", unitMultiplier: 0.5, price: 40, packingCharge: 0 },
     ]);
+    setEditingPortionIdx(newIdx);
   };
 
   const handleRemovePortion = (idx: number) => {
@@ -142,11 +171,24 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
       return;
     }
     setPortions(portions.filter((_, i) => i !== idx));
+    if (editingPortionIdx === idx) {
+      setEditingPortionIdx(null);
+    } else if (editingPortionIdx !== null && editingPortionIdx > idx) {
+      setEditingPortionIdx(editingPortionIdx - 1);
+    }
   };
 
   const handlePortionChange = (idx: number, field: keyof Portion, value: any) => {
     setPortions(
       portions.map((p, i) => (i === idx ? { ...p, [field]: value } : p))
+    );
+  };
+
+  const applyPortionPreset = (idx: number, preset: { name: string; multiplier: number }) => {
+    setPortions(
+      portions.map((p, i) =>
+        i === idx ? { ...p, portionName: preset.name, unitMultiplier: preset.multiplier } : p
+      )
     );
   };
 
@@ -157,6 +199,14 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
         ? prev.filter((s) => s !== sessionId)
         : [...prev, sessionId]
     );
+  };
+
+  const selectAllMealSessions = () => {
+    setFoodMealSessions(ALL_SESSIONS);
+  };
+
+  const clearMealSessions = () => {
+    setFoodMealSessions([]);
   };
 
   // Open Add Category Modal
@@ -239,13 +289,16 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
     setFoodCategory(categories[0]?.id || "");
     setFoodDescription("");
     setFoodDietary("VEG");
-    setFoodMealSessions(["MORNING", "NIGHT"]);
+    setFoodMealSessions(ALL_SESSIONS);
     setStockType("EXACT_COUNT");
     setFoodInitialStock("30");
     setFoodMinThreshold("8");
     setFoodUnitName("Nos");
+    setIsCustomUnit(false);
+    setCustomUnit("");
+    setEditingPortionIdx(null);
     setPortions([
-      { portionName: "Regular / Single", unitMultiplier: 1.0, price: 60, packingCharge: 0 },
+      { portionName: "Full / Regular", unitMultiplier: 1.0, price: 60, packingCharge: 0 },
     ]);
     setFoodModalOpen(true);
   };
@@ -259,13 +312,25 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
     setFoodDietary(food.dietary || "VEG");
     setFoodMealSessions(
       food.mealTime === "ALL" || !food.mealTime
-        ? ["MORNING", "AFTERNOON", "SNACKS", "NIGHT"]
+        ? ALL_SESSIONS
         : food.mealTime.split(",")
     );
     setStockType(food.stockType || "EXACT_COUNT");
     setFoodInitialStock(food.stock ? String(food.stock.currentQuantity) : "30");
     setFoodMinThreshold(food.stock ? String(food.stock.minThreshold) : "8");
-    setFoodUnitName(food.stock ? food.stock.unitName : "Nos");
+    
+    const existingUnit = food.stock ? food.stock.unitName : "Nos";
+    if (STANDARD_UNITS.includes(existingUnit)) {
+      setFoodUnitName(existingUnit);
+      setIsCustomUnit(false);
+      setCustomUnit("");
+    } else {
+      setFoodUnitName("CUSTOM");
+      setIsCustomUnit(true);
+      setCustomUnit(existingUnit);
+    }
+
+    setEditingPortionIdx(null);
     setPortions(
       food.portions.map((p) => ({
         id: p.id,
@@ -296,6 +361,8 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
       return;
     }
 
+    const finalUnit = isCustomUnit ? (customUnit.trim() || "Nos") : foodUnitName;
+
     setLoading(true);
     try {
       const payload = {
@@ -305,11 +372,11 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
         description: foodDescription.trim() || null,
         imageUrl: null,
         dietary: foodDietary,
-        mealTime: foodMealSessions.length === 4 ? "ALL" : foodMealSessions.join(","),
+        mealTime: foodMealSessions.length === ALL_SESSIONS.length ? "ALL" : foodMealSessions.join(","),
         stockType,
         initialStock: stockType === "NO_TRACKING" ? 0 : parseFloat(foodInitialStock) || 0,
         minThreshold: stockType === "NO_TRACKING" ? 0 : parseFloat(foodMinThreshold) || 5,
-        unitName: foodUnitName || "Nos",
+        unitName: finalUnit,
         portions: portions.map((p) => ({
           portionName: p.portionName.trim(),
           portionNameTamil: null,
@@ -864,9 +931,27 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
 
               {/* 3. Meal Timing Sessions */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Meal Timing Sessions (When is this dish served?)
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Meal Timing Sessions (When is this dish served?)
+                  </label>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={selectAllMealSessions}
+                      className="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[11px] font-bold rounded-lg transition-colors cursor-pointer"
+                    >
+                      ✨ All Day (All Sessions)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={clearMealSessions}
+                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-bold rounded-lg transition-colors cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {MEAL_SESSIONS.map((session) => {
                     const active = foodMealSessions.includes(session.id);
@@ -877,12 +962,17 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                         onClick={() => toggleMealSession(session.id)}
                         className={`p-2.5 rounded-xl border text-center transition-all flex flex-col items-center justify-center cursor-pointer ${
                           active
-                            ? "bg-emerald-50 text-emerald-950 border-emerald-500 ring-1 ring-emerald-400 font-bold"
-                            : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                            ? "bg-emerald-50 text-emerald-950 border-emerald-500 ring-2 ring-emerald-500 font-bold shadow-xs"
+                            : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 opacity-60"
                         }`}
                       >
                         <span className="text-xl mb-0.5">{session.icon}</span>
-                        <span className="text-xs font-bold">{session.label}</span>
+                        <span className="text-xs">{session.label}</span>
+                        {active && (
+                          <span className="text-[10px] font-black text-emerald-600 mt-0.5">
+                            ✓ Active
+                          </span>
+                        )}
                       </button>
                     );
                   })}
@@ -892,65 +982,235 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
               {/* 4. Portions & Pricing Row */}
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-                  <span className="text-xs font-black text-slate-800 uppercase tracking-wider">
-                    Portions & Pricing (₹)
-                  </span>
+                  <div>
+                    <span className="text-xs font-black text-slate-800 uppercase tracking-wider block">
+                      Portions & Pricing (₹)
+                    </span>
+                    <span className="text-[11px] text-slate-500 font-medium">
+                      Click &quot;Edit&quot; on any portion to modify measurement & price.
+                    </span>
+                  </div>
                   <button
                     type="button"
                     onClick={handleAddPortion}
-                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-xs"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Portion</span>
                   </button>
                 </div>
 
-                <div className="space-y-2">
-                  {portions.map((portion, idx) => (
-                    <div
-                      key={idx}
-                      className="grid grid-cols-12 gap-2 items-center bg-white p-2.5 rounded-xl border border-slate-200"
-                    >
-                      <div className="col-span-6">
-                        <input
-                          type="text"
-                          value={portion.portionName}
-                          onChange={(e) => handlePortionChange(idx, "portionName", e.target.value)}
-                          placeholder="Portion Name (e.g. Regular, Full, 1/2 Plate)"
-                          className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                          required
-                        />
-                      </div>
+                <div className="space-y-2.5">
+                  {portions.map((portion, idx) => {
+                    const isEditing = editingPortionIdx === idx;
 
-                      <div className="col-span-4">
-                        <div className="relative">
-                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">₹</span>
-                          <input
-                            type="number"
-                            step="any"
-                            value={portion.price}
-                            onChange={(e) => handlePortionChange(idx, "price", e.target.value)}
-                            placeholder="Price"
-                            className="w-full pl-6 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-black text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                            required
-                          />
+                    if (isEditing) {
+                      return (
+                        <div
+                          key={idx}
+                          className="bg-white p-3.5 rounded-xl border-2 border-emerald-500 shadow-sm space-y-3"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-black text-emerald-800 uppercase tracking-wider flex items-center gap-1.5">
+                              <Edit2 className="w-3.5 h-3.5 text-emerald-600" />
+                              Editing Portion #{idx + 1}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setEditingPortionIdx(null)}
+                              className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Done / Lock</span>
+                            </button>
+                          </div>
+
+                          {/* Quick Presets */}
+                          <div>
+                            <span className="block text-[11px] font-bold text-slate-600 mb-1">
+                              Quick Measurement Presets:
+                            </span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {PORTION_PRESETS.map((preset, pIdx) => (
+                                <button
+                                  key={pIdx}
+                                  type="button"
+                                  onClick={() => applyPortionPreset(idx, preset)}
+                                  className={`px-2 py-1 text-[11px] font-bold rounded-lg border transition-all cursor-pointer ${
+                                    portion.portionName === preset.name ||
+                                    portion.unitMultiplier === preset.multiplier
+                                      ? "bg-emerald-100 text-emerald-900 border-emerald-400 font-black"
+                                      : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200"
+                                  }`}
+                                >
+                                  {preset.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Editable Fields */}
+                          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
+                            <div className="sm:col-span-4">
+                              <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                                Portion Name *
+                              </label>
+                              <input
+                                type="text"
+                                value={portion.portionName}
+                                onChange={(e) => handlePortionChange(idx, "portionName", e.target.value)}
+                                placeholder="e.g. 1/2 Plate, Full, Single"
+                                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                required
+                              />
+                            </div>
+
+                            <div className="sm:col-span-3">
+                              <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                                Measurement Multiplier
+                              </label>
+                              <div className="relative">
+                                <input
+                                  type="number"
+                                  step="0.05"
+                                  min="0.01"
+                                  value={portion.unitMultiplier}
+                                  onChange={(e) =>
+                                    handlePortionChange(
+                                      idx,
+                                      "unitMultiplier",
+                                      parseFloat(e.target.value) || 1.0
+                                    )
+                                  }
+                                  placeholder="1.0"
+                                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                  required
+                                />
+                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 pointer-events-none">
+                                  x stock
+                                </span>
+                              </div>
+                              <span className="text-[10px] text-slate-400 leading-none">
+                                {portion.unitMultiplier === 0.5
+                                  ? "Deducts 0.5 unit (Half plate)"
+                                  : portion.unitMultiplier === 0.25
+                                  ? "Deducts 0.25 unit (Quarter)"
+                                  : portion.unitMultiplier === 2.0
+                                  ? "Deducts 2 units (Double)"
+                                  : `Deducts ${portion.unitMultiplier} unit(s)`}
+                              </span>
+                            </div>
+
+                            <div className="sm:col-span-3">
+                              <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                                Price (₹) *
+                              </label>
+                              <div className="relative">
+                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                                  ₹
+                                </span>
+                                <input
+                                  type="number"
+                                  step="any"
+                                  min="0"
+                                  value={portion.price}
+                                  onChange={(e) =>
+                                    handlePortionChange(
+                                      idx,
+                                      "price",
+                                      parseFloat(e.target.value) || 0
+                                    )
+                                  }
+                                  placeholder="Price"
+                                  className="w-full pl-5 pr-2 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                  required
+                                />
+                              </div>
+                            </div>
+
+                            <div className="sm:col-span-2">
+                              <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                                Packing (₹)
+                              </label>
+                              <input
+                                type="number"
+                                step="any"
+                                min="0"
+                                value={portion.packingCharge || 0}
+                                onChange={(e) =>
+                                  handlePortionChange(
+                                    idx,
+                                    "packingCharge",
+                                    parseFloat(e.target.value) || 0
+                                  )
+                                }
+                                placeholder="0"
+                                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              />
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      );
+                    }
 
-                      <div className="col-span-2 text-right">
-                        {portions.length > 1 && (
+                    // Locked View Mode
+                    return (
+                      <div
+                        key={idx}
+                        className="bg-white p-2.5 rounded-xl border border-slate-200 hover:border-slate-300 transition-all flex items-center justify-between gap-2"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-black flex items-center justify-center shrink-0">
+                            {idx + 1}
+                          </span>
+                          <div className="min-w-0">
+                            <div className="font-bold text-xs text-slate-900 truncate">
+                              {portion.portionName}
+                            </div>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-black rounded border border-emerald-200">
+                                📏 {portion.unitMultiplier}x Stock Deduction
+                              </span>
+                              {portion.packingCharge ? (
+                                <span className="text-[10px] text-slate-500 font-semibold">
+                                  +₹{portion.packingCharge} pack
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 shrink-0">
+                          <div className="text-right">
+                            <span className="text-sm font-black text-slate-900">
+                              ₹{portion.price}
+                            </span>
+                          </div>
+
                           <button
                             type="button"
-                            onClick={() => handleRemovePortion(idx)}
-                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Remove Portion"
+                            onClick={() => setEditingPortionIdx(idx)}
+                            className="px-2.5 py-1.5 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 border border-slate-200 cursor-pointer"
+                            title="Edit Portion"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Edit2 className="w-3.5 h-3.5" />
+                            <span>Edit</span>
                           </button>
-                        )}
+
+                          {portions.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemovePortion(idx)}
+                              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                              title="Delete Portion"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -966,7 +1226,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                   <button
                     type="button"
                     onClick={() => setStockType("EXACT_COUNT")}
-                    className={`py-2 px-2.5 rounded-xl text-xs font-bold transition-all border text-center ${
+                    className={`py-2 px-2.5 rounded-xl text-xs font-bold transition-all border text-center cursor-pointer ${
                       stockType === "EXACT_COUNT"
                         ? "bg-slate-900 text-white border-slate-900 shadow-sm"
                         : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
@@ -977,7 +1237,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                   <button
                     type="button"
                     onClick={() => setStockType("BATCH_ESTIMATE")}
-                    className={`py-2 px-2.5 rounded-xl text-xs font-bold transition-all border text-center ${
+                    className={`py-2 px-2.5 rounded-xl text-xs font-bold transition-all border text-center cursor-pointer ${
                       stockType === "BATCH_ESTIMATE"
                         ? "bg-slate-900 text-white border-slate-900 shadow-sm"
                         : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
@@ -988,7 +1248,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                   <button
                     type="button"
                     onClick={() => setStockType("NO_TRACKING")}
-                    className={`py-2 px-2.5 rounded-xl text-xs font-bold transition-all border text-center ${
+                    className={`py-2 px-2.5 rounded-xl text-xs font-bold transition-all border text-center cursor-pointer ${
                       stockType === "NO_TRACKING"
                         ? "bg-slate-900 text-white border-slate-900 shadow-sm"
                         : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
@@ -1028,13 +1288,38 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                       <label className="block text-[11px] font-bold text-slate-600 mb-1">
                         Unit Name
                       </label>
-                      <input
-                        type="text"
-                        value={foodUnitName}
-                        onChange={(e) => setFoodUnitName(e.target.value)}
-                        placeholder="Nos / Plates / Cups"
-                        className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                      />
+                      <select
+                        value={isCustomUnit ? "CUSTOM" : foodUnitName}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === "CUSTOM") {
+                            setIsCustomUnit(true);
+                          } else {
+                            setIsCustomUnit(false);
+                            setFoodUnitName(val);
+                          }
+                        }}
+                        className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+                      >
+                        {STANDARD_UNITS.map((u) => (
+                          <option key={u} value={u}>
+                            {u}
+                          </option>
+                        ))}
+                        <option value="CUSTOM">+ Custom Unit...</option>
+                      </select>
+
+                      {isCustomUnit && (
+                        <input
+                          type="text"
+                          value={customUnit}
+                          onChange={(e) => setCustomUnit(e.target.value)}
+                          placeholder="Type custom unit (e.g. Bun, Bowl)"
+                          className="w-full mt-1.5 px-3 py-1.5 bg-white border border-emerald-400 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          autoFocus
+                          required
+                        />
+                      )}
                     </div>
                   </div>
                 )}
