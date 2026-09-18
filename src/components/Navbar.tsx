@@ -34,7 +34,7 @@ interface NavbarProps {
 export default function Navbar({ user }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { language, setLanguage, isTamil } = useLanguage();
+  const { language, setLanguage, isTamil, t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -71,23 +71,23 @@ export default function Navbar({ user }: NavbarProps) {
   const isOwner = user.role === "OWNER";
 
   const staffLinks = [
-    { href: "/pos", label: "POS Bill", icon: UtensilsCrossed, isPrimary: true },
-    { href: "/bills", label: "Bills", icon: Clock },
+    { href: "/pos", key: "nav.pos", fallback: "POS Bill", icon: UtensilsCrossed, isPrimary: true },
+    { href: "/bills", key: "nav.bills", fallback: "Bills", icon: Clock },
   ];
 
   const ownerMainLinks = [
-    { href: "/owner/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/pos", label: "POS Bill", icon: UtensilsCrossed, isPrimary: true },
-    { href: "/bills", label: "Bills", icon: Clock },
-    { href: "/owner/menu", label: "Menu", icon: UtensilsCrossed },
-    { href: "/owner/stock", label: "Stock", icon: Boxes },
-    { href: "/owner/payments", label: "Payments", icon: IndianRupee },
-    { href: "/owner/day-closing", label: "Day Closing", icon: CalendarCheck },
+    { href: "/owner/dashboard", key: "nav.dashboard", fallback: "Dashboard", icon: LayoutDashboard },
+    { href: "/pos", key: "nav.pos", fallback: "POS Bill", icon: UtensilsCrossed, isPrimary: true },
+    { href: "/bills", key: "nav.bills", fallback: "Bills", icon: Clock },
+    { href: "/owner/menu", key: "nav.menu", fallback: "Menu", icon: UtensilsCrossed },
+    { href: "/owner/stock", key: "nav.stock", fallback: "Stock", icon: Boxes },
+    { href: "/owner/payments", key: "nav.payments", fallback: "Payments", icon: IndianRupee },
+    { href: "/owner/day-closing", key: "nav.dayClosing", fallback: "Day Closing", icon: CalendarCheck },
   ];
 
   const ownerIconOnlyLinks = [
-    { href: "/owner/whatsapp", label: "WhatsApp", title: "WhatsApp Service", icon: MessageSquare, iconColor: "text-emerald-400" },
-    { href: "/owner/cancelled", label: "Cancelled", title: "Cancelled Bills", icon: Ban, iconColor: "text-red-400" },
+    { href: "/owner/whatsapp", key: "nav.whatsapp", title: "WhatsApp Service", icon: MessageSquare, iconColor: "text-emerald-400" },
+    { href: "/owner/cancelled", key: "nav.cancelled", title: "Cancelled Bills", icon: Ban, iconColor: "text-red-400" },
   ];
 
   const links = isOwner ? ownerMainLinks : staffLinks;
@@ -112,7 +112,7 @@ export default function Navbar({ user }: NavbarProps) {
                 HOTEL JB
               </span>
               <span className="text-[9px] font-bold text-emerald-400/90 tracking-widest uppercase block -mt-0.5">
-                POS &bull; Enterprise
+                {t("nav.subtitle")}
               </span>
             </div>
           </Link>
@@ -125,6 +125,7 @@ export default function Navbar({ user }: NavbarProps) {
               const Icon = item.icon;
               const isActive = pathname === item.href || (item.href !== "/pos" && pathname.startsWith(item.href));
               const isPrimary = item.isPrimary;
+              const label = t(item.key) || item.fallback;
 
               return (
                 <Link
@@ -139,7 +140,7 @@ export default function Navbar({ user }: NavbarProps) {
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5 shrink-0" />
-                  <span>{item.label}</span>
+                  <span>{label}</span>
                 </Link>
               );
             })}
@@ -170,15 +171,43 @@ export default function Navbar({ user }: NavbarProps) {
           </nav>
 
           {/* ========================================================================= */}
-          {/* RIGHT SUITE: SINGLE 👤 USER AVATAR DROPDOWN */}
+          {/* RIGHT SUITE: LANGUAGE SWITCHER + USER AVATAR */}
           {/* ========================================================================= */}
-          <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+          <div className="flex items-center space-x-2 shrink-0">
+            {/* 🌐 LANGUAGE SWITCHER PILL (ENGLISH ↔ தமிழ்) */}
+            <div className="flex items-center bg-slate-900 p-0.5 rounded-xl border border-slate-700/80 shadow-inner">
+              <button
+                type="button"
+                onClick={() => setLanguage("en")}
+                className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                  language === "en"
+                    ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-glow-emerald"
+                    : "text-slate-400 hover:text-white"
+                }`}
+                title="Switch to English"
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage("ta")}
+                className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                  language === "ta"
+                    ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-glow-emerald"
+                    : "text-slate-400 hover:text-white"
+                }`}
+                title="தமிழுக்கு மாறவும்"
+              >
+                தமிழ்
+              </button>
+            </div>
+
             {/* 👤 USER AVATAR WITH DROPDOWN MENU */}
             <div className="relative" ref={dropdownRef}>
               <button
                 type="button"
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className={`flex items-center gap-1 p-1.5 sm:px-2 sm:py-1.5 rounded-xl border transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl border transition-all cursor-pointer ${
                   userMenuOpen
                     ? "bg-emerald-600 text-white border-emerald-500 ring-2 ring-emerald-400 shadow-md"
                     : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 hover:border-slate-600"
@@ -234,7 +263,7 @@ export default function Navbar({ user }: NavbarProps) {
                         className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-red-300 hover:text-white hover:bg-red-600 rounded-xl transition-all cursor-pointer"
                       >
                         <LogOut className="w-4 h-4" />
-                        <span>{loggingOut ? "..." : "Log Out"}</span>
+                        <span>{loggingOut ? "..." : t("nav.logout")}</span>
                       </button>
                     </div>
                   </div>
@@ -298,7 +327,7 @@ export default function Navbar({ user }: NavbarProps) {
                   }`}
                 >
                   <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
+                  <span>{t(item.key) || (item as any).fallback || (item as any).title}</span>
                 </Link>
               );
             })}

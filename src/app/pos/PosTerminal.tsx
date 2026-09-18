@@ -31,6 +31,7 @@ import { formatCurrency, formatHumanStock } from "@/lib/format";
 import ThermalReceipt from "@/components/ThermalReceipt";
 import PaymentModal from "@/components/PaymentModal";
 import { sendWhatsAppBillAndOffer } from "@/lib/whatsapp";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Portion {
   id: string;
@@ -43,12 +44,13 @@ interface Portion {
 interface FoodItem {
   id: string;
   name: string;
+  nameTamil?: string | null;
   categoryId: string;
   description: string | null;
   dietary?: string;
   mealTime?: string;
   stockType?: "EXACT_COUNT" | "BATCH_ESTIMATE" | "NO_TRACKING" | string;
-  category: { id: string; name: string };
+  category: { id: string; name: string; nameTamil?: string | null };
   portions: Portion[];
   stock: {
     currentQuantity: number;
@@ -59,11 +61,13 @@ interface FoodItem {
 interface Category {
   id: string;
   name: string;
+  nameTamil?: string | null;
 }
 
 interface CartItem {
   foodItemId: string;
   foodName: string;
+  foodNameTamil?: string | null;
   portionId: string;
   portionName: string;
   unitMultiplier: number;
@@ -93,6 +97,7 @@ export default function PosTerminal({
   userRole,
 }: PosTerminalProps) {
   const router = useRouter();
+  const { language, setLanguage, isTamil, t, getFoodName, getCategoryName, getPortionName } = useLanguage();
 
   // Live Food List State with Automatic Real-Time Background Sync
   const [foodList, setFoodList] = useState<FoodItem[]>(foods);
@@ -179,6 +184,7 @@ export default function PosTerminal({
           {
             foodItemId: food.id,
             foodName: food.name,
+            foodNameTamil: food.nameTamil,
             portionId: portion.id,
             portionName: portion.portionName,
             unitMultiplier: portion.unitMultiplier,
@@ -229,6 +235,7 @@ export default function PosTerminal({
     return cart.map((item) => ({
       foodItemId: item.foodItemId,
       foodName: item.foodName,
+      foodNameTamil: item.foodNameTamil,
       portionId: item.portionId,
       portionName: item.portionName,
       unitMultiplier: item.unitMultiplier,
@@ -386,7 +393,9 @@ export default function PosTerminal({
     const matchesSearch =
       !query ||
       f.name.toLowerCase().includes(query) ||
-      f.category.name.toLowerCase().includes(query);
+      (f.nameTamil && f.nameTamil.toLowerCase().includes(query)) ||
+      f.category.name.toLowerCase().includes(query) ||
+      (f.category.nameTamil && f.category.nameTamil.toLowerCase().includes(query));
     return matchesCategory && matchesMealSession && matchesDietary && matchesSearch;
   });
 
@@ -410,76 +419,76 @@ export default function PosTerminal({
             <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none w-full sm:w-auto">
               <span className="text-[11px] font-black uppercase text-emerald-400 mr-1 flex items-center gap-1 shrink-0">
                 <Clock className="w-3.5 h-3.5" />
-                <span>Session:</span>
+                <span>{isTamil ? "நேரம்:" : "Session:"}</span>
               </span>
 
               <button
                 type="button"
                 onClick={() => setSelectedMealSession("ALL")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all cursor-pointer ${
                   selectedMealSession === "ALL"
                     ? "bg-emerald-500 text-slate-950 shadow-sm"
                     : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                 }`}
               >
-                🍽️ All Menu
+                🍽️ {t("pos.allSessions")}
               </button>
 
               <button
                 type="button"
                 onClick={() => setSelectedMealSession("MORNING")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all flex items-center gap-1 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all flex items-center gap-1 cursor-pointer ${
                   selectedMealSession === "MORNING"
                     ? "bg-amber-400 text-slate-950 shadow-sm"
                     : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                 }`}
               >
                 <span>🌅</span>
-                <span>Breakfast</span>
+                <span>{t("pos.morning")}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setSelectedMealSession("AFTERNOON")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all flex items-center gap-1 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all flex items-center gap-1 cursor-pointer ${
                   selectedMealSession === "AFTERNOON"
                     ? "bg-amber-400 text-slate-950 shadow-sm"
                     : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                 }`}
               >
                 <span>☀️</span>
-                <span>Lunch</span>
+                <span>{t("pos.afternoon")}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setSelectedMealSession("SNACKS")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all flex items-center gap-1 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all flex items-center gap-1 cursor-pointer ${
                   selectedMealSession === "SNACKS"
                     ? "bg-amber-400 text-slate-950 shadow-sm"
                     : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                 }`}
               >
                 <span>☕</span>
-                <span>Snacks & Tea</span>
+                <span>{t("pos.snacks")}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setSelectedMealSession("NIGHT")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all flex items-center gap-1 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all flex items-center gap-1 cursor-pointer ${
                   selectedMealSession === "NIGHT"
                     ? "bg-amber-400 text-slate-950 shadow-sm"
                     : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                 }`}
               >
                 <span>🌙</span>
-                <span>Dinner</span>
+                <span>{t("pos.night")}</span>
               </button>
             </div>
 
             <div className="hidden xl:flex items-center gap-1.5 text-[11px] text-slate-400 font-bold">
-              <span>Current Session:</span>
+              <span>{isTamil ? "தற்போதைய நேரம்:" : "Current Session:"}</span>
               <span className="text-emerald-400 capitalize">{getCurrentSession().toLowerCase()}</span>
             </div>
           </div>
@@ -493,7 +502,7 @@ export default function PosTerminal({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="🔍 Search dish name or code (e.g., Idly, Biriyani, Tea)..."
+                placeholder={isTamil ? "🔍 உணவின் பெயர் அல்லது எண் தேடுங்கள்..." : "🔍 Search dish name or code (e.g., Idly, Biriyani, Tea)..."}
                 className="w-full pl-10 pr-10 py-2.5 bg-slate-50/90 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900 placeholder:text-slate-400 shadow-2xs transition-all"
               />
               {searchQuery && (
@@ -521,7 +530,7 @@ export default function PosTerminal({
                       : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                   }`}
                 >
-                  All Categories
+                  {t("pos.allCategories")}
                 </button>
                 {categories.map((cat) => (
                   <button
@@ -534,7 +543,7 @@ export default function PosTerminal({
                         : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                     }`}
                   >
-                    {cat.name}
+                    {getCategoryName(cat)}
                   </button>
                 ))}
               </div>
@@ -550,7 +559,7 @@ export default function PosTerminal({
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
-                  All Diet
+                  {isTamil ? "அனைத்தும்" : "All Diet"}
                 </button>
                 <button
                   type="button"
@@ -562,7 +571,7 @@ export default function PosTerminal({
                   }`}
                 >
                   <span>🟢</span>
-                  <span>Veg</span>
+                  <span>{t("dietary.veg")}</span>
                 </button>
                 <button
                   type="button"
@@ -574,7 +583,7 @@ export default function PosTerminal({
                   }`}
                 >
                   <span>🔴</span>
-                  <span>Non-Veg</span>
+                  <span>{t("dietary.nonVeg")}</span>
                 </button>
                 <button
                   type="button"
@@ -586,7 +595,7 @@ export default function PosTerminal({
                   }`}
                 >
                   <span>🟡</span>
-                  <span>Egg</span>
+                  <span>{t("dietary.egg")}</span>
                 </button>
               </div>
             </div>
@@ -616,19 +625,19 @@ export default function PosTerminal({
                     <div className="flex items-center justify-between gap-1.5 mb-2">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-[10px] font-black uppercase text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
-                          {food.category.name}
+                          {getCategoryName(food.category)}
                         </span>
                         {diet === "NON_VEG" ? (
                           <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
-                            🔴 Non-Veg
+                            🔴 {t("dietary.nonVeg")}
                           </span>
                         ) : diet === "EGG" ? (
                           <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
-                            🟡 Egg
+                            🟡 {t("dietary.egg")}
                           </span>
                         ) : (
                           <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            🟢 Veg
+                            🟢 {t("dietary.veg")}
                           </span>
                         )}
                       </div>
@@ -636,7 +645,7 @@ export default function PosTerminal({
                       {/* Stock Badge */}
                       {isNoTracking ? (
                         <span className="text-[10px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200">
-                          ♾️ On-Demand
+                          ♾️ {isTamil ? "உடனடி" : "On-Demand"}
                         </span>
                       ) : food.stock ? (
                         <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
@@ -647,17 +656,17 @@ export default function PosTerminal({
                             : "bg-emerald-50 text-emerald-700"
                         }`}>
                           {isOut
-                            ? "🚫 Out of Stock"
+                            ? (isTamil ? "🚫 இருப்பு இல்லை" : "🚫 Out of Stock")
                             : isLow
-                            ? `⚠️ Low (${formatHumanStock(food.stock.currentQuantity, food.stock.unitName)})`
-                            : `Stock: ${formatHumanStock(food.stock.currentQuantity, food.stock.unitName)}`}
+                            ? (isTamil ? `⚠️ குறைவு (${formatHumanStock(food.stock.currentQuantity, food.stock.unitName)})` : `⚠️ Low (${formatHumanStock(food.stock.currentQuantity, food.stock.unitName)})`)
+                            : (isTamil ? `இருப்பு: ${formatHumanStock(food.stock.currentQuantity, food.stock.unitName)}` : `Stock: ${formatHumanStock(food.stock.currentQuantity, food.stock.unitName)}`)}
                         </span>
                       ) : null}
                     </div>
 
                     {/* Dish Name */}
                     <h3 className="font-extrabold text-slate-900 text-base leading-snug group-hover:text-emerald-700 transition-colors">
-                      {food.name}
+                      {getFoodName(food)}
                     </h3>
                   </div>
 
@@ -677,8 +686,8 @@ export default function PosTerminal({
                           }`}
                         >
                           <span className="text-xs font-bold">
-                            {portion.portionName}
-                            {isOut && <span className="ml-1 text-[10px] text-red-500 font-extrabold">(Out)</span>}
+                            {getPortionName(portion.portionName)}
+                            {isOut && <span className="ml-1 text-[10px] text-red-500 font-extrabold">({isTamil ? "தீர்ந்தது" : "Out"})</span>}
                           </span>
                           <div className="flex items-center gap-1.5">
                             <span className="text-xs font-black text-emerald-700 group-hover/btn:text-white">
@@ -701,10 +710,10 @@ export default function PosTerminal({
                 </div>
                 <div>
                   <div className="font-black text-slate-900 text-lg">
-                    No Dishes Added Yet
+                    {isTamil ? "உணவுகள் எதுவும் சேர்க்கப்படவில்லை" : "No Dishes Added Yet"}
                   </div>
                   <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-                    Owner can go to the Menu Manager to add new categories and dishes to start billing.
+                    {isTamil ? "மெனு பக்கத்திற்கு சென்று புதிய உணவு வகைகளை சேர்க்கவும்." : "Owner can go to the Menu Manager to add new categories and dishes to start billing."}
                   </p>
                 </div>
                 <a
@@ -712,17 +721,17 @@ export default function PosTerminal({
                   className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-700/20 transition-all"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Go to Menu Manager</span>
+                  <span>{isTamil ? "மெனு பக்கத்திற்கு செல்லவும்" : "Go to Menu Manager"}</span>
                 </a>
               </div>
             ) : filteredFoods.length === 0 ? (
               <div className="col-span-full bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400">
                 <UtensilsCrossed className="w-12 h-12 text-slate-300 mx-auto mb-2" />
                 <div className="font-bold text-slate-600 text-sm">
-                  No dishes found
+                  {isTamil ? "உணவுகள் எதுவும் கிடைக்கவில்லை" : "No dishes found"}
                 </div>
                 <div className="text-xs mt-0.5">
-                  Try searching with another food name or selecting a different category.
+                  {isTamil ? "வேறு பெயரில் தேடவும் அல்லது வேறு வகையை தேர்ந்தெடுக்கவும்." : "Try searching with another food name or selecting a different category."}
                 </div>
               </div>
             ) : null}
@@ -739,9 +748,9 @@ export default function PosTerminal({
                   <ShoppingBag className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="font-black text-sm sm:text-base leading-none">Current Bill Cart</div>
+                  <div className="font-black text-sm sm:text-base leading-none">{t("cart.currentOrder")}</div>
                   <div className="text-[11px] text-emerald-400 font-semibold mt-0.5">
-                    {totalItemsCount} {totalItemsCount === 1 ? "Item" : "Items"} in Cart
+                    {totalItemsCount} {isTamil ? "பொருட்கள்" : totalItemsCount === 1 ? "Item" : "Items"}
                   </div>
                 </div>
               </div>
@@ -753,7 +762,7 @@ export default function PosTerminal({
                   className="text-xs text-rose-300 hover:text-white bg-rose-950/60 hover:bg-rose-900 px-2.5 py-1.5 rounded-xl border border-rose-500/40 flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
-                  <span>Clear</span>
+                  <span>{t("cart.clear")}</span>
                 </button>
               )}
             </div>
@@ -772,7 +781,7 @@ export default function PosTerminal({
                       handleInstantPayAndPrint("CASH");
                     }
                   }}
-                  placeholder="Customer Name"
+                  placeholder={isTamil ? "வாடிக்கையாளர் பெயர்" : "Customer Name"}
                   className="w-full pl-8 pr-2.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900 placeholder:text-slate-400 transition-all"
                 />
               </div>
@@ -788,7 +797,7 @@ export default function PosTerminal({
                       handleInstantPayAndPrint("CASH");
                     }
                   }}
-                  placeholder="WhatsApp No. (Enter ↵)"
+                  placeholder={isTamil ? "மொபைல் எண் (Enter ↵)" : "WhatsApp No. (Enter ↵)"}
                   maxLength={10}
                   className="w-full pl-8 pr-2.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900 placeholder:text-slate-400 transition-all"
                 />
@@ -805,10 +814,10 @@ export default function PosTerminal({
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="font-black text-slate-900 text-sm leading-tight">
-                        {item.foodName}
+                        {getFoodName({ name: item.foodName, nameTamil: item.foodNameTamil })}
                       </div>
                       <div className="text-xs font-bold text-emerald-700 mt-0.5">
-                        {item.portionName} &bull; {formatCurrency(item.unitPrice)}
+                        {getPortionName(item.portionName)} &bull; {formatCurrency(item.unitPrice)}
                       </div>
                     </div>
 
@@ -843,7 +852,7 @@ export default function PosTerminal({
                       type="button"
                       onClick={() => removeFromCart(idx)}
                       className="text-slate-400 hover:text-rose-600 p-1.5 transition-colors cursor-pointer"
-                      title="Remove Item"
+                      title={t("action.delete")}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -856,9 +865,9 @@ export default function PosTerminal({
                   <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mb-2.5">
                     <UtensilsCrossed className="w-6 h-6 text-slate-400" />
                   </div>
-                  <div className="font-black text-slate-800 text-sm">Cart is empty</div>
+                  <div className="font-black text-slate-800 text-sm">{t("cart.emptyTitle")}</div>
                   <div className="text-xs text-slate-400 mt-0.5 max-w-[200px]">
-                    Click any food item on the left to add it to this bill.
+                    {t("cart.emptySubtitle")}
                   </div>
                 </div>
               )}
@@ -870,7 +879,7 @@ export default function PosTerminal({
               <div className="flex items-center justify-between text-xs gap-2 pb-1.5 border-b border-slate-100">
                 <div className="flex items-center gap-1 text-slate-600 font-semibold">
                   <Tag className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Discount:</span>
+                  <span>{t("cart.discount")}:</span>
                   <input
                     type="number"
                     min="0"
@@ -889,7 +898,7 @@ export default function PosTerminal({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-500 font-bold">Total:</span>
+                  <span className="text-slate-500 font-bold">{t("cart.totalPayable")}:</span>
                   <span className="text-lg font-black text-emerald-700">
                     {formatCurrency(grandTotal)}
                   </span>
@@ -906,8 +915,8 @@ export default function PosTerminal({
                   className="py-3 px-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black rounded-2xl shadow-glow-emerald active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-1.5 text-xs sm:text-sm border border-emerald-400/40 cursor-pointer"
                 >
                   <Zap className="w-4 h-4 text-amber-300" />
-                  <span>Cash & Print</span>
-                  <span className="text-[10px] bg-emerald-950/60 px-1.5 py-0.5 rounded font-mono font-black">↵</span>
+                  <span className="truncate">{t("cart.cashAndPrint")}</span>
+                  <span className="text-[10px] bg-emerald-950/60 px-1.5 py-0.5 rounded font-mono font-black shrink-0">↵</span>
                 </button>
 
                 {/* 2. Instant Order Slip (KOT / Shift+Enter) */}
@@ -918,13 +927,13 @@ export default function PosTerminal({
                   className="py-3 px-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-2xl shadow-glow-amber active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-1.5 text-xs sm:text-sm border border-amber-400/50 cursor-pointer"
                 >
                   <Receipt className="w-4 h-4 text-slate-950" />
-                  <span>Order Slip</span>
-                  <span className="text-[10px] bg-amber-950/20 px-1.5 py-0.5 rounded font-mono font-black">⇧↵</span>
+                  <span className="truncate">{t("cart.orderSlip")}</span>
+                  <span className="text-[10px] bg-amber-950/20 px-1.5 py-0.5 rounded font-mono font-black shrink-0">⇧↵</span>
                 </button>
               </div>
 
               <div className="text-center text-[10px] text-slate-400 font-medium">
-                ⌨️ <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-200 text-slate-700 rounded font-mono font-bold">ENTER</kbd> = Cash Bill &bull; <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-200 text-slate-700 rounded font-mono font-bold">Shift+ENTER</kbd> = Order Slip
+                ⌨️ <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-200 text-slate-700 rounded font-mono font-bold">ENTER</kbd> = {isTamil ? "ரொக்கம்" : "Cash Bill"} &bull; <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-200 text-slate-700 rounded font-mono font-bold">Shift+ENTER</kbd> = {isTamil ? "சமையலறை சீட்டு" : "Order Slip"}
               </div>
             </div>
           </div>
