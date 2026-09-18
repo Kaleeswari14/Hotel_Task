@@ -23,11 +23,15 @@ export async function GET(req: NextRequest) {
     // Compute stats
     let lowStockCount = 0;
     const items = stockItems.map((item) => {
-      const isLow = item.currentQuantity <= item.minThreshold;
+      const isNoTracking = item.foodItem.stockType === "NO_TRACKING";
+      const isLow = !isNoTracking && item.currentQuantity <= item.minThreshold;
+      const isOut = !isNoTracking && item.currentQuantity <= 0;
       if (isLow) lowStockCount++;
       return {
         ...item,
+        isNoTracking,
         isLowStock: isLow,
+        isOutOfStock: isOut,
       };
     });
 
@@ -35,7 +39,7 @@ export async function GET(req: NextRequest) {
     if (filter === "low") {
       filteredItems = items.filter((i) => i.isLowStock);
     } else if (filter === "in_stock") {
-      filteredItems = items.filter((i) => !i.isLowStock);
+      filteredItems = items.filter((i) => !i.isLowStock && !i.isOutOfStock);
     }
 
     return NextResponse.json({
@@ -56,7 +60,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized: Owner access required" }, { status: 403 });
     }
 
-    const { stockId, foodItemId, mode, quantity, minThreshold, unitName } = await req.json();
+    const { stockId, foodItemId, mode, quantity, minThreshold, unitName, stockType } = await req.json();
 
     if (!stockId && !foodItemId) {
       return NextResponse.json({ error: "Stock ID or Food Item ID is required" }, { status: 400 });
@@ -70,6 +74,13 @@ export async function POST(req: NextRequest) {
 
     if (!existing) {
       return NextResponse.json({ error: "Stock entry not found" }, { status: 404 });
+    }
+
+    if (stockType !== undefined) {
+      await prisma.foodItem.update({
+        where: { id: existing.foodItemId },
+        data: { stockType: stockType.trim() },
+      });
     }
 
     let newQuantity = existing.currentQuantity;

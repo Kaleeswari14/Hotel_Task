@@ -30,6 +30,7 @@ interface StockItem {
     id: string;
     name: string;
     categoryId: string;
+    stockType?: string;
     category: { id: string; name: string };
   };
 }
@@ -53,13 +54,14 @@ const STANDARD_UNITS = [
 
 export default function StockManager({ initialStock }: StockManagerProps) {
   const [stockList, setStockList] = useState<StockItem[]>(initialStock);
-  const [filter, setFilter] = useState<"all" | "low" | "out" | "ok">("all");
+  const [filter, setFilter] = useState<"all" | "low" | "out" | "ok" | "unlimited">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
   // Modal for Restock / Adjust / Add Batch
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedStock, setSelectedStock] = useState<StockItem | null>(null);
+  const [modalStockType, setModalStockType] = useState<"NO_TRACKING" | "EXACT_COUNT" | "BATCH_ESTIMATE">("BATCH_ESTIMATE");
   const [adjustMode, setAdjustMode] = useState<"ADD" | "SET">("ADD");
   const [adjustQuantity, setAdjustQuantity] = useState("50");
   const [adjustThreshold, setAdjustThreshold] = useState("10");
@@ -94,6 +96,32 @@ export default function StockManager({ initialStock }: StockManagerProps) {
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  // 1-Click: Switch Dish to Unlimited (No Tracking)
+  const handleSetStockType = async (item: StockItem, newStockType: "NO_TRACKING" | "BATCH_ESTIMATE" | "EXACT_COUNT", initialQty: number = 0) => {
+    const dishName = item.foodItem.name;
+    try {
+      const res = await fetch("/api/stock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          stockId: item.id,
+          stockType: newStockType,
+          mode: "SET",
+          quantity: newStockType === "NO_TRACKING" ? 0 : initialQty,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to update stock mode");
+      if (newStockType === "NO_TRACKING") {
+        showToast(`✨ "${dishName}" is now Unlimited (No Tracking)!`);
+      } else {
+        showToast(`🔢 "${dishName}" set to Tracked Stock (${initialQty} ${item.unitName})!`);
+      }
+      await refreshStock();
+    } catch (err: any) {
+      alert(err.message);
     }
   };
 
@@ -132,6 +160,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
           stockId: item.id,
           mode: "ADD",
           quantity: amount,
+          stockType: item.foodItem.stockType === "NO_TRACKING" ? "BATCH_ESTIMATE" : undefined,
         }),
       });
       if (!res.ok) throw new Error("Failed to restock");
@@ -145,9 +174,10 @@ export default function StockManager({ initialStock }: StockManagerProps) {
   // Open Full Modal for Batch / Exact Adjustment
   const openAdjustModal = (item: StockItem) => {
     setSelectedStock(item);
+    setModalStockType((item.foodItem.stockType as any) || "NO_TRACKING");
     setAdjustMode("ADD");
-    setAdjustQuantity("50");
-    setAdjustThreshold(String(item.minThreshold));
+    setAdjustQuantity(item.currentQuantity > 0 ? String(item.currentQuantity) : "50");
+    setAdjustThreshold(String(item.minThreshold || 5));
     if (STANDARD_UNITS.includes(item.unitName)) {
       setAdjustUnit(item.unitName);
       setIsCustomUnit(false);
@@ -174,9 +204,10 @@ export default function StockManager({ initialStock }: StockManagerProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           stockId: selectedStock.id,
-          mode: adjustMode,
-          quantity: parseFloat(adjustQuantity) || 0,
-          minThreshold: parseFloat(adjustThreshold) || 5,
+          stockType: modalStockType,
+          mode: modalStockType === "NO_TRACKING" ? "SET" : adjustMode,
+          quantity: modalStockType === "NO_TRACKING" ? 0 : parseFloat(adjustQuantity) || 0,
+          minThreshold: modalStockType === "NO_TRACKING" ? 0 : parseFloat(adjustThreshold) || 5,
           unitName: finalUnit,
         }),
       });
@@ -196,11 +227,15 @@ export default function StockManager({ initialStock }: StockManagerProps) {
     }
   };
 
+  // Helper
+  const isItemUnlimited = (s: StockItem) => s.foodItem?.stockType === "NO_TRACKING";
+
   // Stats calculation
   const totalItems = stockList.length;
-  const outOfStockItems = stockList.filter((s) => s.currentQuantity <= 0);
-  const lowStockItems = stockList.filter((s) => s.currentQuantity > 0 && s.currentQuantity <= s.minThreshold);
-  const inStockItems = stockList.filter((s) => s.currentQuantity > s.minThreshold);
+  const unlimitedItems = stockList.filter(isItemUnlimited);
+  const outOfStockItems = stockList.filter((s) => !isItemUnlimited(s) && s.currentQuantity <= 0);
+  const lowStockItems = stockList.filter((s) => !isItemUnlimited(s) && s.currentQuantity > 0 && s.currentQuantity <= s.minThreshold);
+  const inStockItems = stockList.filter((s) => !isItemUnlimited(s) && s.currentQuantity > s.minThreshold);
 
   // Distinct categories
   const categories = Array.from(
@@ -209,13 +244,15 @@ export default function StockManager({ initialStock }: StockManagerProps) {
 
   // Filtered List
   const filteredList = stockList.filter((item) => {
-    const isOut = item.currentQuantity <= 0;
-    const isLow = item.currentQuantity > 0 && item.currentQuantity <= item.minThreshold;
+    const isUnlimited = isItemUnlimited(item);
+    const isOut = !isUnlimited && item.currentQuantity <= 0;
+    const isLow = !isUnlimited && item.currentQuantity > 0 && item.currentQuantity <= item.minThreshold;
 
     let matchesFilter = true;
-    if (filter === "out") matchesFilter = isOut;
+    if (filter === "unlimited") matchesFilter = isUnlimited;
+    else if (filter === "out") matchesFilter = isOut;
     else if (filter === "low") matchesFilter = isLow;
-    else if (filter === "ok") matchesFilter = !isOut && !isLow;
+    else if (filter === "ok") matchesFilter = !isOut && !isLow && !isUnlimited;
 
     const matchesCat =
       categoryFilter === "all" || item.foodItem.categoryId === categoryFilter;
@@ -258,7 +295,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
       </div>
 
       {/* Overview Stat Banners */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
         <div
           onClick={() => setFilter("all")}
           className={`p-4 sm:p-5 rounded-2xl border cursor-pointer transition-all ${
@@ -269,12 +306,30 @@ export default function StockManager({ initialStock }: StockManagerProps) {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs uppercase font-bold tracking-wider opacity-80">
-              Tracked Dishes
+              Total Dishes
             </span>
             <Boxes className="w-5 h-5" />
           </div>
           <div className="text-3xl font-black mt-2">{totalItems}</div>
           <div className="text-xs opacity-70 mt-1">All menu items</div>
+        </div>
+
+        <div
+          onClick={() => setFilter("unlimited")}
+          className={`p-4 sm:p-5 rounded-2xl border cursor-pointer transition-all ${
+            filter === "unlimited"
+              ? "bg-sky-700 text-white border-sky-700 shadow-md"
+              : "bg-sky-50 text-sky-950 border-sky-200 hover:border-sky-300"
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs uppercase font-bold tracking-wider opacity-90">
+              Unlimited
+            </span>
+            <Zap className="w-5 h-5 text-sky-600" />
+          </div>
+          <div className="text-3xl font-black mt-2">{unlimitedItems.length}</div>
+          <div className="text-xs opacity-80 mt-1">On-demand kitchen</div>
         </div>
 
         <div
@@ -311,7 +366,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs uppercase font-bold tracking-wider opacity-90">
-              Low Stock Alerts
+              Low Stock
             </span>
             <AlertTriangle className="w-5 h-5 text-amber-600" />
           </div>
@@ -323,7 +378,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
 
         <div
           onClick={() => setFilter("ok")}
-          className={`p-4 sm:p-5 rounded-2xl border cursor-pointer transition-all ${
+          className={`p-4 sm:p-5 rounded-2xl border cursor-pointer transition-all col-span-2 sm:col-span-1 ${
             filter === "ok"
               ? "bg-emerald-600 text-white border-emerald-600 shadow-md"
               : "bg-white text-slate-900 border-slate-200 hover:border-slate-300"
@@ -336,7 +391,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
             <CheckCircle className="w-5 h-5 text-emerald-600" />
           </div>
           <div className="text-3xl font-black mt-2">{inStockItems.length}</div>
-          <div className="text-xs opacity-70 mt-1">Ready for orders</div>
+          <div className="text-xs opacity-70 mt-1">Tracked in-stock</div>
         </div>
       </div>
 
@@ -380,7 +435,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
         </div>
       </div>
 
-      {/* Stock Inventory Table with 1-Click Out of Stock & Batch Buttons */}
+      {/* Stock Inventory Table with 1-Click Make Unlimited & Batch Buttons */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -395,8 +450,9 @@ export default function StockManager({ initialStock }: StockManagerProps) {
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">
               {filteredList.map((item) => {
-                const isOut = item.currentQuantity <= 0;
-                const isLow = !isOut && item.currentQuantity <= item.minThreshold;
+                const isUnlimited = isItemUnlimited(item);
+                const isOut = !isUnlimited && item.currentQuantity <= 0;
+                const isLow = !isUnlimited && item.currentQuantity > 0 && item.currentQuantity <= item.minThreshold;
                 const dishName = item.foodItem.name;
                 const catName = item.foodItem.category.name;
 
@@ -408,23 +464,50 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                     </td>
 
                     <td className="p-4">
-                      <div className={`font-black text-lg ${isOut ? "text-red-600" : isLow ? "text-amber-700" : "text-emerald-700"}`}>
-                        {formatHumanStock(item.currentQuantity, item.unitName)}
-                      </div>
-                      <div className="text-[11px] text-slate-400 font-mono">
-                        ({item.currentQuantity} {item.unitName})
-                      </div>
+                      {isUnlimited ? (
+                        <div>
+                          <div className="font-black text-base text-sky-700 flex items-center gap-1">
+                            <span>♾️ Unlimited</span>
+                          </div>
+                          <div className="text-[11px] text-slate-400 font-medium">
+                            Kitchen On-Demand
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className={`font-black text-lg ${isOut ? "text-red-600" : isLow ? "text-amber-700" : "text-emerald-700"}`}>
+                            {formatHumanStock(item.currentQuantity, item.unitName)}
+                          </div>
+                          <div className="text-[11px] text-slate-400 font-mono">
+                            ({item.currentQuantity} {item.unitName})
+                          </div>
+                        </div>
+                      )}
                     </td>
 
                     <td className="p-4">
-                      <div className="text-xs font-semibold text-slate-700">
-                        {item.minThreshold} {item.unitName}
-                      </div>
-                      <div className="text-[10px] text-slate-400">Min. Threshold</div>
+                      {isUnlimited ? (
+                        <div>
+                          <div className="text-xs font-semibold text-slate-400">—</div>
+                          <div className="text-[10px] text-slate-400">Always Available</div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="text-xs font-semibold text-slate-700">
+                            {item.minThreshold} {item.unitName}
+                          </div>
+                          <div className="text-[10px] text-slate-400">Min. Threshold</div>
+                        </div>
+                      )}
                     </td>
 
                     <td className="p-4">
-                      {isOut ? (
+                      {isUnlimited ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-sky-100 text-sky-900 border border-sky-300">
+                          <Zap className="w-3.5 h-3.5 text-sky-600" />
+                          <span>UNLIMITED</span>
+                        </span>
+                      ) : isOut ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-red-100 text-red-900 border border-red-300">
                           <Ban className="w-3.5 h-3.5 text-red-600" />
                           <span>OUT OF STOCK</span>
@@ -444,13 +527,26 @@ export default function StockManager({ initialStock }: StockManagerProps) {
 
                     <td className="p-4 text-right">
                       <div className="flex items-center justify-end gap-1.5 flex-wrap">
-                        {/* 1-CLICK MANUAL OVERRIDE: Out of Stock button */}
+                        {/* 1-CLICK INSTANT: Make Unlimited button for tracked dishes */}
+                        {!isUnlimited && (
+                          <button
+                            type="button"
+                            onClick={() => handleSetStockType(item, "NO_TRACKING")}
+                            className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 text-xs font-black rounded-lg border border-emerald-300 hover:border-emerald-600 transition-all flex items-center gap-1 shadow-2xs cursor-pointer"
+                            title="Convert to continuous kitchen dish (No count needed)"
+                          >
+                            <Zap className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>Make Unlimited ♾️</span>
+                          </button>
+                        )}
+
+                        {/* Out of Stock Override */}
                         {!isOut && (
                           <button
                             type="button"
                             onClick={() => handleMarkOutOfStock(item)}
-                            className="px-2.5 py-1.5 bg-red-50 hover:bg-red-600 hover:text-white text-red-700 text-xs font-black rounded-lg border border-red-200 hover:border-red-600 transition-all flex items-center gap-1 shadow-2xs"
-                            title="Kitchen batter ran out? Click to set stock to 0"
+                            className="px-2.5 py-1.5 bg-red-50 hover:bg-red-600 hover:text-white text-red-700 text-xs font-black rounded-lg border border-red-200 hover:border-red-600 transition-all flex items-center gap-1 shadow-2xs cursor-pointer"
+                            title="Kitchen ran out? Click to set stock to 0"
                           >
                             <Ban className="w-3.5 h-3.5" />
                             <span>Out of Stock</span>
@@ -460,21 +556,21 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                         {/* Quick Batch Add Yield shortcuts */}
                         <button
                           onClick={() => handleQuickAdd(item, 30)}
-                          className="px-2 py-1 bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition-colors"
+                          className="px-2 py-1 bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition-colors cursor-pointer"
                           title="Add +30 batch yield"
                         >
                           +30
                         </button>
                         <button
                           onClick={() => handleQuickAdd(item, 50)}
-                          className="px-2 py-1 bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition-colors"
+                          className="px-2 py-1 bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition-colors cursor-pointer"
                           title="Add +50 batch yield"
                         >
                           +50
                         </button>
                         <button
                           onClick={() => handleQuickAdd(item, 100)}
-                          className="px-2 py-1 bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition-colors"
+                          className="px-2 py-1 bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition-colors cursor-pointer"
                           title="Add +100 batch yield"
                         >
                           +100
@@ -483,7 +579,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                         {/* Adjust / Custom Batch Modal Button */}
                         <button
                           onClick={() => openAdjustModal(item)}
-                          className="p-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg shadow-2xs transition-colors ml-1"
+                          className="p-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg shadow-2xs transition-colors ml-1 cursor-pointer"
                           title="Custom Batch &amp; Stock Details"
                         >
                           <SlidersHorizontal className="w-4 h-4 text-emerald-400" />
@@ -518,167 +614,221 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                 <p className="text-xs text-slate-500 font-semibold mt-0.5">
                   {selectedStock.foodItem.name} &bull; Current:{" "}
                   <span className="font-bold text-slate-800">
-                    {formatHumanStock(selectedStock.currentQuantity, selectedStock.unitName)}
+                    {isItemUnlimited(selectedStock) ? "♾️ Unlimited" : formatHumanStock(selectedStock.currentQuantity, selectedStock.unitName)}
                   </span>
                 </p>
               </div>
               <button
                 onClick={() => setModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveStock} className="space-y-4">
-              {/* Batch Action Mode: 1. ADD TO EXISTING vs 2. START FRESH (REPLACE) */}
+              {/* Stock Tracking Mode selector */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Batch Update Method:
+                  Stock Tracking Mode:
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => setAdjustMode("ADD")}
-                    className={`py-2.5 px-2 text-xs font-bold rounded-xl border transition-all text-center ${
-                      adjustMode === "ADD"
+                    onClick={() => setModalStockType("NO_TRACKING")}
+                    className={`py-2.5 px-2 text-xs font-bold rounded-xl border transition-all text-center cursor-pointer ${
+                      modalStockType === "NO_TRACKING"
+                        ? "bg-sky-700 text-white border-sky-700 shadow-sm"
+                        : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                    }`}
+                  >
+                    <div className="font-black">✨ Unlimited (No Count)</div>
+                    <div className="text-[10px] opacity-80">
+                      Idly, Dosa, Tea, Juice
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setModalStockType("BATCH_ESTIMATE")}
+                    className={`py-2.5 px-2 text-xs font-bold rounded-xl border transition-all text-center cursor-pointer ${
+                      modalStockType !== "NO_TRACKING"
                         ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
                         : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                     }`}
                   >
-                    <div className="font-black">+ Add to Current</div>
+                    <div className="font-black">🔢 Tracked Batch / Units</div>
                     <div className="text-[10px] opacity-80">
-                      Old + New Batch
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setAdjustMode("SET")}
-                    className={`py-2.5 px-2 text-xs font-bold rounded-xl border transition-all text-center ${
-                      adjustMode === "SET"
-                        ? "bg-slate-900 text-white border-slate-900 shadow-sm"
-                        : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                    }`}
-                  >
-                    <div className="font-black">🔄 Start Fresh Batch</div>
-                    <div className="text-[10px] opacity-80">
-                      Replace with New Count
+                      Biriyani, Cool Drinks
                     </div>
                   </button>
                 </div>
               </div>
 
-              {/* Quick Batch Yield Chips */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  {adjustMode === "ADD"
-                    ? "Estimated Batch Yield to Add:"
-                    : "Exact Count to Set:"}
-                </label>
-
-                <div className="flex items-center gap-1.5 mb-2">
-                  {[30, 50, 100, 150, 200].map((num) => (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => setAdjustQuantity(String(num))}
-                      className={`px-2.5 py-1 text-xs font-bold rounded-lg border ${
-                        adjustQuantity === String(num)
-                          ? "bg-emerald-600 text-white border-emerald-600"
-                          : "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200"
-                      }`}
-                    >
-                      {num}
-                    </button>
-                  ))}
+              {modalStockType === "NO_TRACKING" ? (
+                <div className="p-3.5 bg-sky-50 border border-sky-200 rounded-2xl text-xs text-sky-900 font-semibold space-y-1">
+                  <div className="font-bold flex items-center gap-1.5 text-sky-950">
+                    <Zap className="w-4 h-4 text-sky-600" />
+                    <span>Always In Stock (No Count Needed)</span>
+                  </div>
+                  <p className="text-[11px] text-sky-800">
+                    Dishes like Idly, Dosa, Parotta, Tea, Coffee &amp; Fresh Juices will always stay active in POS billing without counting numbers.
+                  </p>
                 </div>
+              ) : (
+                <>
+                  {/* Batch Action Mode: 1. ADD TO EXISTING vs 2. START FRESH (REPLACE) */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Batch Update Method:
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setAdjustMode("ADD")}
+                        className={`py-2.5 px-2 text-xs font-bold rounded-xl border transition-all text-center cursor-pointer ${
+                          adjustMode === "ADD"
+                            ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                            : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                        }`}
+                      >
+                        <div className="font-black">+ Add to Current</div>
+                        <div className="text-[10px] opacity-80">
+                          Old + New Batch
+                        </div>
+                      </button>
 
-                <input
-                  type="number"
-                  step="1"
-                  min="0"
-                  value={adjustQuantity}
-                  onChange={(e) => setAdjustQuantity(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-base font-black focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  required
-                />
-              </div>
+                      <button
+                        type="button"
+                        onClick={() => setAdjustMode("SET")}
+                        className={`py-2.5 px-2 text-xs font-bold rounded-xl border transition-all text-center cursor-pointer ${
+                          adjustMode === "SET"
+                            ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                            : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                        }`}
+                      >
+                        <div className="font-black">🔄 Start Fresh Batch</div>
+                        <div className="text-[10px] opacity-80">
+                          Replace with New Count
+                        </div>
+                      </button>
+                    </div>
+                  </div>
 
-              {/* Threshold & Unit Name */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Low Stock Alert At
-                  </label>
-                  <input
-                    type="number"
-                    step="1"
-                    min="1"
-                    value={adjustThreshold}
-                    onChange={(e) => setAdjustThreshold(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    required
-                  />
-                </div>
+                  {/* Quick Batch Yield Chips */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      {adjustMode === "ADD"
+                        ? "Estimated Batch Yield to Add:"
+                        : "Exact Count to Set:"}
+                    </label>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Unit Name
-                  </label>
-                  <select
-                    value={isCustomUnit ? "CUSTOM" : adjustUnit}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val === "CUSTOM") {
-                        setIsCustomUnit(true);
-                      } else {
-                        setIsCustomUnit(false);
-                        setAdjustUnit(val);
-                      }
-                    }}
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
-                  >
-                    {STANDARD_UNITS.map((u) => (
-                      <option key={u} value={u}>
-                        {u}
-                      </option>
-                    ))}
-                    <option value="CUSTOM">+ Custom Unit...</option>
-                  </select>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      {[30, 50, 100, 150, 200].map((num) => (
+                        <button
+                          key={num}
+                          type="button"
+                          onClick={() => setAdjustQuantity(String(num))}
+                          className={`px-2.5 py-1 text-xs font-bold rounded-lg border cursor-pointer ${
+                            adjustQuantity === String(num)
+                              ? "bg-emerald-600 text-white border-emerald-600"
+                              : "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200"
+                          }`}
+                        >
+                          {num}
+                        </button>
+                      ))}
+                    </div>
 
-                  {isCustomUnit && (
                     <input
-                      type="text"
-                      value={customUnit}
-                      onChange={(e) => setCustomUnit(e.target.value)}
-                      placeholder="Custom unit name"
-                      className="w-full mt-1.5 px-3 py-1.5 bg-white border border-emerald-400 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                      autoFocus
+                      type="number"
+                      step="any"
+                      min="0"
+                      value={adjustQuantity}
+                      onChange={(e) => setAdjustQuantity(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-base font-black focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       required
                     />
-                  )}
-                </div>
-              </div>
+                  </div>
+
+                  {/* Threshold & Unit Name */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                        Low Stock Alert At
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        min="0"
+                        value={adjustThreshold}
+                        onChange={(e) => setAdjustThreshold(e.target.value)}
+                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                        Unit Name
+                      </label>
+                      <select
+                        value={isCustomUnit ? "CUSTOM" : adjustUnit}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === "CUSTOM") {
+                            setIsCustomUnit(true);
+                          } else {
+                            setIsCustomUnit(false);
+                            setAdjustUnit(val);
+                          }
+                        }}
+                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                      >
+                        {STANDARD_UNITS.map((u) => (
+                          <option key={u} value={u}>
+                            {u}
+                          </option>
+                        ))}
+                        <option value="CUSTOM">+ Custom Unit...</option>
+                      </select>
+
+                      {isCustomUnit && (
+                        <input
+                          type="text"
+                          value={customUnit}
+                          onChange={(e) => setCustomUnit(e.target.value)}
+                          placeholder="Custom unit name"
+                          className="w-full mt-1.5 px-3 py-1.5 bg-white border border-emerald-400 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          autoFocus
+                          required
+                        />
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Modal Actions */}
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setModalOpen(false);
-                    handleMarkOutOfStock(selectedStock);
-                  }}
-                  className="px-3 py-2 bg-red-50 text-red-700 hover:bg-red-600 hover:text-white border border-red-200 hover:border-red-600 text-xs font-bold rounded-xl transition-all"
-                >
-                  🚫 Set to 0 (Out of Stock)
-                </button>
+                {!isItemUnlimited(selectedStock) && selectedStock.currentQuantity > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setModalOpen(false);
+                      handleMarkOutOfStock(selectedStock);
+                    }}
+                    className="px-3 py-2 bg-red-50 text-red-700 hover:bg-red-600 hover:text-white border border-red-200 hover:border-red-600 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                  >
+                    🚫 Set to 0 (Out of Stock)
+                  </button>
+                )}
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 ml-auto">
                   <button
                     type="button"
                     onClick={() => setModalOpen(false)}
-                    className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
+                    className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -686,9 +836,9 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-md shadow-emerald-600/20 disabled:opacity-50"
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-md shadow-emerald-600/20 disabled:opacity-50 cursor-pointer"
                   >
-                    {loading ? "..." : "Save Batch"}
+                    {loading ? "..." : "Save Changes"}
                   </button>
                 </div>
               </div>
