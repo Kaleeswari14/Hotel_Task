@@ -1215,7 +1215,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
 
                       <div className="sm:col-span-3">
                         <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                          Stock Multiplier
+                          Quantity (Qty) *
                         </label>
                         <div className="relative">
                           <input
@@ -1230,19 +1230,19 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                                 parseFloat(e.target.value) || 0
                               )
                             }
-                            placeholder="1.0"
+                            placeholder="1"
                             className="w-full px-2.5 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                             required
                           />
                           <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 pointer-events-none">
-                            x {foodUnitName}
+                            {foodUnitName}
                           </span>
                         </div>
                       </div>
 
                       <div className="sm:col-span-3">
                         <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                          Price (₹) *
+                          Rate / Price (₹) *
                         </label>
                         <div className="relative">
                           <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
@@ -1269,8 +1269,8 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
 
                       <div className="sm:col-span-2 flex items-center gap-2">
                         <div className="flex-1">
-                          <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                            Pack (₹)
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1" title="Extra charge for Parcel container/box">
+                            Parcel ₹
                           </label>
                           <input
                             type="number"
