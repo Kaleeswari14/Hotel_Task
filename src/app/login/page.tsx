@@ -172,26 +172,27 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen relative flex flex-col justify-center items-center px-4 sm:px-6 bg-slate-950 text-slate-100 overflow-hidden py-12">
-      {/* Background Subtle Ambient Glows */}
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-teal-600/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Background Subtle Luxury Ambient Glows */}
+      <div className="absolute top-1/6 -left-32 w-[32rem] h-[32rem] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/6 -right-32 w-[32rem] h-[32rem] bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-96 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10">
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-emerald-500 shadow-2xl shadow-emerald-500/20 mb-4 border border-emerald-400/30 text-white transform hover:scale-105 transition-all">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-400 shadow-glow-emerald mb-4 border border-emerald-300/30 text-white transform hover:scale-105 transition-all">
             <Utensils className="w-10 h-10" />
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent tracking-tight">
             {hotelName}
           </h1>
-          <p className="text-slate-400 text-xs sm:text-sm mt-1.5 font-medium tracking-wide">
-            {needsSetup ? "Initial Owner Account Setup" : "Point of Sale & Billing Management Suite"}
+          <p className="text-emerald-400/90 text-xs sm:text-sm mt-1.5 font-bold tracking-wider uppercase">
+            {needsSetup ? "Initial Owner Account Setup" : "Enterprise Point of Sale & Management"}
           </p>
         </div>
 
         {/* Main Card */}
-        <div className="bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-slate-800 shadow-2xl p-6 sm:p-8">
+        <div className="glass-panel-dark rounded-3xl border border-slate-800/90 shadow-2xl p-6 sm:p-8">
           {needsSetup ? (
             /* ========================================================================= */
             /* 1. INITIAL OWNER SETUP (FRESH INSTALLATION ONLY) */

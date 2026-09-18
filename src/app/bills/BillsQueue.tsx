@@ -301,24 +301,24 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
       )}
 
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/90 backdrop-blur-md p-6 rounded-3xl border border-slate-200/90 shadow-luxury">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-black text-slate-900">Active &amp; Unpaid Bills Queue</h1>
-            <span className="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-amber-300">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Active Bills &amp; Invoice Queue</h1>
+            <span className="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 text-xs font-black px-3 py-1 rounded-full shadow-glow-amber border border-amber-400/50">
               {activeUnpaidCount} Pending
             </span>
           </div>
-          <p className="text-slate-500 text-sm mt-1">
+          <p className="text-slate-500 text-sm mt-1 font-semibold">
             Orders waiting for payment confirmation. Outstanding total:{" "}
-            <span className="font-extrabold text-amber-700">{formatCurrency(activeUnpaidTotal)}</span>
+            <span className="font-black text-amber-700">{formatCurrency(activeUnpaidTotal)}</span>
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           <button
             onClick={refreshBills}
-            className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-300 transition-all"
+            className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl border border-slate-300 transition-all cursor-pointer shadow-2xs"
             title="Refresh Queue"
           >
             <RefreshCw className="w-4 h-4" />
@@ -326,7 +326,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
 
           <Link
             href="/pos"
-            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2"
+            className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black rounded-2xl text-xs sm:text-sm transition-all shadow-glow-emerald flex items-center gap-2 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>+ Create New Bill</span>
@@ -335,14 +335,14 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white/90 backdrop-blur-md p-4 rounded-3xl border border-slate-200/90 shadow-luxury flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Status Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
           <button
             onClick={() => setStatusFilter("ACTIVE")}
-            className={`px-3.5 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all cursor-pointer ${
               statusFilter === "ACTIVE"
-                ? "bg-amber-600 text-white shadow-sm"
+                ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-glow-amber font-black ring-1 ring-amber-400"
                 : "bg-slate-100 text-slate-700 hover:bg-slate-200"
             }`}
           >
@@ -350,9 +350,9 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
           </button>
           <button
             onClick={() => setStatusFilter("PAID")}
-            className={`px-3.5 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all cursor-pointer ${
               statusFilter === "PAID"
-                ? "bg-emerald-600 text-white shadow-sm"
+                ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-glow-emerald font-black ring-1 ring-emerald-400/40"
                 : "bg-slate-100 text-slate-700 hover:bg-slate-200"
             }`}
           >
@@ -360,9 +360,9 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
           </button>
           <button
             onClick={() => setStatusFilter("CANCELLED")}
-            className={`px-3.5 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all cursor-pointer ${
               statusFilter === "CANCELLED"
-                ? "bg-red-600 text-white shadow-sm"
+                ? "bg-rose-600 text-white shadow-sm ring-1 ring-rose-400"
                 : "bg-slate-100 text-slate-700 hover:bg-slate-200"
             }`}
           >
@@ -370,7 +370,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
           </button>
           <button
             onClick={() => setStatusFilter("ALL")}
-            className={`px-3.5 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all cursor-pointer ${
               statusFilter === "ALL"
                 ? "bg-slate-900 text-white shadow-sm"
                 : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -385,7 +385,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value as any)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
           >
             <option value="ALL">All Types</option>
             <option value="TABLE">🪑 Tables</option>
@@ -394,13 +394,13 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
           </select>
 
           <div className="relative flex-1 md:w-64">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search Bill # or Table..."
-              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900"
             />
           </div>
         </div>
@@ -419,7 +419,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
           return (
             <div
               key={bill.id}
-              className={`bg-white rounded-2xl border p-5 shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col justify-between group ${
+              className={`luxury-card p-5 flex flex-col justify-between group ${
                 isUnpaid || isPartial
                   ? elapsed.status === "urgent"
                     ? "border-rose-300 ring-1 ring-rose-200"
@@ -427,7 +427,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                     ? "border-amber-300"
                     : "border-slate-200 hover:border-slate-300"
                   : isPaid
-                  ? "border-emerald-200/80 bg-gradient-to-b from-white to-emerald-50/20"
+                  ? "border-emerald-200/80 bg-gradient-to-b from-white to-emerald-50/10"
                   : "border-slate-200 opacity-75"
               }`}
             >

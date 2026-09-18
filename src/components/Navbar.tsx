@@ -93,23 +93,26 @@ export default function Navbar({ user }: NavbarProps) {
   const links = isOwner ? ownerMainLinks : staffLinks;
 
   return (
-    <header className="bg-slate-900 text-white shadow-md relative print:hidden select-none border-b border-slate-800 w-full z-50">
-      <div className="w-full px-2 sm:px-4 lg:px-6">
-        <div className="flex items-center justify-between h-14 gap-2">
+    <header className="bg-slate-950/95 backdrop-blur-xl text-white shadow-2xl relative print:hidden select-none border-b border-slate-800/80 w-full z-50">
+      <div className="w-full px-3 sm:px-5 lg:px-7">
+        <div className="flex items-center justify-between h-15 gap-2">
           
           {/* ========================================================================= */}
           {/* LEFT: HOTEL JB LOGO & BRANDING */}
           {/* ========================================================================= */}
           <Link
             href={isOwner ? "/owner/dashboard" : "/pos"}
-            className="flex items-center space-x-2 shrink-0 group hover:opacity-95 transition-opacity min-w-[115px]"
+            className="flex items-center space-x-2.5 shrink-0 group hover:opacity-95 transition-all min-w-[125px]"
           >
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-emerald-400 flex items-center justify-center font-black text-sm shadow-md text-white shrink-0 tracking-wider">
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-400 flex items-center justify-center font-black text-sm shadow-glow-emerald text-white shrink-0 tracking-wider ring-1 ring-emerald-300/30 group-hover:scale-105 transition-transform">
               JB
             </div>
             <div className="leading-tight">
-              <span className="font-black text-base sm:text-lg tracking-tight text-white group-hover:text-emerald-400 transition-colors block whitespace-nowrap">
+              <span className="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent group-hover:from-emerald-400 group-hover:to-teal-300 transition-colors block whitespace-nowrap">
                 HOTEL JB
+              </span>
+              <span className="text-[9px] font-bold text-emerald-400/90 tracking-widest uppercase block -mt-0.5">
+                POS &bull; Enterprise
               </span>
             </div>
           </Link>
@@ -117,7 +120,7 @@ export default function Navbar({ user }: NavbarProps) {
           {/* ========================================================================= */}
           {/* CENTER: DESKTOP NAVIGATION (Compact & Never Overflows) */}
           {/* ========================================================================= */}
-          <nav className="hidden lg:flex items-center space-x-1 shrink-0">
+          <nav className="hidden lg:flex items-center space-x-1 shrink-0 bg-slate-900/80 p-1 rounded-2xl border border-slate-800/70 shadow-inner">
             {links.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href || (item.href !== "/pos" && pathname.startsWith(item.href));
@@ -127,12 +130,12 @@ export default function Navbar({ user }: NavbarProps) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                     isActive
-                      ? "bg-emerald-600 text-white shadow-sm ring-1 ring-emerald-400 font-black"
+                      ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-glow-emerald font-black ring-1 ring-emerald-400/40"
                       : isPrimary
-                      ? "bg-emerald-500/20 text-emerald-300 hover:bg-emerald-600 hover:text-white border border-emerald-500/40 font-black"
-                      : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                      ? "bg-emerald-500/15 text-emerald-300 hover:bg-emerald-600 hover:text-white border border-emerald-500/30 font-black"
+                      : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -143,7 +146,7 @@ export default function Navbar({ user }: NavbarProps) {
 
             {/* Quick Icon Utilities (WhatsApp, Users, Cancelled) */}
             {isOwner && (
-              <div className="flex items-center space-x-1 pl-1 ml-1 border-l border-slate-700">
+              <div className="flex items-center space-x-1 pl-1 ml-1 border-l border-slate-700/60">
                 {ownerIconOnlyLinks.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
