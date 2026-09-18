@@ -1,0 +1,34 @@
+services:
+  hotel-pos:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hotel_pos_app
+    restart: always
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: file:./dev.db
+      JWT_SECRET: hotel_jb_secret_pos_key_2026_super_secure
+      NEXT_PUBLIC_HOTEL_NAME: HOTEL JB
+    volumes:
+      # Persist SQLite Database so data is never lost
+      - ./prisma:/app/prisma
+      # Persist WhatsApp QR code authentication session
+      - ./whatsapp_auth:/app/whatsapp_auth
+
+  # -------------------------------------------------------------------------
+  # OPTIONAL: 100% FREE CLOUDFLARE TUNNEL (Custom Domain & Free SSL)
+  # Un-comment this service if you want to expose your POS to the internet
+  # for 100% free without router port forwarding or static IP!
+  # -------------------------------------------------------------------------
+  # tunnel:
+  #   image: cloudflare/cloudflared:latest
+  #   container_name: hotel_pos_tunnel
+  #   restart: always
+  #   command: tunnel --no-autoupdate run --token YOUR_CLOUDFLARE_TUNNEL_TOKEN
+  #   depends_on:
+  #     - hotel-pos

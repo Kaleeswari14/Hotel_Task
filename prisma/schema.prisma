@@ -1,0 +1,180 @@
+// Prisma schema for Hotel / Restaurant POS
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite" // Can be switched to postgresql by changing provider and DATABASE_URL
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  username     String   @unique
+  passwordHash String
+  role         String   @default("STAFF") // "OWNER" | "STAFF"
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  billsCreated Bill[]         @relation("BillCreatedBy")
+  payments     Payment[]      @relation("PaymentReceivedBy")
+  cancellations Cancellation[] @relation("CancelledBy")
+  dayClosings  DayClosing[]   @relation("DayClosedBy")
+}
+
+model Category {
+  id           String     @id @default(uuid())
+  name         String     @unique
+  nameTamil    String?
+  displayOrder Int        @default(0)
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  foodItems    FoodItem[]
+}
+
+model FoodItem {
+  id          String        @id @default(uuid())
+  name        String
+  nameTamil   String?
+  categoryId  String
+  description String?
+  imageUrl    String?
+  dietary     String        @default("VEG") // "VEG" | "NON_VEG" | "EGG"
+  mealTime    String        @default("ALL") // "ALL" | comma-separated "MORNING,AFTERNOON,SNACKS,NIGHT"
+  stockType   String        @default("EXACT_COUNT") // "EXACT_COUNT" | "BATCH_ESTIMATE" | "NO_TRACKING"
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  category    Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  portions    FoodPortion[]
+  stock       Stock?
+  billItems   BillItem[]
+}
+
+model FoodPortion {
+  id               String     @id @default(uuid())
+  foodItemId       String
+  portionName      String     // e.g. "1/4 Plate", "1/2 Plate", "1 Plate", "Single", "Full"
+  portionNameTamil String?    // e.g. "1 செட் (2 எண்ணிக்கை)", "சிங்கிள்"
+  unitMultiplier   Float      @default(1.0) // 0.25 for 1/4, 0.5 for 1/2, 1.0 for 1 Plate
+  price            Float
+  packingCharge    Float      @default(0) // Takeaway parcel packing fee (₹)
+  isActive         Boolean    @default(true)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  foodItem         FoodItem   @relation(fields: [foodItemId], references: [id], onDelete: Cascade)
+  billItems        BillItem[]
+}
+
+model Stock {
+  id              String    @id @default(uuid())
+  foodItemId      String    @unique
+  currentQuantity Float     @default(0) // Normalized plate/unit quantity (e.g. 10.0 = 10 full plates)
+  minThreshold    Float     @default(5.0) // Low stock trigger
+  unitName        String    @default("Plates") // e.g. "Plates", "Cups", "Pieces"
+  lastRestockedAt DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  foodItem        FoodItem  @relation(fields: [foodItemId], references: [id], onDelete: Cascade)
+}
+
+model Bill {
+  id             String        @id @default(uuid())
+  billNumber     Int           @unique // Unique sequential bill number (e.g., 1001, 1002)
+  orderType      String        @default("TABLE") // "TABLE" | "TOKEN" | "PARCEL"
+  orderReference String        // e.g. "Table 4", "Token 15", "Parcel/Takeaway"
+  customerName   String?       // Optional customer name for billing & marketing
+  customerPhone  String?       // Optional customer phone for WhatsApp receipt & offers
+  subtotal       Float         @default(0)
+  discount       Float         @default(0)
+  totalAmount    Float         @default(0)
+  paidAmount     Float         @default(0)
+  balanceAmount  Float         @default(0)
+  status         String        @default("UNPAID") // "UNPAID" | "PARTIAL" | "PAID" | "CANCELLED"
+  createdById    String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  createdBy      User          @relation("BillCreatedBy", fields: [createdById], references: [id])
+  items          BillItem[]
+  payments       Payment[]
+  cancellation   Cancellation?
+}
+
+model BillItem {
+  id             String       @id @default(uuid())
+  billId         String
+  foodItemId     String
+  foodName       String
+  portionId      String?
+  portionName    String       // "1/4 Plate", "1/2 Plate", "1 Plate"
+  unitMultiplier Float        @default(1.0)
+  unitPrice      Float
+  quantity       Int          @default(1) // Number of portions ordered
+  subtotal       Float
+
+  bill           Bill         @relation(fields: [billId], references: [id], onDelete: Cascade)
+  foodItem       FoodItem     @relation(fields: [foodItemId], references: [id])
+  portion        FoodPortion? @relation(fields: [portionId], references: [id], onDelete: SetNull)
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  billId        String
+  amount        Float
+  paymentMethod String   // "CASH" | "UPI" | "CARD"
+  receivedById  String
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  bill          Bill     @relation(fields: [billId], references: [id], onDelete: Cascade)
+  receivedBy    User     @relation("PaymentReceivedBy", fields: [receivedById], references: [id])
+}
+
+model Cancellation {
+  id            String   @id @default(uuid())
+  billId        String   @unique
+  reason        String   // "Customer cancelled", "Wrong order", "Duplicate bill", "Item unavailable", "Other"
+  notes         String?
+  cancelledById String
+  createdAt     DateTime @default(now())
+
+  bill          Bill     @relation(fields: [billId], references: [id], onDelete: Cascade)
+  cancelledBy   User     @relation("CancelledBy", fields: [cancelledById], references: [id])
+}
+
+model DayClosing {
+  id                String   @id @default(uuid())
+  closingDate       String   @unique // "YYYY-MM-DD"
+  totalBills        Int      @default(0)
+  paidBills         Int      @default(0)
+  unpaidBills       Int      @default(0)
+  cancelledBills    Int      @default(0)
+  totalSales        Float    @default(0)
+  totalCollected    Float    @default(0)
+  cashCollected     Float    @default(0)
+  upiCollected      Float    @default(0)
+  cardCollected     Float    @default(0)
+  outstandingAmount Float    @default(0)
+  cancelledAmount   Float    @default(0)
+  closingStockJson  String   // Snapshot of all stock levels at closing
+  closedById        String
+  notes             String?
+  closedAt          DateTime @default(now())
+
+  closedBy          User     @relation("DayClosedBy", fields: [closedById], references: [id])
+}
+
+model SystemSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
