@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST create new bill (Status is strictly UNPAID - ZERO stock/financial deductions)
+// POST create new bill (Supports both Instant Paid Bill and UNPAID Order Slip / KOT)
 export async function POST(req: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -70,41 +70,78 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { customerName, customerPhone, items, discount = 0 } = body;
+    const {
+      customerName,
+      customerPhone,
+      items,
+      discount = 0,
+      paidAmount = 0,
+      paymentMethod = "CASH",
+    } = body;
+
     const rawOrderType = body.orderType;
-    const orderType = rawOrderType && ["TABLE", "TOKEN", "PARCEL"].includes(rawOrderType) ? rawOrderType : "TOKEN";
+    const orderType = rawOrderType && ["TABLE", "TOKEN", "PARCEL"].includes(rawOrderType) ? rawOrderType : "TABLE";
     const orderReference = (body.orderReference && body.orderReference.trim()) ? body.orderReference.trim() : "Counter";
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "At least one food item must be added to create a bill" }, { status: 400 });
     }
 
-    // Calculate totals
+    // Resolve item details safely
     let subtotal = 0;
     const billItemsData: any[] = [];
 
     for (const item of items) {
-      const unitPrice = parseFloat(item.unitPrice) || 0;
+      let foodName = item.foodName;
+      let portionName = item.portionName || "1 Plate";
+      let unitMultiplier = parseFloat(item.unitMultiplier) || 1.0;
+      let unitPrice = parseFloat(item.unitPrice) || 0;
       const quantity = parseInt(item.quantity, 10) || 1;
+
+      // Safe DB lookup if details missing
+      if (!foodName || !unitPrice) {
+        const food = await prisma.foodItem.findUnique({
+          where: { id: item.foodItemId },
+          include: { portions: true },
+        });
+        if (food) {
+          foodName = food.name;
+          const portion = item.portionId
+            ? food.portions.find((p) => p.id === item.portionId)
+            : food.portions[0];
+          if (portion) {
+            portionName = portion.portionName;
+            unitMultiplier = portion.unitMultiplier;
+            unitPrice = portion.price;
+          }
+        }
+      }
+
+      if (!foodName) foodName = "Food Item";
+
       const itemSubtotal = unitPrice * quantity;
       subtotal += itemSubtotal;
 
       billItemsData.push({
         foodItemId: item.foodItemId,
-        foodName: item.foodName,
+        foodName: foodName,
         portionId: item.portionId || null,
-        portionName: item.portionName,
-        unitMultiplier: parseFloat(item.unitMultiplier) || 1.0,
-        unitPrice,
-        quantity,
+        portionName: portionName,
+        unitMultiplier: unitMultiplier,
+        unitPrice: unitPrice,
+        quantity: quantity,
         subtotal: itemSubtotal,
       });
     }
 
     const discountAmount = Math.max(0, parseFloat(discount) || 0);
     const totalAmount = Math.max(0, subtotal - discountAmount);
+    const numericPaid = Math.max(0, parseFloat(paidAmount) || 0);
+    const isPaid = numericPaid >= totalAmount && totalAmount > 0;
+    const status = isPaid ? "PAID" : numericPaid > 0 ? "PARTIAL" : "UNPAID";
+    const balanceAmount = Math.max(0, totalAmount - numericPaid);
 
-    // Database transaction to get next Bill Number and create Bill + Items atomically
+    // Database transaction: Bill + Items + Payment + Stock Deduction
     const newBill = await prisma.$transaction(async (tx) => {
       // Find highest bill number, start from 1001
       const lastBill = await tx.bill.findFirst({
@@ -124,9 +161,9 @@ export async function POST(req: NextRequest) {
           subtotal,
           discount: discountAmount,
           totalAmount,
-          paidAmount: 0,
-          balanceAmount: totalAmount,
-          status: "UNPAID", // CRITICAL INVARIANT: status is UNPAID, NO stock/sales/income touched
+          paidAmount: numericPaid,
+          balanceAmount,
+          status,
           createdById: user.userId,
           items: {
             create: billItemsData,
@@ -135,8 +172,49 @@ export async function POST(req: NextRequest) {
         include: {
           items: true,
           createdBy: { select: { id: true, name: true, username: true } },
+          payments: true,
         },
       });
+
+      // If payment was made, record payment entry
+      if (numericPaid > 0) {
+        await tx.payment.create({
+          data: {
+            billId: created.id,
+            amount: numericPaid,
+            paymentMethod: ["CASH", "UPI", "CARD"].includes(paymentMethod) ? paymentMethod : "CASH",
+            receivedById: user.userId,
+            notes: "Instant POS payment",
+          },
+        });
+      }
+
+      // If fully paid, deduct stock for tracked items
+      if (status === "PAID") {
+        for (const item of billItemsData) {
+          const food = await tx.foodItem.findUnique({
+            where: { id: item.foodItemId },
+            select: { stockType: true },
+          });
+
+          if (food?.stockType !== "NO_TRACKING") {
+            const deduction = item.quantity * item.unitMultiplier;
+            const stock = await tx.stock.findUnique({
+              where: { foodItemId: item.foodItemId },
+            });
+
+            if (stock) {
+              await tx.stock.update({
+                where: { id: stock.id },
+                data: {
+                  currentQuantity: Math.max(0, stock.currentQuantity - deduction),
+                  updatedAt: new Date(),
+                },
+              });
+            }
+          }
+        }
+      }
 
       return created;
     });

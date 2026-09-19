@@ -122,7 +122,7 @@ export default function PosTerminal({
   // Cart & Order State
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orderType, setOrderType] = useState<"TOKEN" | "TABLE">("TABLE");
-  const [tableNumber, setTableNumber] = useState<string>("12");
+  const [tableNumber, setTableNumber] = useState<string>("1");
   const [currentBillNumber, setCurrentBillNumber] = useState<number>(initialNextBillNumber);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -225,12 +225,16 @@ export default function PosTerminal({
     });
   };
 
+  // Remove item completely from cart
+  const removeCartItem = (idx: number) => {
+    setCart((prev) => prev.filter((_, i) => i !== idx));
+  };
+
   const clearCart = () => {
     setCart([]);
     setCustomerName("");
     setCustomerPhone("");
     setDiscount("");
-    // clear cart
   };
 
   // Calculations
@@ -239,28 +243,35 @@ export default function PosTerminal({
   const grandTotal = Math.max(0, subtotal - discountVal);
   const totalItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  // Fast Instant Cash & Print
-  const handleInstantPayAndPrint = async (paymentMethod: "CASH" | "UPI" = "CASH") => {
+  // 1. OPTION ONE: Instant Pay & Print (Full Paid Bill)
+  const handleInstantPayAndPrint = async (paymentMethod: "CASH" | "UPI" | "CARD" = "CASH") => {
     if (cart.length === 0) return;
     setSubmitting(true);
     try {
       const orderRef = orderType === "TABLE" ? `Table ${tableNumber}` : "Token";
+      const payload = {
+        orderType: orderType,
+        orderReference: orderRef,
+        customerName: customerName.trim() || undefined,
+        customerPhone: customerPhone.trim() || undefined,
+        discount: discountVal,
+        paidAmount: grandTotal,
+        paymentMethod: paymentMethod,
+        items: cart.map((c) => ({
+          foodItemId: c.foodItemId,
+          foodName: c.foodName,
+          portionId: c.portionId,
+          portionName: c.portionName,
+          unitMultiplier: c.unitMultiplier,
+          unitPrice: c.unitPrice,
+          quantity: c.quantity,
+        })),
+      };
+
       const res = await fetch("/api/bills", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderReference: orderRef,
-          customerName: customerName.trim() || undefined,
-          customerPhone: customerPhone.trim() || undefined,
-          discount: discountVal,
-          paidAmount: grandTotal,
-          paymentMethod: paymentMethod,
-          items: cart.map((c) => ({
-            foodItemId: c.foodItemId,
-            portionId: c.portionId,
-            quantity: c.quantity,
-          })),
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -276,7 +287,7 @@ export default function PosTerminal({
       if (customerPhone.trim().length === 10) {
         sendWhatsAppBillAndOffer({
           id: data.id,
-          billNumber: data.billNumber || 1,
+          billNumber: data.billNumber || currentBillNumber,
           orderReference: orderRef,
           orderType: orderType,
           customerName: customerName.trim() || "Valued Customer",
@@ -296,42 +307,50 @@ export default function PosTerminal({
         }).catch((e) => console.error("WhatsApp delivery error:", e));
       }
 
+      setCurrentBillNumber((prev) => (data.billNumber ? data.billNumber + 1 : prev + 1));
       setReceiptInitialMode("PAYMENT_RECEIPT");
       setReceiptAutoPrint(true);
       setReceiptBill(finalBill);
-      setCurrentBillNumber((prev) => (data.billNumber ? data.billNumber + 1 : prev + 1));
       clearCart();
     } catch (err: any) {
-      alert(err.message);
+      alert(`Billing Error: ${err.message}`);
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Order Slip (KOT)
+  // 2. OPTION TWO: Order Slip / KOT (UNPAID Active Order Slip)
   const handleSaveAndPrintOrderSlip = async () => {
     if (cart.length === 0) return;
     setSubmitting(true);
     try {
       const orderRef = orderType === "TABLE" ? `Table ${tableNumber}` : "Token";
+      const payload = {
+        orderType: orderType,
+        orderReference: orderRef,
+        customerName: customerName.trim() || undefined,
+        customerPhone: customerPhone.trim() || undefined,
+        discount: discountVal,
+        paidAmount: 0, // Unpaid order slip
+        items: cart.map((c) => ({
+          foodItemId: c.foodItemId,
+          foodName: c.foodName,
+          portionId: c.portionId,
+          portionName: c.portionName,
+          unitMultiplier: c.unitMultiplier,
+          unitPrice: c.unitPrice,
+          quantity: c.quantity,
+        })),
+      };
+
       const res = await fetch("/api/bills", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderReference: orderRef,
-          customerName: customerName.trim() || undefined,
-          customerPhone: customerPhone.trim() || undefined,
-          discount: discountVal,
-          items: cart.map((c) => ({
-            foodItemId: c.foodItemId,
-            portionId: c.portionId,
-            quantity: c.quantity,
-          })),
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to create bill");
+      if (!res.ok) throw new Error(data.error || "Failed to create order slip");
 
       const finalOrderBill = {
         ...data,
@@ -339,13 +358,13 @@ export default function PosTerminal({
         customerPhone: data.customerPhone || customerPhone.trim() || null,
       };
 
+      setCurrentBillNumber((prev) => (data.billNumber ? data.billNumber + 1 : prev + 1));
       setReceiptInitialMode("ORDER_SLIP");
       setReceiptAutoPrint(true);
-      setCurrentBillNumber((prev) => (data.billNumber ? data.billNumber + 1 : prev + 1));
       setReceiptBill(finalOrderBill);
       clearCart();
     } catch (err: any) {
-      alert(err.message);
+      alert(`Order Slip Error: ${err.message}`);
     } finally {
       setSubmitting(false);
     }
@@ -409,7 +428,7 @@ export default function PosTerminal({
         </div>
       )}
 
-      {/* MAIN CONTENT AREA: Food Menu & Fast Order Stream + Checkout Drawer */}
+      {/* MAIN CONTENT AREA: Food Menu + Right Checkout Drawer */}
       <div className="flex-1 flex flex-col lg:flex-row min-w-0 p-3 sm:p-5 lg:p-6 gap-6">
         
         {/* ========================================================================= */}
@@ -417,7 +436,7 @@ export default function PosTerminal({
         {/* ========================================================================= */}
         <div className="flex-1 flex flex-col min-w-0 space-y-4">
           
-          {/* TOP CONTROLS STRIP: Search Input + Mode Switcher + New Order */}
+          {/* TOP CONTROLS STRIP: Clean Search Input + Mode Switcher + New Order */}
           <div className="flex flex-wrap items-center justify-between gap-3 bg-white/90 backdrop-blur-md p-3.5 sm:p-4 rounded-3xl border border-slate-200/80 shadow-sm">
             {/* Search Input Box */}
             <div className="flex-1 min-w-[240px] max-w-lg relative">
@@ -440,10 +459,8 @@ export default function PosTerminal({
               )}
             </div>
 
-            {/* Quick Actions: Order #, Table Selector, Token/Table Mode, + New Order */}
+            {/* Quick Mode Switcher & + New Order */}
             <div className="flex items-center gap-2.5 flex-wrap">
-              
-
               {/* Table / Token Toggle Button */}
               <button
                 type="button"
@@ -551,7 +568,7 @@ export default function PosTerminal({
             </div>
           </div>
 
-          {/* FOOD DISH CARDS GRID (Spacious, Full-Width, Bold Price, +Add Button) */}
+          {/* FOOD DISH CARDS GRID */}
           <div className="flex-1 overflow-y-auto pr-1">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredFoods.map((food) => {
@@ -680,11 +697,11 @@ export default function PosTerminal({
         </div>
 
         {/* ========================================================================= */}
-        {/* 2. RIGHT SIDEBAR: Order Ticket & Checkout Panel */}
+        {/* 2. RIGHT SIDEBAR: Order Ticket & Checkout Panel with Full Controls */}
         {/* ========================================================================= */}
         <div className="w-full lg:w-96 shrink-0 bg-white rounded-3xl p-5 shadow-luxury border border-slate-200/90 flex flex-col justify-between self-start sticky top-20 max-h-[calc(100vh-90px)] overflow-y-auto">
           <div>
-            {/* Drawer Header: Order ID & Reset Action */}
+            {/* Drawer Header: Order Type & Real Bill Number */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex flex-col">
                 <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
@@ -723,49 +740,71 @@ export default function PosTerminal({
               />
             </div>
 
-            {/* Cart Items List */}
+            {/* Cart Items List (With + / - / Delete / Edit Buttons) */}
             <div className="max-h-[36vh] overflow-y-auto space-y-3 py-3 pr-1">
               {cart.map((item, idx) => {
                 const foodImg = getFoodImage({ name: item.foodName, nameTamil: item.foodNameTamil, imageUrl: item.imageUrl });
                 return (
                   <div
                     key={`${item.foodItemId}-${item.portionId}`}
-                    className="flex items-center justify-between gap-3 group"
+                    className="flex items-center justify-between gap-2.5 p-2 bg-slate-50/80 rounded-2xl border border-slate-100 group hover:bg-white hover:border-orange-200 transition-all shadow-2xs"
                   >
                     {/* Left: Food Thumbnail Image */}
                     <img
                       src={foodImg}
                       alt={item.foodName}
-                      className="w-11 h-11 rounded-2xl object-cover shrink-0 shadow-2xs bg-slate-100"
+                      className="w-10 h-10 rounded-xl object-cover shrink-0 bg-slate-100 shadow-2xs"
                     />
 
-                    {/* Center: Quantity & Food Name */}
+                    {/* Center: Food Name & Portion */}
                     <div className="flex-1 min-w-0">
                       <div className="text-xs font-bold text-slate-900 truncate">
-                        <span className="text-[#ff5722] font-black mr-1">{item.quantity}x</span>
-                        <span>{getFoodName({ name: item.foodName, nameTamil: item.foodNameTamil })}</span>
+                        {getFoodName({ name: item.foodName, nameTamil: item.foodNameTamil })}
                       </div>
-                      <div className="text-[10px] font-semibold text-slate-400">
-                        {getPortionName(item.portionName)}
+                      <div className="text-[10px] font-semibold text-slate-400 truncate">
+                        {getPortionName(item.portionName)} &bull; {formatCurrency(item.unitPrice)}
                       </div>
                     </div>
 
-                    {/* Right: Controls / Price */}
-                    <div className="flex flex-col items-end shrink-0">
-                      <div className="flex items-center gap-1.5">
+                    {/* Right: Stepper Controls (+ / - / Trash) & Total */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {/* Stepper (- / Qty / +) */}
+                      <div className="flex items-center bg-white border border-slate-200 rounded-xl shadow-2xs">
                         <button
                           type="button"
                           onClick={() => updateQuantity(idx, -1)}
-                          className="text-[10px] text-slate-400 hover:text-rose-600 font-bold flex items-center gap-0.5 cursor-pointer"
-                          title="Remove 1"
+                          className="w-6 h-6 flex items-center justify-center text-slate-600 hover:text-rose-600 font-bold text-xs cursor-pointer active:scale-90"
+                          title="Decrease Qty"
                         >
-                          <Edit2 className="w-3 h-3 text-[#ff5722]" />
-                          <span className="text-[#ff5722]">{isTamil ? "மாற்று" : "Edit"}</span>
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <span className="text-xs font-black text-slate-900 px-1.5 min-w-[18px] text-center">
+                          {item.quantity}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => updateQuantity(idx, 1)}
+                          className="w-6 h-6 flex items-center justify-center text-[#ff5722] hover:text-orange-700 font-bold text-xs cursor-pointer active:scale-90"
+                          title="Increase Qty"
+                        >
+                          <Plus className="w-3 h-3" />
                         </button>
                       </div>
-                      <div className="font-black text-xs sm:text-sm text-slate-900 mt-0.5">
+
+                      {/* Amount */}
+                      <div className="font-black text-xs text-slate-900 min-w-[45px] text-right">
                         {formatCurrency(item.unitPrice * item.quantity)}
                       </div>
+
+                      {/* Delete Item Button */}
+                      <button
+                        type="button"
+                        onClick={() => removeCartItem(idx)}
+                        className="w-7 h-7 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
+                        title="Delete Item"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 );
@@ -781,7 +820,7 @@ export default function PosTerminal({
             </div>
           </div>
 
-          {/* Financial Calculation & Action Buttons */}
+          {/* Financial Calculation & 2 Billing Options */}
           <div className="pt-3 border-t border-slate-100 space-y-3">
             {/* Subtotal, Discount & Grand Total */}
             <div className="space-y-1.5 text-xs">
@@ -811,8 +850,9 @@ export default function PosTerminal({
               </div>
             </div>
 
-            {/* Fast Action Buttons: Instant Cash & Print, Order Slip KOT */}
+            {/* TWO BILLING OPTIONS: 1. Instant Pay & Print (Full Paid Bill) | 2. Order Slip / KOT */}
             <div className="space-y-2">
+              {/* Option 1: Instant Cash & Print */}
               <button
                 type="button"
                 onClick={() => handleInstantPayAndPrint("CASH")}
@@ -824,6 +864,7 @@ export default function PosTerminal({
               </button>
 
               <div className="grid grid-cols-2 gap-2">
+                {/* Instant UPI / QR Payment */}
                 <button
                   type="button"
                   onClick={() => handleInstantPayAndPrint("UPI")}
@@ -834,6 +875,7 @@ export default function PosTerminal({
                   <span>UPI / QR</span>
                 </button>
 
+                {/* Option 2: Order Slip / KOT */}
                 <button
                   type="button"
                   onClick={handleSaveAndPrintOrderSlip}
