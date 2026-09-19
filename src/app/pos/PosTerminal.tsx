@@ -40,7 +40,9 @@ import {
   ChevronRight,
   Boxes,
   FileText,
-  BarChart3
+  BarChart3,
+  SlidersHorizontal,
+  ChevronDown
 } from "lucide-react";
 import { formatCurrency, formatHumanStock } from "@/lib/format";
 import { getFoodImage } from "@/lib/foodImages";
@@ -132,6 +134,10 @@ export default function PosTerminal({
   const [customerPhone, setCustomerPhone] = useState("");
   const [discount, setDiscount] = useState<string>("");
 
+  // User Menu & Notification Dropdown State
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+
   // Portion selection map per food item
   const [selectedPortionMap, setSelectedPortionMap] = useState<Record<string, string>>({});
 
@@ -146,6 +152,16 @@ export default function PosTerminal({
   const showToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 3500);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/login");
+      router.refresh();
+    } catch (err) {
+      router.push("/login");
+    }
   };
 
   // Helper to count quantity of a food portion in cart
@@ -409,7 +425,7 @@ export default function PosTerminal({
   });
 
   return (
-    <div className="w-full min-h-screen bg-[#faf5f2] text-slate-800 flex overflow-x-hidden font-sans select-none">
+    <div className="w-full min-h-screen bg-[#faf5f2] text-slate-800 flex overflow-x-hidden font-sans">
       {/* Toast Notification */}
       {toastMsg && (
         <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-2.5 border border-[#ff5722] text-sm font-bold animate-slide-up">
@@ -419,76 +435,101 @@ export default function PosTerminal({
       )}
 
       {/* ========================================================================= */}
-      {/* 1. LEFT SLIM NAVIGATION RAIL (Dark Chef Icon, Coral Tab, Tools) */}
+      {/* 1. LEFT SLIM NAVIGATION RAIL (Fully Interactive & Clickable Links) */}
       {/* ========================================================================= */}
-      <aside className="w-16 sm:w-20 shrink-0 bg-transparent flex flex-col items-center justify-between py-5 px-2">
-        <div className="flex flex-col items-center gap-4 w-full">
-          {/* Chef Hat Brand Pill in Black */}
-          <Link
-            href="/owner/dashboard"
-            className="w-12 h-12 rounded-full bg-slate-950 text-white flex items-center justify-center shadow-md hover:scale-105 transition-transform cursor-pointer"
+      <aside className="w-16 sm:w-20 shrink-0 bg-transparent flex flex-col items-center justify-between py-4 px-2 select-none z-30 sticky top-0 h-screen">
+        <div className="flex flex-col items-center gap-3 w-full">
+          {/* Chef Hat Brand Pill in Black -> Opens Owner Dashboard */}
+          <button
+            type="button"
+            onClick={() => router.push("/owner/dashboard")}
+            className="w-12 h-12 rounded-full bg-slate-950 text-white flex items-center justify-center shadow-md hover:scale-110 active:scale-95 transition-all cursor-pointer"
             title="Hotel JB &bull; Dashboard"
           >
             <ChefHat className="w-6 h-6 text-white" />
-          </Link>
+          </button>
 
-          {/* Active POS Icon (Orange Coral Square) */}
+          {/* 1. Active POS Terminal Icon (Orange Coral Square) */}
           <button
             type="button"
-            className="w-11 h-11 rounded-2xl bg-[#ff5722] text-white flex items-center justify-center shadow-lg shadow-orange-500/30 cursor-pointer"
-            title="POS Terminal (Active)"
+            onClick={() => {
+              setSelectedCatId("all");
+              setSelectedDietary("ALL");
+              setSearchQuery("");
+              showToast(isTamil ? "POS மெனு தயார்" : "POS Menu Ready");
+            }}
+            className="w-11 h-11 rounded-2xl bg-[#ff5722] text-white flex items-center justify-center shadow-lg shadow-orange-500/30 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            title={isTamil ? "POS மெனு" : "POS Terminal"}
           >
             <LayoutGrid className="w-5 h-5" />
           </button>
 
-          {/* Orders / Bills Queue */}
-          <Link
-            href="/bills"
-            className="w-11 h-11 rounded-2xl bg-white text-slate-600 hover:text-[#ff5722] hover:bg-orange-50/80 border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
-            title="Bills & Orders Queue"
+          {/* 2. Orders / Bills Queue ($) */}
+          <button
+            type="button"
+            onClick={() => router.push("/bills")}
+            className="w-11 h-11 rounded-2xl bg-white text-slate-700 hover:text-[#ff5722] hover:bg-orange-50 border border-slate-200/90 flex items-center justify-center shadow-2xs hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            title={isTamil ? "ஆர்டர்கள் & பில்கள் வரிசை" : "Bills & Orders Queue"}
           >
             <Receipt className="w-5 h-5" />
-          </Link>
+          </button>
 
-          {/* Stock / Inventory */}
-          <Link
-            href="/owner/stock"
-            className="w-11 h-11 rounded-2xl bg-white text-slate-600 hover:text-[#ff5722] hover:bg-orange-50/80 border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
-            title="Stock & Inventory"
+          {/* 3. Live Stock & Inventory (Boxes) */}
+          <button
+            type="button"
+            onClick={() => router.push("/owner/stock")}
+            className="w-11 h-11 rounded-2xl bg-white text-slate-700 hover:text-[#ff5722] hover:bg-orange-50 border border-slate-200/90 flex items-center justify-center shadow-2xs hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            title={isTamil ? "ஸ்டாக் மேலாண்மை" : "Stock & Inventory"}
           >
             <Boxes className="w-5 h-5" />
-          </Link>
+          </button>
 
-          {/* Day Closing / Reports */}
-          <Link
-            href="/owner/day-closing"
-            className="w-11 h-11 rounded-2xl bg-white text-slate-600 hover:text-[#ff5722] hover:bg-orange-50/80 border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
-            title="Day Closing & Financial Ledger"
+          {/* 4. Day Closing & Settlement Ledger (FileText) */}
+          <button
+            type="button"
+            onClick={() => router.push("/owner/day-closing")}
+            className="w-11 h-11 rounded-2xl bg-white text-slate-700 hover:text-[#ff5722] hover:bg-orange-50 border border-slate-200/90 flex items-center justify-center shadow-2xs hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            title={isTamil ? "டே குளோசிங்" : "Day Closing & Settlement"}
           >
             <FileText className="w-5 h-5" />
-          </Link>
+          </button>
 
-          {/* Dashboard KPI */}
-          <Link
-            href="/owner/dashboard"
-            className="w-11 h-11 rounded-2xl bg-white text-slate-600 hover:text-[#ff5722] hover:bg-orange-50/80 border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
-            title="Analytics & Dashboard"
+          {/* 5. Dashboard Analytics & Reports (BarChart3) */}
+          <button
+            type="button"
+            onClick={() => router.push("/owner/dashboard")}
+            className="w-11 h-11 rounded-2xl bg-white text-slate-700 hover:text-[#ff5722] hover:bg-orange-50 border border-slate-200/90 flex items-center justify-center shadow-2xs hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            title={isTamil ? "டாஷ்போர்டு புள்ளிவிவரங்கள்" : "Analytics & Dashboard"}
           >
             <BarChart3 className="w-5 h-5" />
-          </Link>
+          </button>
+
+          {/* 6. Menu & Dishes Manager (UtensilsCrossed) */}
+          <button
+            type="button"
+            onClick={() => router.push("/owner/menu")}
+            className="w-11 h-11 rounded-2xl bg-white text-slate-700 hover:text-[#ff5722] hover:bg-orange-50 border border-slate-200/90 flex items-center justify-center shadow-2xs hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            title={isTamil ? "உணவு மெனு மேலாண்மை" : "Menu & Dishes Manager"}
+          >
+            <UtensilsCrossed className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Bottom Rail: Table / Token Quick Switcher */}
-        <div className="flex flex-col items-center gap-2 w-full">
+        <div className="flex flex-col items-center gap-2 w-full pt-2">
           <button
             type="button"
-            onClick={() => setOrderType(orderType === "TOKEN" ? "TABLE" : "TOKEN")}
-            className={`w-11 h-11 rounded-2xl flex flex-col items-center justify-center transition-all cursor-pointer border ${
+            onClick={() => {
+              const nextType = orderType === "TOKEN" ? "TABLE" : "TOKEN";
+              setOrderType(nextType);
+              showToast(nextType === "TABLE" ? `டேபிள் மோட்: Table ${tableNumber}` : "டோக்கன் மோட் இயக்கப்பட்டது");
+            }}
+            className={`w-11 h-11 rounded-2xl flex flex-col items-center justify-center transition-all cursor-pointer border hover:scale-105 active:scale-95 ${
               orderType === "TABLE"
-                ? "bg-gradient-to-br from-amber-500 to-[#ff5722] text-white border-transparent shadow-sm font-black text-[10px]"
-                : "bg-white text-slate-700 border-slate-200 hover:bg-orange-50 font-black text-[10px]"
+                ? "bg-gradient-to-br from-amber-500 to-[#ff5722] text-white border-transparent shadow-md font-black text-[10px]"
+                : "bg-white text-slate-700 border-slate-200 hover:bg-orange-50 font-black text-[10px] shadow-2xs"
             }`}
-            title="Toggle Token / Table Mode"
+            title={orderType === "TABLE" ? `Table ${tableNumber}` : "Token Mode"}
           >
             <span className="text-[10px] uppercase">
               {orderType === "TABLE" ? `T-${tableNumber}` : isTamil ? "டோக்" : "TOK"}
@@ -502,7 +543,7 @@ export default function PosTerminal({
       {/* ========================================================================= */}
       <div className="flex-1 flex flex-col min-w-0 p-3 sm:p-5 pl-0 pr-4 space-y-4">
         {/* TOP HEADER: Search Bar & User / Utility Actions */}
-        <header className="flex flex-wrap items-center justify-between gap-3 pt-1">
+        <header className="flex flex-wrap items-center justify-between gap-3 pt-1 relative z-20">
           {/* Search Input Box */}
           <div className="flex-1 max-w-xl relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -524,50 +565,116 @@ export default function PosTerminal({
             )}
           </div>
 
-          {/* Top Right Utilities: Notifications, Settings, Logout, User Profile */}
+          {/* Top Right Utilities: Notifications, Settings, Language Switcher, User Profile */}
           <div className="flex items-center gap-2.5">
             {/* Notification Bell */}
             <button
               type="button"
+              onClick={() => {
+                setNotificationsOpen(!notificationsOpen);
+                setUserDropdownOpen(false);
+              }}
               className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer relative"
-              title="Notifications"
+              title={isTamil ? "அறிவிப்புகள்" : "Notifications"}
             >
               <Bell className="w-4 h-4" />
               <span className="w-2 h-2 rounded-full bg-[#ff5722] absolute top-2 right-2 ring-2 ring-white"></span>
             </button>
 
-            {/* Settings */}
-            <Link
-              href="/owner/dashboard"
+            {/* Notifications Popover */}
+            {notificationsOpen && (
+              <div className="absolute right-36 top-14 w-72 bg-white rounded-3xl border border-slate-200 shadow-2xl p-4 z-40 animate-scale-up space-y-2.5">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <span className="font-extrabold text-xs text-slate-900">
+                    {isTamil ? "சமீபத்திய அறிவிப்புகள்" : "Notifications"}
+                  </span>
+                  <span className="text-[10px] bg-orange-100 text-[#ff5722] px-2 py-0.5 rounded-full font-bold">
+                    Live
+                  </span>
+                </div>
+                <div className="text-xs text-slate-600 space-y-2">
+                  <div className="p-2 bg-slate-50 rounded-xl border border-slate-100">
+                    <div className="font-bold text-slate-800">✅ POS Terminal Ready</div>
+                    <div className="text-[10px] text-slate-500">Thermal printer &amp; WhatsApp billing active.</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Settings Link */}
+            <button
+              type="button"
+              onClick={() => router.push("/owner/dashboard")}
               className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
-              title="Settings & Admin"
+              title={isTamil ? "அமைப்புகள்" : "Settings & Admin"}
             >
               <Settings className="w-4 h-4" />
-            </Link>
+            </button>
 
             {/* Language Switcher Pill (EN ↔ தமிழ்) */}
             <button
               type="button"
-              onClick={() => setLanguage(isTamil ? "en" : "ta")}
-              className="h-10 px-3 rounded-full bg-white border border-slate-200 flex items-center gap-1.5 text-xs font-black text-slate-800 hover:border-[#ff5722] hover:text-[#ff5722] shadow-2xs transition-all cursor-pointer"
+              onClick={() => {
+                const nextLang = isTamil ? "en" : "ta";
+                setLanguage(nextLang);
+                showToast(nextLang === "ta" ? "தமிழ் மொழி தேர்ந்தெடுக்கப்பட்டது" : "English Selected");
+              }}
+              className="h-10 px-3.5 rounded-full bg-white border border-slate-200 flex items-center gap-1.5 text-xs font-black text-slate-800 hover:border-[#ff5722] hover:text-[#ff5722] shadow-2xs transition-all cursor-pointer"
               title="Toggle English / தமிழ்"
             >
               <span>{isTamil ? "🇮🇳 தமிழ்" : "🇬🇧 English"}</span>
             </button>
 
-            {/* User Profile Pill */}
-            <div className="flex items-center gap-2.5 bg-white border border-slate-200/80 rounded-full py-1.5 px-3 shadow-2xs">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#ff5722] to-amber-400 flex items-center justify-center text-white font-extrabold text-xs shadow-inner">
-                {userName.charAt(0).toUpperCase()}
-              </div>
-              <div className="hidden sm:flex flex-col text-left pr-1">
-                <span className="text-xs font-black text-slate-900 leading-tight">
-                  {userName}
-                </span>
-                <span className="text-[10px] font-semibold text-slate-400 capitalize">
-                  {userRole.toLowerCase() === "owner" ? "Manager" : "Cashier"}
-                </span>
-              </div>
+            {/* User Profile Pill & Dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setUserDropdownOpen(!userDropdownOpen);
+                  setNotificationsOpen(false);
+                }}
+                className="flex items-center gap-2.5 bg-white border border-slate-200/80 rounded-full py-1.5 px-3 shadow-2xs cursor-pointer hover:border-[#ff5722]/50 transition-all"
+              >
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#ff5722] to-amber-400 flex items-center justify-center text-white font-extrabold text-xs shadow-inner">
+                  {userName.charAt(0).toUpperCase()}
+                </div>
+                <div className="hidden sm:flex flex-col text-left pr-1">
+                  <span className="text-xs font-black text-slate-900 leading-tight">
+                    {userName}
+                  </span>
+                  <span className="text-[10px] font-semibold text-slate-400 capitalize">
+                    {userRole.toLowerCase() === "owner" ? "Manager" : "Cashier"}
+                  </span>
+                </div>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              </button>
+
+              {userDropdownOpen && (
+                <div className="absolute right-0 top-12 w-48 bg-white rounded-2xl border border-slate-200 shadow-2xl p-1.5 z-40 animate-scale-up space-y-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUserDropdownOpen(false);
+                      router.push("/owner/dashboard");
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 flex items-center gap-2 transition-colors cursor-pointer"
+                  >
+                    <Settings className="w-4 h-4 text-slate-500" />
+                    <span>{isTamil ? "டாஷ்போர்டு" : "Owner Panel"}</span>
+                  </button>
+
+                  <div className="h-px bg-slate-100 my-1"></div>
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-rose-700 hover:bg-rose-50 flex items-center gap-2 transition-colors cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4 text-rose-600" />
+                    <span>{isTamil ? "வெளியேறு (Logout)" : "Logout"}</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -591,7 +698,7 @@ export default function PosTerminal({
 
             {/* Quick Table Selector if in Table mode */}
             {orderType === "TABLE" && (
-              <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-2xl px-2 py-1 shadow-2xs">
+              <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-2xl px-2.5 py-1.5 shadow-2xs">
                 <span className="text-[11px] font-bold text-slate-400 pl-1">
                   {isTamil ? "டேபிள்:" : "Table:"}
                 </span>
@@ -714,7 +821,7 @@ export default function PosTerminal({
                         loading="lazy"
                       />
 
-                      {/* Category / Dietary Badge on Top of Image */}
+                      {/* Category Badge on Top of Image */}
                       <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
                         <span className="text-[10px] font-black uppercase text-slate-900 bg-white/90 backdrop-blur-xs px-2 py-0.5 rounded-lg shadow-2xs">
                           {getCategoryName(food.category)}
