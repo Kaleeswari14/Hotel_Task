@@ -21,7 +21,9 @@ import {
   KeyRound,
   Eye,
   Sparkles,
-  PieChart
+  PieChart,
+  ArrowUpRight,
+  CircleDot
 } from "lucide-react";
 import Link from "next/link";
 import { formatCurrency, formatDateTime, formatHumanStock } from "@/lib/format";
@@ -51,8 +53,6 @@ interface DashboardViewProps {
   todayEggCount?: number;
 }
 
-type TabType = "ALL" | "PAYMENTS" | "DIETARY" | "TOP_SELLERS" | "BILLS" | "ALERTS";
-
 export default function DashboardView({
   user,
   bills,
@@ -77,98 +77,83 @@ export default function DashboardView({
   todayEggCount = 0,
 }: DashboardViewProps) {
   const { isTamil, getFoodName } = useLanguage();
-  const [activeTab, setActiveTab] = useState<TabType>("ALL");
 
-  const tabs: { id: TabType; label: string; labelTamil: string; icon: any }[] = [
-    { id: "ALL", label: "Overview", labelTamil: "முழு பார்வை", icon: LayoutDashboard },
-    { id: "PAYMENTS", label: "Cash & Till", labelTamil: "பணம் & வங்கி", icon: Banknote },
-    { id: "DIETARY", label: "Kitchen Split", labelTamil: "சைவம் / அசைவம்", icon: UtensilsCrossed },
-    { id: "TOP_SELLERS", label: "Top Dishes", labelTamil: "அதிக விற்பனை", icon: Flame },
-    { id: "BILLS", label: "Recent Bills", labelTamil: "சமீபத்திய பில்கள்", icon: Receipt },
-    { id: "ALERTS", label: `Alerts (${lowStockItems.length})`, labelTamil: `எச்சரிக்கை (${lowStockItems.length})`, icon: AlertTriangle },
-  ];
+  // Dietary percentages
+  const totalDietarySales = todayVegSales + todayNonVegSales + todayEggSales || 1;
+  const vegPct = Math.round((todayVegSales / totalDietarySales) * 100);
+  const nonVegPct = Math.round((todayNonVegSales / totalDietarySales) * 100);
+  const eggPct = 100 - vegPct - nonVegPct;
+
+  // Payment percentages
+  const totalPayments = todayCash + todayUpi + todayCard || 1;
+  const cashPct = Math.round((todayCash / totalPayments) * 100);
+  const upiPct = Math.round((todayUpi / totalPayments) * 100);
+  const cardPct = 100 - cashPct - upiPct;
 
   return (
-    <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-6 text-slate-800">
       
-      {/* 1. HEADER HERO BANNER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/95 backdrop-blur-md p-6 rounded-3xl border border-orange-100/90 shadow-luxury">
-        <div>
+      {/* ========================================================================= */}
+      {/* 1. TOP HEADER HERO BANNER */}
+      {/* ========================================================================= */}
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <div className="space-y-1">
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Executive Command Hub
-            </h1>
-            <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-glow-orange tracking-wider uppercase">
-              Live Terminal
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span className="text-[11px] font-black uppercase tracking-wider text-orange-600 bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
+              Live Business Hub
             </span>
           </div>
-          <p className="text-slate-500 text-xs sm:text-sm mt-1 font-semibold">
-            Welcome back, <span className="text-slate-900 font-bold">{user?.name || "Owner"}</span>! Real-time restaurant sales, cash drawer reconciliation &amp; settlement analytics.
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            {isTamil ? "வணிக மேலாண்மை டாஷ்போர்டு" : "Executive Command Dashboard"}
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium">
+            {isTamil ? `வணக்கம், ${user?.name || "உரிமையாளர்"}! இன்றைய நேரடி விற்பனை மற்றும் கணக்கு விவரங்கள்.` : `Welcome back, ${user?.name || "Owner"}! Real-time sales, payment reconciliation & insights.`}
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2.5 flex-wrap">
           <Link
             href="/owner/users"
-            className="px-4 py-2.5 bg-slate-100 hover:bg-orange-50 text-slate-800 font-bold rounded-2xl text-xs transition-all border border-slate-300 flex items-center gap-2 shadow-2xs cursor-pointer hover:scale-105 active:scale-95"
+            className="px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold rounded-2xl text-xs transition-all border border-slate-200 flex items-center gap-2 shadow-2xs hover:scale-102 active:scale-98"
           >
-            <KeyRound className="w-4 h-4 text-orange-600" />
-            <span>Staff &amp; PINs</span>
+            <KeyRound className="w-4 h-4 text-slate-500" />
+            <span>Staff & PINs</span>
           </Link>
 
           <Link
             href="/owner/day-closing"
-            className="px-4 py-2.5 bg-orange-50 hover:bg-orange-100 text-orange-950 font-bold rounded-2xl text-xs transition-all border border-orange-200 shadow-2xs flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95"
+            className="px-4 py-2.5 bg-orange-50 hover:bg-orange-100 text-[#ff5722] font-black rounded-2xl text-xs transition-all border border-orange-200 shadow-2xs flex items-center gap-2 hover:scale-102 active:scale-98"
           >
-            <CalendarCheck className="w-4 h-4 text-orange-600" />
-            <span>Day Closing</span>
+            <CalendarCheck className="w-4 h-4 text-[#ff5722]" />
+            <span>{isTamil ? "நாள் முடிவு கணக்கு" : "Day Closing"}</span>
           </Link>
 
           <Link
             href="/pos"
-            className="px-5 py-2.5 bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500 hover:from-orange-600 hover:to-orange-700 text-white font-black rounded-2xl text-xs transition-all shadow-glow-orange flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95"
+            className="px-5 py-2.5 bg-gradient-to-r from-orange-500 via-[#ff5722] to-amber-500 hover:from-orange-600 hover:to-orange-700 text-white font-black rounded-2xl text-xs transition-all shadow-md shadow-orange-500/20 flex items-center gap-2 hover:scale-102 active:scale-98"
           >
-            <span>Open POS Terminal</span>
+            <span>{isTamil ? "POS பில் போடவும்" : "Open POS Terminal"}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </div>
 
-      {/* 2. INTERACTIVE TAB NAVIGATION (Click to move & filter view) */}
-      <div className="flex items-center gap-2 overflow-x-auto scrollbar-none bg-white/90 p-2 rounded-2xl border border-slate-200 shadow-sm">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
-                isActive
-                  ? "bg-gradient-to-r from-orange-500 to-[#ff5722] text-white shadow-md shadow-orange-500/25 scale-102"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-              }`}
-            >
-              <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-slate-500"}`} />
-              <span>{isTamil ? tab.labelTamil : tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* 3. LOW STOCK WARNING BANNER (Shows in ALL or ALERTS tab) */}
-      {(activeTab === "ALL" || activeTab === "ALERTS") && lowStockItems.length > 0 && (
-        <div className="p-4 sm:p-5 bg-amber-500/10 border border-amber-500/30 rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-luxury animate-slide-up">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-glow-amber">
+      {/* ========================================================================= */}
+      {/* 2. LOW STOCK ALERT (Clean Slim Banner) */}
+      {/* ========================================================================= */}
+      {lowStockItems.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200/90 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
               <AlertTriangle className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-extrabold text-amber-950 text-sm sm:text-base">
-                Low Stock Alert: {lowStockItems.length} item(s) below minimum threshold!
+              <div className="font-extrabold text-amber-950 text-xs sm:text-sm">
+                {isTamil ? `இருப்பு எச்சரிக்கை: ${lowStockItems.length} உணவுகள் குறைந்த அளவில் உள்ளன!` : `Low Stock Alert: ${lowStockItems.length} items below minimum threshold!`}
               </div>
-              <div className="text-xs text-amber-800 mt-0.5 font-medium">
+              <div className="text-[11px] text-amber-800 font-medium">
                 {lowStockItems
                   .map((i) => `${i.foodItem.name} (${formatHumanStock(i.currentQuantity, i.unitName)})`)
                   .slice(0, 3)
@@ -180,263 +165,274 @@ export default function DashboardView({
 
           <Link
             href="/owner/stock"
-            className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-black rounded-xl transition-all shadow-sm self-start sm:self-auto shrink-0 flex items-center gap-1.5 cursor-pointer hover:scale-105 active:scale-95"
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-black rounded-xl transition-all shadow-2xs shrink-0 self-start sm:self-auto flex items-center gap-1.5 cursor-pointer"
           >
-            <span>Restock Batches</span>
-            <span>&rarr;</span>
+            <span>{isTamil ? "இருப்பு புதுப்பிக்க" : "Restock Items"}</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       )}
 
-      {/* 4. FOUR CORE METRIC BANNERS (Interactive clickable boxes) */}
-      {(activeTab === "ALL" || activeTab === "PAYMENTS") && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Sales Card */}
-          <div
-            onClick={() => setActiveTab("ALL")}
-            className="luxury-card p-5.5 flex items-center justify-between cursor-pointer hover:border-orange-400 hover:shadow-xl transition-all hover:scale-102 active:scale-98"
-          >
-            <div>
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Total Sales (Paid)
-              </span>
-              <div className="text-2xl font-black text-slate-900 mt-1">
-                {formatCurrency(todaySales)}
-              </div>
-              <div className="text-[11px] text-orange-600 font-bold mt-0.5">
-                ✓ {paidBillsCount} Paid Bills
-              </div>
-            </div>
-            <div className="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-600 flex items-center justify-center border border-orange-500/20 shadow-glow-orange">
-              <IndianRupee className="w-6 h-6" />
+      {/* ========================================================================= */}
+      {/* 3. FOUR CORE SUMMARY CARDS (Clean White, Crisp Typography, No Ugly Tints) */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        {/* Card 1: Total Sales */}
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-orange-300 transition-all group flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
+              {isTamil ? "மொத்த விற்பனை (செலுத்தப்பட்டது)" : "Total Sales (Paid)"}
+            </span>
+            <div className="w-10 h-10 rounded-2xl bg-orange-50 text-[#ff5722] border border-orange-100 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+              <IndianRupee className="w-5 h-5" />
             </div>
           </div>
-
-          {/* Collected Income Card */}
-          <div
-            onClick={() => setActiveTab("PAYMENTS")}
-            className="luxury-card p-5.5 flex items-center justify-between cursor-pointer hover:border-orange-400 hover:shadow-xl transition-all hover:scale-102 active:scale-98"
-          >
-            <div>
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Collected Income
-              </span>
-              <div className="text-2xl font-black text-orange-600 mt-1">
-                {formatCurrency(todayCollected)}
-              </div>
-              <div className="text-[11px] text-slate-400 font-semibold mt-0.5">
-                Money in Till &amp; Bank
-              </div>
+          <div className="mt-3">
+            <div className="text-3xl font-black text-slate-900 tracking-tight">
+              {formatCurrency(todaySales)}
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center border border-amber-500/20">
-              <TrendingUp className="w-6 h-6" />
-            </div>
-          </div>
-
-          {/* Outstanding Unpaid Card */}
-          <Link
-            href="/bills"
-            className="luxury-card p-5.5 flex items-center justify-between group cursor-pointer hover:border-orange-400 hover:shadow-xl transition-all hover:scale-102 active:scale-98"
-            title="Click to open Active Bills Queue"
-          >
-            <div>
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider group-hover:text-orange-700 transition-colors flex items-center gap-1">
-                <span>Outstanding Unpaid</span>
-                <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-orange-600" />
-              </span>
-              <div className="text-2xl font-black text-amber-600 mt-1">
-                {formatCurrency(todayOutstanding)}
-              </div>
-              <div className="text-[11px] text-slate-400 font-semibold mt-0.5 group-hover:text-amber-800 transition-colors">
-                {unpaidBillsCount} Active Unpaid Bills
-              </div>
-            </div>
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center border border-amber-500/20 group-hover:scale-105 transition-all">
-              <Clock className="w-6 h-6" />
-            </div>
-          </Link>
-
-          {/* Low Stock Items Card */}
-          <div
-            onClick={() => setActiveTab("ALERTS")}
-            className="luxury-card p-5.5 flex items-center justify-between cursor-pointer hover:border-orange-400 hover:shadow-xl transition-all hover:scale-102 active:scale-98"
-          >
-            <div>
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Low Stock Items
-              </span>
-              <div
-                className={`text-2xl font-black mt-1 ${
-                  lowStockItems.length > 0 ? "text-amber-600" : "text-slate-900"
-                }`}
-              >
-                {lowStockItems.length} Dishes
-              </div>
-              <div className="text-[11px] text-slate-400 font-semibold mt-0.5">
-                Out of {allStock.length} items
-              </div>
-            </div>
-            <div
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
-                lowStockItems.length > 0 ? "bg-amber-100 text-amber-700 border border-amber-300" : "bg-orange-50 text-orange-600 border border-orange-200"
-              }`}
-            >
-              <Boxes className="w-6 h-6" />
+            <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 mt-1">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>{paidBillsCount} {isTamil ? "முடிக்கப்பட்ட பில்கள்" : "Paid Bills Today"}</span>
             </div>
           </div>
         </div>
-      )}
 
-      {/* 5. PAYMENT CHANNEL BREAKDOWN BOX */}
-      {(activeTab === "ALL" || activeTab === "PAYMENTS") && (
-        <div className="bg-white/95 backdrop-blur-md p-6 rounded-3xl border border-orange-100/90 shadow-luxury space-y-4 animate-scale-up">
+        {/* Card 2: Collected Income */}
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-orange-300 transition-all group flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
+              {isTamil ? "வசூலான வருமானம்" : "Collected Income"}
+            </span>
+            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="text-3xl font-black text-emerald-600 tracking-tight">
+              {formatCurrency(todayCollected)}
+            </div>
+            <div className="text-[11px] font-semibold text-slate-400 mt-1">
+              {isTamil ? "பெட்டி மற்றும் வங்கியில் வரவு" : "Cash in Till & Bank Deposit"}
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: Outstanding Unpaid */}
+        <Link
+          href="/bills"
+          className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-orange-300 transition-all group flex flex-col justify-between cursor-pointer"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-[#ff5722] transition-colors">
+              {isTamil ? "நிலுவைத் தொகை" : "Outstanding Unpaid"}
+            </span>
+            <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+              <Clock className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="text-3xl font-black text-amber-600 tracking-tight">
+              {formatCurrency(todayOutstanding)}
+            </div>
+            <div className="flex items-center gap-1 text-[11px] font-bold text-amber-700 mt-1 group-hover:underline">
+              <span>{unpaidBillsCount} {isTamil ? "நிலுவையில் உள்ள பில்கள்" : "Unpaid Active Bills"}</span>
+              <ArrowRight className="w-3 h-3" />
+            </div>
+          </div>
+        </Link>
+
+        {/* Card 4: Low Stock Alert */}
+        <Link
+          href="/owner/stock"
+          className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-orange-300 transition-all group flex flex-col justify-between cursor-pointer"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-[#ff5722] transition-colors">
+              {isTamil ? "குறைந்த இருப்பு" : "Low Stock Items"}
+            </span>
+            <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+              <Boxes className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="text-3xl font-black text-slate-900 tracking-tight">
+              {lowStockItems.length} <span className="text-base font-bold text-slate-400">/ {allStock.length}</span>
+            </div>
+            <div className="text-[11px] font-semibold text-slate-400 mt-1">
+              {lowStockItems.length === 0 ? (
+                <span className="text-emerald-600 font-bold">✓ All items in stock</span>
+              ) : (
+                <span className="text-rose-600 font-bold">{lowStockItems.length} items need restock</span>
+              )}
+            </div>
+          </div>
+        </Link>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 4. PAYMENT RECONCILIATION & DIETARY SALES (Two-Column Balanced Cards) */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Payment Channels Breakdown Card */}
+        <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-sm space-y-5">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
-              <Banknote className="w-5 h-5 text-orange-600" />
-              Payment Channel Summary ({payments.length} Payments Received)
-            </h2>
-            <Link href="/owner/payments" className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1 cursor-pointer">
-              <span>Payment History</span>
-              <span>&rarr;</span>
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#ff5722] flex items-center justify-center font-black">
+                <Banknote className="w-4 h-4" />
+              </div>
+              <h2 className="text-base font-black text-slate-900">
+                {isTamil ? "பணம் செலுத்தும் முறைகள்" : "Payment Channels"}
+              </h2>
+            </div>
+            <Link href="/owner/payments" className="text-xs font-bold text-[#ff5722] hover:underline flex items-center gap-1">
+              <span>{isTamil ? "அனைத்தும்" : "View History"}</span>
+              <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-4.5 rounded-2xl bg-gradient-to-br from-orange-50/90 to-amber-50/50 border border-orange-200/80 flex items-center justify-between shadow-2xs hover:scale-102 transition-transform">
-              <div>
-                <div className="text-xs font-black text-orange-950 uppercase tracking-wider">
-                  💵 Cash In Till
-                </div>
-                <div className="text-2xl font-black text-orange-900 mt-1">
-                  {formatCurrency(todayCash)}
-                </div>
+          {/* Progress Bar Split */}
+          <div className="space-y-1.5">
+            <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden flex">
+              <div style={{ width: `${cashPct}%` }} className="bg-[#ff5722] transition-all duration-500" title={`Cash: ${cashPct}%`}></div>
+              <div style={{ width: `${upiPct}%` }} className="bg-sky-500 transition-all duration-500" title={`UPI: ${upiPct}%`}></div>
+              <div style={{ width: `${cardPct}%` }} className="bg-purple-500 transition-all duration-500" title={`Card: ${cardPct}%`}></div>
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold uppercase">
+              <span>Cash {cashPct}%</span>
+              <span>UPI {upiPct}%</span>
+              <span>Card {cardPct}%</span>
+            </div>
+          </div>
+
+          {/* 3 Payment Channels */}
+          <div className="grid grid-cols-3 gap-3">
+            {/* Cash */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 space-y-1">
+              <div className="flex items-center gap-1.5 text-slate-500 text-xs font-bold">
+                <span className="w-2 h-2 rounded-full bg-[#ff5722]"></span>
+                <span>{isTamil ? "ரொக்கம் (Cash)" : "Cash in Till"}</span>
               </div>
-              <Banknote className="w-8 h-8 text-orange-600 opacity-70" />
+              <div className="text-xl font-black text-slate-900">{formatCurrency(todayCash)}</div>
+              <div className="text-[10px] text-slate-400 font-semibold">{cashPct}% share</div>
             </div>
 
-            <div className="p-4.5 rounded-2xl bg-gradient-to-br from-sky-50/80 to-blue-50/40 border border-sky-200/80 flex items-center justify-between shadow-2xs hover:scale-102 transition-transform">
-              <div>
-                <div className="text-xs font-black text-sky-900 uppercase tracking-wider">
-                  📱 UPI / QR In Bank
-                </div>
-                <div className="text-2xl font-black text-sky-800 mt-1">
-                  {formatCurrency(todayUpi)}
-                </div>
+            {/* UPI */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 space-y-1">
+              <div className="flex items-center gap-1.5 text-slate-500 text-xs font-bold">
+                <span className="w-2 h-2 rounded-full bg-sky-500"></span>
+                <span>{isTamil ? "UPI / QR" : "UPI / Online"}</span>
               </div>
-              <QrCode className="w-8 h-8 text-sky-600 opacity-70" />
+              <div className="text-xl font-black text-slate-900">{formatCurrency(todayUpi)}</div>
+              <div className="text-[10px] text-slate-400 font-semibold">{upiPct}% share</div>
             </div>
 
-            <div className="p-4.5 rounded-2xl bg-gradient-to-br from-purple-50/80 to-indigo-50/40 border border-purple-200/80 flex items-center justify-between shadow-2xs hover:scale-102 transition-transform">
-              <div>
-                <div className="text-xs font-black text-purple-900 uppercase tracking-wider">
-                  💳 Card Payments
-                </div>
-                <div className="text-2xl font-black text-purple-800 mt-1">
-                  {formatCurrency(todayCard)}
-                </div>
+            {/* Card */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 space-y-1">
+              <div className="flex items-center gap-1.5 text-slate-500 text-xs font-bold">
+                <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                <span>{isTamil ? "கார்டு (Card)" : "Card POS"}</span>
               </div>
-              <CreditCard className="w-8 h-8 text-purple-600 opacity-70" />
+              <div className="text-xl font-black text-slate-900">{formatCurrency(todayCard)}</div>
+              <div className="text-[10px] text-slate-400 font-semibold">{cardPct}% share</div>
             </div>
           </div>
         </div>
-      )}
 
-      {/* 6. DIETARY CLASSIFICATION SALES BREAKDOWN */}
-      {(activeTab === "ALL" || activeTab === "DIETARY") && (
-        <div className="bg-white/95 backdrop-blur-md p-6 rounded-3xl border border-orange-100/90 shadow-luxury space-y-4 animate-scale-up">
+        {/* Dietary Classification Sales Split Card */}
+        <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-sm space-y-5">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
-              <UtensilsCrossed className="w-5 h-5 text-orange-600" />
-              Dietary Category Revenue Breakdown
-            </h2>
-            <span className="text-xs font-black text-slate-400 uppercase tracking-wider">
-              Live Kitchen Split
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black">
+                <UtensilsCrossed className="w-4 h-4" />
+              </div>
+              <h2 className="text-base font-black text-slate-900">
+                {isTamil ? "உணவு வகை விற்பனை" : "Dietary Sales Split"}
+              </h2>
+            </div>
+            <span className="text-xs font-bold text-slate-400">
+              {isTamil ? "நேரடி சமையலறை கணக்கு" : "Kitchen Breakdown"}
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Progress Bar Split */}
+          <div className="space-y-1.5">
+            <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden flex">
+              <div style={{ width: `${vegPct}%` }} className="bg-emerald-500 transition-all duration-500" title={`Veg: ${vegPct}%`}></div>
+              <div style={{ width: `${nonVegPct}%` }} className="bg-rose-500 transition-all duration-500" title={`Non-Veg: ${nonVegPct}%`}></div>
+              <div style={{ width: `${eggPct}%` }} className="bg-amber-400 transition-all duration-500" title={`Egg: ${eggPct}%`}></div>
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold uppercase">
+              <span>Veg {vegPct}%</span>
+              <span>Non-Veg {nonVegPct}%</span>
+              <span>Egg {eggPct}%</span>
+            </div>
+          </div>
+
+          {/* 3 Dietary Categories */}
+          <div className="grid grid-cols-3 gap-3">
             {/* Pure Veg */}
-            <div className="p-4.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/90 flex items-center justify-between shadow-2xs hover:scale-102 transition-transform">
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 shadow-glow-emerald"></span>
-                  <span className="text-xs font-black text-emerald-900 uppercase tracking-wider">
-                    🟢 Pure Veg Sales
-                  </span>
-                </div>
-                <div className="text-2xl font-black text-emerald-800 mt-1">
-                  {formatCurrency(todayVegSales)}
-                </div>
-                <div className="text-[11px] text-emerald-700 font-bold mt-0.5">
-                  {todayVegCount} Portions Sold
-                </div>
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 space-y-1">
+              <div className="flex items-center gap-1.5 text-slate-600 text-xs font-bold">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>{isTamil ? "சைவம்" : "Pure Veg"}</span>
               </div>
-              <div className="text-3xl opacity-90">🥗</div>
+              <div className="text-xl font-black text-slate-900">{formatCurrency(todayVegSales)}</div>
+              <div className="text-[10px] text-emerald-600 font-bold">{todayVegCount} {isTamil ? "ஆர்டர்கள்" : "portions"}</div>
             </div>
 
             {/* Non-Veg */}
-            <div className="p-4.5 rounded-2xl bg-rose-50/70 border border-rose-200/90 flex items-center justify-between shadow-2xs hover:scale-102 transition-transform">
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-600 shadow-xs"></span>
-                  <span className="text-xs font-black text-rose-900 uppercase tracking-wider">
-                    🔴 Non-Veg Sales
-                  </span>
-                </div>
-                <div className="text-2xl font-black text-rose-800 mt-1">
-                  {formatCurrency(todayNonVegSales)}
-                </div>
-                <div className="text-[11px] text-rose-700 font-bold mt-0.5">
-                  {todayNonVegCount} Portions Sold
-                </div>
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 space-y-1">
+              <div className="flex items-center gap-1.5 text-slate-600 text-xs font-bold">
+                <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                <span>{isTamil ? "அசைவம்" : "Non-Veg"}</span>
               </div>
-              <div className="text-3xl opacity-90">🍗</div>
+              <div className="text-xl font-black text-slate-900">{formatCurrency(todayNonVegSales)}</div>
+              <div className="text-[10px] text-rose-600 font-bold">{todayNonVegCount} {isTamil ? "ஆர்டர்கள்" : "portions"}</div>
             </div>
 
             {/* Egg */}
-            <div className="p-4.5 rounded-2xl bg-amber-50/70 border border-amber-200/90 flex items-center justify-between shadow-2xs hover:scale-102 transition-transform">
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-glow-amber"></span>
-                  <span className="text-xs font-black text-amber-900 uppercase tracking-wider">
-                    🟡 Egg Sales
-                  </span>
-                </div>
-                <div className="text-2xl font-black text-amber-800 mt-1">
-                  {formatCurrency(todayEggSales)}
-                </div>
-                <div className="text-[11px] text-amber-700 font-bold mt-0.5">
-                  {todayEggCount} Portions Sold
-                </div>
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 space-y-1">
+              <div className="flex items-center gap-1.5 text-slate-600 text-xs font-bold">
+                <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                <span>{isTamil ? "முட்டை" : "Egg Special"}</span>
               </div>
-              <div className="text-3xl opacity-90">🥚</div>
+              <div className="text-xl font-black text-slate-900">{formatCurrency(todayEggSales)}</div>
+              <div className="text-[10px] text-amber-700 font-bold">{todayEggCount} {isTamil ? "ஆர்டர்கள்" : "portions"}</div>
             </div>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* 7. TOP SELLERS & RECENT BILLS GRID */}
-      {(activeTab === "ALL" || activeTab === "TOP_SELLERS" || activeTab === "BILLS") && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-scale-up">
-          {/* Top Selling Food Items */}
-          {(activeTab === "ALL" || activeTab === "TOP_SELLERS") && (
-            <div className={`${activeTab === "TOP_SELLERS" ? "lg:col-span-12" : "lg:col-span-5"} bg-white/95 backdrop-blur-md p-6 rounded-3xl border border-orange-100/90 shadow-luxury space-y-4`}>
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
-                  <Flame className="w-5 h-5 text-orange-500" />
-                  Top Selling Dishes
+      {/* ========================================================================= */}
+      {/* 5. TOP DISHES & RECENT BILLS STREAM (Two-Column Balanced Grid) */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Top Selling Dishes */}
+        <div className="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-sm space-y-4 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Flame className="w-5 h-5 text-[#ff5722]" />
+                <h2 className="text-base font-black text-slate-900">
+                  {isTamil ? "அதிகம் விற்பனையான உணவுகள்" : "Top Selling Dishes"}
                 </h2>
-                <Link href="/owner/menu" className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1 cursor-pointer">
-                  <span>Menu</span>
-                  <span>&rarr;</span>
-                </Link>
               </div>
+              <Link href="/owner/menu" className="text-xs font-bold text-[#ff5722] hover:underline flex items-center gap-1">
+                <span>{isTamil ? "மெனு" : "Menu"}</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
 
+            <div className="mt-3">
               {topSellers.length === 0 ? (
-                <div className="p-8 text-center text-slate-400">
+                <div className="py-12 text-center text-slate-400">
                   <UtensilsCrossed className="w-10 h-10 text-slate-300 mx-auto mb-2" />
                   <div className="text-xs font-semibold">
-                    No paid sales yet today.
+                    {isTamil ? "இன்று இன்னும் பில்கள் விற்பனையாகவில்லை." : "No sales recorded yet today."}
                   </div>
                 </div>
               ) : (
@@ -444,10 +440,10 @@ export default function DashboardView({
                   {topSellers.map((item, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between p-3 rounded-2xl bg-orange-50/30 hover:bg-white border border-orange-100 hover:border-orange-300 transition-all shadow-2xs hover:scale-101"
+                      className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-orange-50/50 border border-slate-100 hover:border-orange-200 transition-all"
                     >
-                      <div className="flex items-center gap-2.5">
-                        <span className="w-7 h-7 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-500 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-glow-orange">
+                      <div className="flex items-center gap-3">
+                        <span className="w-7 h-7 rounded-xl bg-slate-900 text-white font-black text-xs flex items-center justify-center shrink-0">
                           #{idx + 1}
                         </span>
                         <div>
@@ -456,25 +452,25 @@ export default function DashboardView({
                               {getFoodName({ name: item.name, nameTamil: (item as any).nameTamil })}
                             </span>
                             {item.dietary === "NON_VEG" ? (
-                              <span className="inline-flex items-center text-[9px] font-black px-1.5 py-0.2 rounded bg-rose-50 text-rose-700 border border-rose-200">
-                                🔴 {isTamil ? "அசைவம்" : "Non-Veg"}
+                              <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-rose-100 text-rose-700">
+                                🔴 Non-Veg
                               </span>
                             ) : item.dietary === "EGG" ? (
-                              <span className="inline-flex items-center text-[9px] font-black px-1.5 py-0.2 rounded bg-amber-50 text-amber-800 border border-amber-200">
-                                🟡 {isTamil ? "முட்டை" : "Egg"}
+                              <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-amber-100 text-amber-800">
+                                🟡 Egg
                               </span>
                             ) : (
-                              <span className="inline-flex items-center text-[9px] font-black px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                🟢 {isTamil ? "சைவம்" : "Veg"}
+                              <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-700">
+                                🟢 Veg
                               </span>
                             )}
                           </div>
                           <div className="text-[11px] text-slate-400 font-medium">
-                            {item.count} Portions Sold
+                            {item.count} {isTamil ? "ஆர்டர்கள் விற்கப்பட்டது" : "portions sold"}
                           </div>
                         </div>
                       </div>
-                      <div className="text-right font-black text-orange-600 text-xs sm:text-sm shrink-0">
+                      <div className="text-right font-black text-[#ff5722] text-xs sm:text-sm shrink-0">
                         {formatCurrency(item.revenue)}
                       </div>
                     </div>
@@ -482,27 +478,31 @@ export default function DashboardView({
                 </div>
               )}
             </div>
-          )}
+          </div>
+        </div>
 
-          {/* Recent Bills Activity */}
-          {(activeTab === "ALL" || activeTab === "BILLS") && (
-            <div className={`${activeTab === "BILLS" ? "lg:col-span-12" : "lg:col-span-7"} bg-white/95 backdrop-blur-md p-6 rounded-3xl border border-orange-100/90 shadow-luxury space-y-4`}>
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
-                  <Receipt className="w-5 h-5 text-slate-700" />
-                  Recent Bills Activity
+        {/* Recent Bills Stream */}
+        <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-sm space-y-4 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Receipt className="w-5 h-5 text-slate-700" />
+                <h2 className="text-base font-black text-slate-900">
+                  {isTamil ? "சமீபத்திய பில் செயல்பாடுகள்" : "Recent Orders & Bills"}
                 </h2>
-                <Link href="/bills" className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1 cursor-pointer">
-                  <span>All Bills</span>
-                  <span>&rarr;</span>
-                </Link>
               </div>
+              <Link href="/bills" className="text-xs font-bold text-[#ff5722] hover:underline flex items-center gap-1">
+                <span>{isTamil ? "அனைத்து பில்கள்" : "All Bills"}</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
 
+            <div className="mt-3">
               {bills.length === 0 ? (
-                <div className="p-8 text-center text-slate-400">
+                <div className="py-12 text-center text-slate-400">
                   <Clock className="w-10 h-10 text-slate-300 mx-auto mb-2" />
                   <div className="text-xs font-semibold">
-                    No bills created yet today.
+                    {isTamil ? "இன்று எந்த பில்களும் உருவாக்கப்படவில்லை." : "No bills recorded yet today."}
                   </div>
                 </div>
               ) : (
@@ -510,35 +510,35 @@ export default function DashboardView({
                   {bills.slice(0, 5).map((bill) => (
                     <div
                       key={bill.id}
-                      className="flex items-center justify-between p-3 rounded-2xl bg-orange-50/20 hover:bg-white border border-orange-100 hover:border-orange-300 text-xs transition-all shadow-2xs hover:scale-101"
+                      className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 hover:bg-orange-50/40 border border-slate-100 hover:border-orange-200 transition-all"
                     >
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-black text-slate-900">
+                          <span className="font-black text-slate-900 text-xs sm:text-sm">
                             Bill #{bill.billNumber}
                           </span>
-                          <span className="font-bold text-slate-500">({bill.orderReference})</span>
+                          <span className="font-bold text-slate-500 text-xs">({bill.orderReference})</span>
                         </div>
                         <div className="text-[11px] text-slate-400 mt-0.5 font-medium">
-                          {formatDateTime(bill.createdAt)} &bull; {bill.items.length} items
+                          {formatDateTime(bill.createdAt)} &bull; {bill.items.length} {isTamil ? "பொருட்கள்" : "items"}
                         </div>
                       </div>
 
-                      <div className="text-right flex items-center gap-2.5">
+                      <div className="text-right flex items-center gap-3">
                         <div className="font-black text-slate-900 text-sm">{formatCurrency(bill.totalAmount)}</div>
                         <div>
                           {bill.status === "PAID" && (
-                            <span className="text-[10px] font-black text-orange-700 bg-orange-100 px-2.5 py-1 rounded-full border border-orange-300 shadow-2xs">
+                            <span className="text-[10px] font-black text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full border border-emerald-300">
                               PAID
                             </span>
                           )}
                           {bill.status === "UNPAID" && (
-                            <span className="text-[10px] font-black text-amber-800 bg-amber-100 px-2.5 py-1 rounded-full border border-amber-300 shadow-2xs">
+                            <span className="text-[10px] font-black text-amber-800 bg-amber-100 px-2.5 py-1 rounded-full border border-amber-300">
                               UNPAID
                             </span>
                           )}
                           {bill.status === "CANCELLED" && (
-                            <span className="text-[10px] font-black text-red-700 bg-red-100 px-2.5 py-1 rounded-full border border-red-300 shadow-2xs">
+                            <span className="text-[10px] font-black text-rose-700 bg-rose-100 px-2.5 py-1 rounded-full border border-rose-300">
                               CANCELLED
                             </span>
                           )}
@@ -549,9 +549,11 @@ export default function DashboardView({
                 </div>
               )}
             </div>
-          )}
+          </div>
         </div>
-      )}
+
+      </div>
+
     </div>
   );
 }
