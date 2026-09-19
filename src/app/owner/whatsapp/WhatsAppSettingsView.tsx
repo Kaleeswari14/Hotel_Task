@@ -505,7 +505,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Toast Notification */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-emerald-700 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-emerald-500 text-sm font-semibold animate-slide-up">
+        <div className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-orange-500 to-amber-500 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 border border-orange-400 text-sm font-semibold animate-slide-up">
           <Check className="w-5 h-5" />
           <span>{toastMsg}</span>
         </div>
@@ -514,13 +514,13 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
       {/* Header Banner */}
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+          <div className="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-600 shrink-0">
             <MessageSquare className="w-6 h-6" />
           </div>
           <div>
             <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2 flex-wrap">
               <span>WhatsApp Automation &amp; Marketing Hub</span>
-              <span className="px-2.5 py-0.5 bg-emerald-500 text-white text-[11px] font-black rounded-full uppercase tracking-wider">
+              <span className="px-2.5 py-0.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[11px] font-black rounded-full uppercase tracking-wider shadow-sm shadow-orange-500/20">
                 100% Free / ₹0 API
               </span>
             </h1>
@@ -559,7 +559,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all ${
             activeTab === "connection"
               ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20"
-              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+              : "bg-white text-slate-600 hover:bg-orange-50 hover:text-orange-600 border border-slate-200"
           }`}
         >
           <QrCode className="w-4 h-4" />
@@ -574,13 +574,13 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
           }}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all ${
             activeTab === "broadcast"
-              ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
-              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+              ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20"
+              : "bg-white text-slate-600 hover:bg-orange-50 hover:text-orange-600 border border-slate-200"
           }`}
         >
           <Sparkles className="w-4 h-4 text-amber-300" />
           <span>2. Customer Offer Broadcast &amp; Marketing</span>
-          <span className="bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-full text-[10px] font-black">
+          <span className="bg-orange-100 text-orange-900 px-2 py-0.5 rounded-full text-[10px] font-black">
             {audience.length} Customers
           </span>
         </button>
@@ -610,16 +610,16 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
 
             {isConnected ? (
               /* Connected State Card */
-              <div className="bg-emerald-50/80 p-6 rounded-3xl border border-emerald-200 text-center space-y-4 animate-fade-in">
-                <div className="w-16 h-16 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/30">
+              <div className="bg-orange-50/50 p-6 rounded-3xl border border-orange-200 text-center space-y-4 animate-fade-in">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 text-white flex items-center justify-center mx-auto shadow-lg shadow-orange-500/30">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-black text-emerald-900">
+                  <h3 className="text-lg font-black text-slate-900">
                     WhatsApp Linked &amp; Ready! 🎉
                   </h3>
-                  <p className="text-xs text-emerald-700 mt-1">
+                  <p className="text-xs text-orange-700 font-bold mt-1">
                     Connected Phone: <span className="font-mono font-bold text-sm">+{phoneNumber}</span>
                   </p>
                   <p className="text-[11px] text-slate-600 mt-2 max-w-sm mx-auto">
@@ -653,13 +653,13 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                     </div>
                   ) : (
                     <div className="w-56 h-56 mx-auto rounded-2xl bg-white border border-slate-200 flex flex-col items-center justify-center text-slate-400 gap-2">
-                      <RefreshCw className="w-6 h-6 animate-spin text-emerald-600" />
+                      <RefreshCw className="w-6 h-6 animate-spin text-orange-500" />
                       <span className="text-xs font-bold text-slate-600">Generating QR Code...</span>
                     </div>
                   )}
 
                   <div className="mt-3">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-900 rounded-full text-xs font-black">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-100 text-orange-900 rounded-full text-xs font-black">
                       <Smartphone className="w-3.5 h-3.5" />
                       <span>Point phone camera at this QR code</span>
                     </span>
@@ -674,7 +674,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
             {/* Test Sender Card */}
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
               <h2 className="text-base font-black text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
-                <Send className="w-4 h-4 text-emerald-600" />
+                <Send className="w-4 h-4 text-orange-500" />
                 <span>Test Instant Send (சோதனை)</span>
               </h2>
 
@@ -692,7 +692,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                       value={testPhone}
                       onChange={(e) => setTestPhone(e.target.value)}
                       placeholder="9876543210"
-                      className="w-full pl-12 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+                      className="w-full pl-12 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500 font-mono"
                     />
                   </div>
                 </div>
@@ -701,7 +701,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                   type="button"
                   onClick={handleSendTestMessage}
                   disabled={testing || !isConnected}
-                  className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black rounded-xl text-xs transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 active:scale-[0.98]"
+                  className="w-full py-2.5 px-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black rounded-xl text-xs transition-all shadow-md shadow-orange-500/20 flex items-center justify-center gap-2 active:scale-[0.98]"
                 >
                   <Send className={`w-3.5 h-3.5 ${testing ? "animate-spin" : ""}`} />
                   <span>{testing ? "Sending in Background..." : "Send Test WhatsApp Message"}</span>
@@ -722,42 +722,42 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
             </div>
 
             {/* Step-by-Step Scan Instructions Card */}
-            <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6 rounded-3xl shadow-md space-y-3.5">
-              <div className="flex items-center gap-2 text-emerald-400 text-xs font-black uppercase tracking-wider">
+            <div className="bg-white p-6 rounded-3xl border border-orange-200/80 shadow-sm space-y-4">
+              <div className="flex items-center gap-2 text-orange-600 text-xs font-black uppercase tracking-wider pb-2 border-b border-orange-100">
                 <Smartphone className="w-4 h-4" />
                 <span>இணைக்கும் வழிமுறை (How to Scan)</span>
               </div>
 
-              <ol className="text-xs space-y-2.5 text-slate-200">
-                <li className="flex items-start gap-2.5 bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
-                  <span className="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">
+              <ol className="text-xs space-y-2.5 text-slate-700">
+                <li className="flex items-start gap-2.5 bg-orange-50/60 p-3 rounded-2xl border border-orange-100">
+                  <span className="w-5 h-5 rounded-full bg-orange-500 text-white font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
                     1
                   </span>
-                  <span>
-                    உங்கள் போனில் WhatsApp திறந்து, மேல் மூலையில் உள்ள <b>3 புள்ளிகள் (Menu)</b> அல்லது <b>Settings</b> கிளிக் செய்யவும்.
+                  <span className="leading-relaxed">
+                    உங்கள் போனில் WhatsApp திறந்து, மேல் மூலையில் உள்ள <b className="text-slate-900">3 புள்ளிகள் (Menu)</b> அல்லது <b className="text-slate-900">Settings</b> கிளிக் செய்யவும்.
                   </span>
                 </li>
-                <li className="flex items-start gap-2.5 bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
-                  <span className="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">
+                <li className="flex items-start gap-2.5 bg-orange-50/60 p-3 rounded-2xl border border-orange-100">
+                  <span className="w-5 h-5 rounded-full bg-orange-500 text-white font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
                     2
                   </span>
-                  <span>
-                    <b>Linked Devices</b> (இணைக்கப்பட்ட சாதனங்கள்) → <b>Link a Device</b> என்பதைத் தேர்ந்தெடுக்கவும்.
+                  <span className="leading-relaxed">
+                    <b className="text-slate-900">Linked Devices</b> (இணைக்கப்பட்ட சாதனங்கள்) → <b className="text-slate-900">Link a Device</b> என்பதைத் தேர்ந்தெடுக்கவும்.
                   </span>
                 </li>
-                <li className="flex items-start gap-2.5 bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
-                  <span className="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">
+                <li className="flex items-start gap-2.5 bg-orange-50/60 p-3 rounded-2xl border border-orange-100">
+                  <span className="w-5 h-5 rounded-full bg-orange-500 text-white font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
                     3
                   </span>
-                  <span>
-                    இடப்பக்கத்தில் உள்ள <b>QR Code-ஐ ஸ்கேன் செய்யவும்</b>. 1 நொடியில் 🟢 <b>Connected</b> ஆகிவிடும்!
+                  <span className="leading-relaxed">
+                    இடப்பக்கத்தில் உள்ள <b className="text-orange-600 font-bold">QR Code-ஐ ஸ்கேன் செய்யவும்</b>. 1 நொடியில் 🟢 <b className="text-emerald-700">Connected</b> ஆகிவிடும்!
                   </span>
                 </li>
               </ol>
 
-              <div className="pt-2 border-t border-slate-700/60 flex items-center justify-between text-[11px] text-slate-400 font-bold">
-                <span className="text-emerald-400">⚡ 100% Free Lifetime</span>
-                <span>🔒 End-to-End Secure</span>
+              <div className="pt-2 border-t border-orange-100 flex items-center justify-between text-[11px] text-slate-500 font-bold">
+                <span className="text-orange-600">⚡ 100% Free Lifetime</span>
+                <span className="text-slate-500">🔒 End-to-End Secure</span>
               </div>
             </div>
           </div>
@@ -768,10 +768,10 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
       {activeTab === "broadcast" && (
         <div className="space-y-6 animate-fade-in">
           {/* Audience Overview Bar */}
-          <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white p-6 rounded-3xl shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white p-6 rounded-3xl shadow-lg shadow-orange-500/15 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-[11px] font-black rounded-full uppercase">
+                <span className="px-2.5 py-0.5 bg-white/20 text-white border border-white/30 text-[11px] font-black rounded-full uppercase">
                   1-Click Marketing Campaign
                 </span>
                 <span className="text-xs text-slate-300 font-medium">
@@ -787,21 +787,21 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
             </div>
 
             <div className="flex items-center gap-3 bg-white/10 p-3 rounded-2xl border border-white/20 backdrop-blur-xs shrink-0">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/30 flex items-center justify-center text-emerald-300">
+              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white">
                 <Users className="w-5 h-5" />
               </div>
               <div>
                 <div className="text-2xl font-black text-white leading-none">
                   {audience.length}
                 </div>
-                <div className="text-[11px] text-emerald-200 font-semibold mt-0.5">
+                <div className="text-[11px] text-orange-100 font-semibold mt-0.5">
                   Unique Customers
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowAudienceModal(true)}
-                className="ml-2 px-3 py-1.5 bg-white text-slate-900 font-bold text-xs rounded-xl shadow-xs hover:bg-emerald-50 transition-all"
+                className="ml-2 px-3 py-1.5 bg-white text-orange-600 font-bold text-xs rounded-xl shadow-xs hover:bg-orange-50 transition-all"
               >
                 View List
               </button>
@@ -812,7 +812,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <Tag className="w-4 h-4 text-emerald-600" />
+                <Tag className="w-4 h-4 text-orange-500" />
                 <h3 className="text-sm font-black text-slate-900">
                   Offer Creation Mode (ஆஃபர் உருவாக்கும் முறை)
                 </h3>
@@ -822,9 +822,9 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                 <button
                   type="button"
                   onClick={handleCreateBlankOffer}
-                  className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl border border-emerald-200 flex items-center gap-1.5 transition-all shadow-xs"
+                  className="px-3 py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-800 font-bold text-xs rounded-xl border border-orange-200 flex items-center gap-1.5 transition-all shadow-xs"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                  <Sparkles className="w-3.5 h-3.5 text-orange-500" />
                   <span>➕ Create Custom Offer (புதிய ஆஃபர்)</span>
                 </button>
               </div>
@@ -846,7 +846,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                       onClick={() => handleSelectTemplate(tmpl)}
                       className={`p-3.5 rounded-2xl border text-left transition-all relative overflow-hidden flex flex-col justify-between gap-2.5 ${
                         isSelected
-                          ? "border-emerald-500 bg-emerald-50/80 shadow-md ring-2 ring-emerald-500/20"
+                          ? "border-orange-500 bg-orange-50/80 shadow-md ring-2 ring-orange-500/20"
                           : "border-slate-200 bg-slate-50/60 hover:bg-slate-100 hover:border-slate-300"
                       }`}
                     >
@@ -861,7 +861,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                         </h4>
                       </div>
 
-                      <div className="flex items-center justify-between text-[11px] font-bold text-emerald-700 pt-1.5 border-t border-slate-200/60">
+                      <div className="flex items-center justify-between text-[11px] font-bold text-orange-600 pt-1.5 border-t border-slate-200/60">
                         <span>{isSelected ? "✓ Active Preset" : "Load Preset"}</span>
                         {tmpl.posterUrl && <ImageIcon className="w-3.5 h-3.5 text-slate-400" />}
                       </div>
@@ -909,7 +909,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                       type="checkbox"
                       checked={autoSyncMessage}
                       onChange={(e) => setAutoSyncMessage(e.target.checked)}
-                      className="rounded text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5"
+                      className="rounded text-orange-500 focus:ring-orange-500 w-3.5 h-3.5"
                     />
                     <span>Auto-Sync</span>
                   </label>
@@ -929,7 +929,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                       value={offerForm.title}
                       onChange={(e) => handleUpdateFormField("title", e.target.value)}
                       placeholder="e.g. Sunday Special Biriyani Fest / ஞாயிறு பிரியாணி திருவிழா"
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
                     />
                   </div>
 
@@ -945,7 +945,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                           onClick={() => handleUpdateFormField("discountType", "PERCENT")}
                           className={`p-2 rounded-xl text-xs font-bold border transition-all ${
                             offerForm.discountType === "PERCENT"
-                              ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                              ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white border-orange-500 shadow-xs"
                               : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                           }`}
                         >
@@ -956,7 +956,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                           onClick={() => handleUpdateFormField("discountType", "FLAT")}
                           className={`p-2 rounded-xl text-xs font-bold border transition-all ${
                             offerForm.discountType === "FLAT"
-                              ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                              ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white border-orange-500 shadow-xs"
                               : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                           }`}
                         >
@@ -967,7 +967,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                           onClick={() => handleUpdateFormField("discountType", "FREE")}
                           className={`p-2 rounded-xl text-xs font-bold border transition-all ${
                             offerForm.discountType === "FREE"
-                              ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                              ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white border-orange-500 shadow-xs"
                               : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                           }`}
                         >
@@ -978,7 +978,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                           onClick={() => handleUpdateFormField("discountType", "CUSTOM")}
                           className={`p-2 rounded-xl text-xs font-bold border transition-all ${
                             offerForm.discountType === "CUSTOM"
-                              ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                              ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white border-orange-500 shadow-xs"
                               : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                           }`}
                         >
@@ -996,7 +996,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                         value={offerForm.discountValue}
                         onChange={(e) => handleUpdateFormField("discountValue", e.target.value)}
                         placeholder="e.g. 15 or 50 or Free Payasam"
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
                       />
                       <p className="text-[10px] text-slate-400">
                         {offerForm.discountType === "PERCENT" && "Example: 15 (for 15% OFF)"}
@@ -1018,7 +1018,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                         value={offerForm.couponCode}
                         onChange={(e) => handleUpdateFormField("couponCode", e.target.value.toUpperCase())}
                         placeholder="e.g. BIRIYANI15 / HOTEL10"
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-black text-slate-900 font-mono tracking-wider uppercase focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-black text-slate-900 font-mono tracking-wider uppercase focus:outline-none focus:ring-2 focus:ring-orange-500"
                       />
                     </div>
 
@@ -1031,7 +1031,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                         value={offerForm.validity}
                         onChange={(e) => handleUpdateFormField("validity", e.target.value)}
                         placeholder="e.g. இந்த சனி & ஞாயிறு மட்டும் (Sat & Sun)"
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
                       />
                     </div>
                   </div>
@@ -1046,7 +1046,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                       value={offerForm.notes}
                       onChange={(e) => handleUpdateFormField("notes", e.target.value)}
                       placeholder="e.g. அனைத்து வகையான பிரியாணிக்கும் பொருந்தும் / முதல் 50 பேருக்கு மட்டும்"
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
                     />
                   </div>
 
@@ -1061,7 +1061,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                         value={offerForm.hotelPhone}
                         onChange={(e) => handleUpdateFormField("hotelPhone", e.target.value)}
                         placeholder="9876543210"
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-orange-500"
                       />
                     </div>
 
@@ -1074,7 +1074,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                         value={offerForm.posterUrl}
                         onChange={(e) => handleUpdateFormField("posterUrl", e.target.value)}
                         placeholder="https://example.com/poster.jpg"
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500"
                       />
                     </div>
                   </div>
@@ -1146,7 +1146,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                     value={broadcastMessage}
                     onChange={(e) => setBroadcastMessage(e.target.value)}
                     placeholder="Type customized offer message..."
-                    className="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-2xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans leading-relaxed"
+                    className="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-2xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500 font-sans leading-relaxed"
                   />
 
                   {/* Variable Chips */}
@@ -1155,7 +1155,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                     <button
                       type="button"
                       onClick={() => setBroadcastMessage((prev) => prev + " {customer_name}")}
-                      className="px-2 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[10px] font-bold rounded-lg"
+                      className="px-2 py-1 bg-orange-100 hover:bg-orange-200 text-orange-800 text-[10px] font-bold rounded-lg"
                     >
                       + {"{customer_name}"}
                     </button>
@@ -1195,7 +1195,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                     value={broadcastTestPhone}
                     onChange={(e) => setBroadcastTestPhone(e.target.value)}
                     placeholder="Enter test mobile number"
-                    className="w-full pl-12 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+                    className="w-full pl-12 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500 font-mono"
                   />
                 </div>
 
@@ -1216,10 +1216,10 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                   <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
-                    <Eye className="w-4 h-4 text-emerald-600" />
+                    <Eye className="w-4 h-4 text-orange-500" />
                     <span>Live WhatsApp Screen</span>
                   </h3>
-                  <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full">
+                  <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-orange-100 text-orange-800 rounded-full">
                     Customer Screen
                   </span>
                 </div>
@@ -1273,7 +1273,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                   type="button"
                   onClick={() => setShowConfirmModal(true)}
                   disabled={isBroadcasting || audience.length === 0 || !isConnected}
-                  className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-sm rounded-2xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+                  className="w-full py-3.5 px-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-sm rounded-2xl shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
                 >
                   <Sparkles className="w-4 h-4 text-amber-300" />
                   <span>
@@ -1292,9 +1292,9 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
               <div className="flex items-center justify-between">
                 <h4 className="font-black text-sm text-slate-900 flex items-center gap-2">
                   {broadcastProgress.done ? (
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                    <CheckCircle2 className="w-5 h-5 text-orange-500" />
                   ) : (
-                    <RefreshCw className="w-5 h-5 text-emerald-600 animate-spin" />
+                    <RefreshCw className="w-5 h-5 text-orange-500 animate-spin" />
                   )}
                   <span>
                     {broadcastProgress.done
@@ -1310,7 +1310,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
               {/* Progress bar */}
               <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200">
                 <div
-                  className="bg-emerald-500 h-full transition-all duration-300"
+                  className="bg-gradient-to-r from-orange-500 to-amber-500 h-full transition-all duration-300"
                   style={{
                     width: `${Math.min(
                       100,
@@ -1341,8 +1341,8 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full p-6 animate-scale-up space-y-4">
             <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
-                <Sparkles className="w-5 h-5 text-emerald-600" />
+              <div className="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center text-orange-500 shrink-0">
+                <Sparkles className="w-5 h-5 text-orange-500" />
               </div>
               <div>
                 <h3 className="font-black text-base text-slate-900">
@@ -1376,7 +1376,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
               <button
                 type="button"
                 onClick={handleStartBroadcast}
-                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 font-black text-xs text-white rounded-xl shadow-md active:scale-[0.98] transition-all"
+                className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 font-black text-xs text-white rounded-xl shadow-md active:scale-[0.98] transition-all"
               >
                 Yes, Launch Broadcast Now
               </button>
@@ -1391,7 +1391,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full p-6 animate-scale-up space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-emerald-600" />
+                <Users className="w-5 h-5 text-orange-500" />
                 <div>
                   <h3 className="font-black text-base text-slate-900">
                     Previous Customer Audience ({audience.length})
