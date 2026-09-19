@@ -58,7 +58,7 @@ Bring your family and taste the freshness! 🙏✨`,
     id: "meals_special",
     title: "🍱 Special Meal Discount (₹50 OFF)",
     badge: "Lunch Rush",
-    badgeColor: "bg-emerald-600",
+    badgeColor: "bg-orange-600",
     posterUrl: "https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?w=800&auto=format&fit=crop&q=80",
     message: `✨ *HOTEL JB — Lunch Special Meal Discount!* 🍱
 ━━━━━━━━━━━━━━━━━━
@@ -1321,7 +1321,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
               </div>
 
               <div className="grid grid-cols-3 gap-2 text-center text-xs font-bold pt-2">
-                <div className="p-2.5 bg-emerald-50 text-emerald-900 rounded-xl border border-emerald-200">
+                <div className="p-2.5 bg-orange-50 text-orange-900 rounded-xl border border-orange-200">
                   ✅ Sent: {broadcastProgress.sent}
                 </div>
                 <div className="p-2.5 bg-rose-50 text-rose-900 rounded-xl border border-rose-200">
@@ -1341,7 +1341,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full p-6 animate-scale-up space-y-4">
             <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center text-orange-500 shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-500 shrink-0">
                 <Sparkles className="w-5 h-5 text-orange-500" />
               </div>
               <div>
@@ -1425,7 +1425,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                       <td className="p-2.5 font-bold text-slate-900">
                         {c.name || "Customer"}
                       </td>
-                      <td className="p-2.5 font-mono text-emerald-700 font-bold">
+                      <td className="p-2.5 font-mono text-orange-600 font-bold">
                         +91 {c.phone}
                       </td>
                       <td className="p-2.5 text-center">
