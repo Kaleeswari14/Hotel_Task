@@ -558,7 +558,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
           onClick={() => setActiveTab("connection")}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all ${
             activeTab === "connection"
-              ? "bg-slate-900 text-white shadow-md"
+              ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20"
               : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
           }`}
         >
@@ -1203,7 +1203,7 @@ ${f.hotelPhone ? `📞 பார்சல் & முன்பதிவுக்
                   type="button"
                   onClick={handleSendBroadcastTest}
                   disabled={isSendingBroadcastTest || !isConnected}
-                  className="w-full sm:w-auto px-4 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shrink-0 transition-all active:scale-[0.98]"
+                  className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-40 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shrink-0 transition-all shadow-sm shadow-orange-500/20 active:scale-[0.98]"
                 >
                   <Send className={`w-3.5 h-3.5 ${isSendingBroadcastTest ? "animate-spin" : ""}`} />
                   <span>{isSendingBroadcastTest ? "Testing..." : "🧪 Test Send"}</span>

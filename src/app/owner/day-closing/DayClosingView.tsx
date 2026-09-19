@@ -589,9 +589,9 @@ ${isClosed && todayClosing?.notes ? `📝 *Closing Notes:* ${todayClosing.notes}
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-4 px-4 bg-slate-950 hover:bg-slate-900 text-white font-black rounded-2xl shadow-xl active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
+                  className="w-full py-4 px-4 bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black rounded-2xl shadow-xl shadow-orange-500/25 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
                 >
-                  <Lock className="w-4 h-4 text-emerald-400" />
+                  <Lock className="w-4 h-4 text-amber-200" />
                   <span>{loading ? "Closing Day..." : `Finalize & Close Day (${todayDate})`}</span>
                 </button>
               </form>

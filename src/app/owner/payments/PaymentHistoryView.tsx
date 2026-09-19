@@ -202,7 +202,7 @@ export default function PaymentHistoryView({ initialPayments }: PaymentHistoryVi
           <button
             onClick={() => setMethodFilter("ALL")}
             className={`px-4 py-2 rounded-2xl text-xs font-black transition-all cursor-pointer ${
-              methodFilter === "ALL" ? "bg-slate-950 text-white shadow-md" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              methodFilter === "ALL" ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
             }`}
           >
             All Channels ({payments.length})

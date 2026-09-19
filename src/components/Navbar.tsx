@@ -93,7 +93,7 @@ export default function Navbar({ user }: NavbarProps) {
   const links = isOwner ? ownerMainLinks : staffLinks;
 
   return (
-    <header className="bg-slate-950/95 backdrop-blur-xl text-white shadow-2xl relative print:hidden select-none border-b border-slate-800/80 w-full z-50">
+    <header className="bg-white/95 backdrop-blur-xl text-slate-900 shadow-sm relative print:hidden select-none border-b border-slate-200/90 w-full z-50">
       <div className="w-full px-3 sm:px-5 lg:px-7">
         <div className="flex items-center justify-between h-15 gap-2">
           
@@ -104,14 +104,14 @@ export default function Navbar({ user }: NavbarProps) {
             href={isOwner ? "/owner/dashboard" : "/pos"}
             className="flex items-center space-x-2.5 shrink-0 group hover:opacity-95 transition-all min-w-[125px]"
           >
-            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-orange-500 via-orange-600 to-amber-400 flex items-center justify-center font-black text-sm shadow-glow-orange text-white shrink-0 tracking-wider ring-1 ring-orange-300/40 group-hover:scale-105 transition-transform">
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-orange-500 via-orange-600 to-amber-500 flex items-center justify-center font-black text-sm shadow-glow-orange text-white shrink-0 tracking-wider ring-1 ring-orange-300/40 group-hover:scale-105 transition-transform">
               JB
             </div>
             <div className="leading-tight">
-              <span className="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-white via-orange-100 to-amber-200 bg-clip-text text-transparent group-hover:from-orange-400 group-hover:to-amber-300 transition-colors block whitespace-nowrap">
+              <span className="font-black text-base sm:text-lg tracking-tight text-slate-900 group-hover:text-orange-600 transition-colors block whitespace-nowrap">
                 HOTEL JB
               </span>
-              <span className="text-[9px] font-bold text-orange-400 tracking-widest uppercase block -mt-0.5">
+              <span className="text-[9px] font-extrabold text-orange-600 tracking-widest uppercase block -mt-0.5">
                 {t("nav.subtitle")}
               </span>
             </div>
@@ -120,7 +120,7 @@ export default function Navbar({ user }: NavbarProps) {
           {/* ========================================================================= */}
           {/* CENTER: DESKTOP NAVIGATION (Compact & Never Overflows) */}
           {/* ========================================================================= */}
-          <nav className="hidden lg:flex items-center space-x-1 shrink-0 bg-slate-900/80 p-1 rounded-2xl border border-slate-800/70 shadow-inner">
+          <nav className="hidden lg:flex items-center space-x-1 shrink-0 bg-slate-100/90 p-1 rounded-2xl border border-slate-200/90">
             {links.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href || (item.href !== "/pos" && pathname.startsWith(item.href));
@@ -135,8 +135,8 @@ export default function Navbar({ user }: NavbarProps) {
                     isActive
                       ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-glow-orange font-black ring-1 ring-orange-400/40"
                       : isPrimary
-                      ? "bg-orange-500/15 text-orange-300 hover:bg-orange-600 hover:text-white border border-orange-500/30 font-black"
-                      : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                      ? "bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200 font-black"
+                      : "text-slate-600 hover:bg-white hover:text-slate-900"
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -147,7 +147,7 @@ export default function Navbar({ user }: NavbarProps) {
 
             {/* Quick Icon Utilities (WhatsApp, Users, Cancelled) */}
             {isOwner && (
-              <div className="flex items-center space-x-1 pl-1 ml-1 border-l border-slate-700/60">
+              <div className="flex items-center space-x-1 pl-1 ml-1 border-l border-slate-300">
                 {ownerIconOnlyLinks.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
@@ -158,7 +158,7 @@ export default function Navbar({ user }: NavbarProps) {
                       className={`p-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center ${
                         isActive
                           ? "bg-orange-500 text-white shadow-sm ring-1 ring-orange-400"
-                          : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                          : "text-slate-500 hover:bg-white hover:text-slate-900"
                       }`}
                       title={item.title}
                     >
@@ -175,14 +175,14 @@ export default function Navbar({ user }: NavbarProps) {
           {/* ========================================================================= */}
           <div className="flex items-center space-x-2 shrink-0">
             {/* 🌐 LANGUAGE SWITCHER PILL (ENGLISH ↔ தமிழ்) */}
-            <div className="flex items-center bg-slate-900 p-0.5 rounded-xl border border-slate-700/80 shadow-inner">
+            <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
               <button
                 type="button"
                 onClick={() => setLanguage("en")}
                 className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
                   language === "en"
                     ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-glow-orange"
-                    : "text-slate-400 hover:text-white"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
                 title="Switch to English"
               >
@@ -194,7 +194,7 @@ export default function Navbar({ user }: NavbarProps) {
                 className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
                   language === "ta"
                     ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-glow-orange"
-                    : "text-slate-400 hover:text-white"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
                 title="தமிழுக்கு மாறவும்"
               >
@@ -210,11 +210,11 @@ export default function Navbar({ user }: NavbarProps) {
                 className={`flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl border transition-all cursor-pointer ${
                   userMenuOpen
                     ? "bg-orange-500 text-white border-orange-400 ring-2 ring-orange-300 shadow-md"
-                    : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 hover:border-slate-600"
+                    : "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200 hover:border-slate-300"
                 }`}
                 title="User Profile & Logout"
               >
-                <div className="w-5 h-5 rounded-full bg-orange-500/30 text-orange-300 flex items-center justify-center font-black">
+                <div className="w-5 h-5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center font-black">
                   <UserIcon className="w-3 h-3" />
                 </div>
                 <span className="hidden md:inline text-xs font-black truncate max-w-[70px]">
@@ -225,16 +225,16 @@ export default function Navbar({ user }: NavbarProps) {
 
               {/* DROPDOWN MENU POPOVER */}
               {userMenuOpen && (
-                <div className="absolute right-0 top-11 w-60 bg-slate-900 border border-slate-700/90 rounded-2xl shadow-2xl p-2 z-50 animate-scale-up text-left">
+                <div className="absolute right-0 top-11 w-60 bg-white border border-slate-200 rounded-2xl shadow-2xl p-2 z-50 animate-scale-up text-left">
                   {/* User Profile Card */}
-                  <div className="px-3 py-2.5 bg-slate-800/90 rounded-xl border border-slate-700/60 mb-2">
-                    <div className="font-black text-white text-xs truncate">{user.name}</div>
-                    <div className="text-[11px] text-slate-400 font-mono mt-0.5">@{user.username}</div>
+                  <div className="px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-200 mb-2">
+                    <div className="font-black text-slate-900 text-xs truncate">{user.name}</div>
+                    <div className="text-[11px] text-slate-500 font-mono mt-0.5">@{user.username}</div>
                     <div className="mt-1.5">
                       <span className={`inline-block text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${
                         isOwner
-                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                          : "bg-orange-500/20 text-orange-300 border border-orange-500/40"
+                          ? "bg-amber-100 text-amber-900 border border-amber-300"
+                          : "bg-orange-100 text-orange-900 border border-orange-300"
                       }`}>
                         {isOwner ? "👑 Owner Account" : "👤 Staff Account"}
                       </span>
@@ -246,13 +246,13 @@ export default function Navbar({ user }: NavbarProps) {
                     <Link
                       href="/owner/users"
                       onClick={() => setUserMenuOpen(false)}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-slate-200 hover:text-white hover:bg-slate-800 rounded-xl transition-all"
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
                     >
-                      <KeyRound className="w-4 h-4 text-orange-400" />
+                      <KeyRound className="w-4 h-4 text-orange-600" />
                       <span>Password & Account Settings</span>
                     </Link>
 
-                    <div className="pt-1 mt-1 border-t border-slate-800">
+                    <div className="pt-1 mt-1 border-t border-slate-100">
                       <button
                         type="button"
                         onClick={() => {
@@ -260,7 +260,7 @@ export default function Navbar({ user }: NavbarProps) {
                           handleLogout();
                         }}
                         disabled={loggingOut}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-red-300 hover:text-white hover:bg-red-600 rounded-xl transition-all cursor-pointer"
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-red-600 hover:text-white hover:bg-red-600 rounded-xl transition-all cursor-pointer"
                       >
                         <LogOut className="w-4 h-4" />
                         <span>{loggingOut ? "..." : t("nav.logout")}</span>
@@ -274,7 +274,7 @@ export default function Navbar({ user }: NavbarProps) {
             {/* Mobile Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none shrink-0"
+              className="lg:hidden p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 focus:outline-none shrink-0 cursor-pointer"
               aria-label="Toggle Menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -286,19 +286,19 @@ export default function Navbar({ user }: NavbarProps) {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-slate-800 border-t border-slate-700 px-4 pt-2 pb-4 space-y-2 animate-slide-down">
-          <div className="py-2 border-b border-slate-700 flex items-center justify-between">
+        <div className="lg:hidden bg-white border-t border-slate-200 px-4 pt-2 pb-4 space-y-2 animate-slide-down">
+          <div className="py-2 border-b border-slate-100 flex items-center justify-between">
             <Link
               href="/owner/users"
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center gap-2"
             >
-              <div className="w-7 h-7 rounded-full bg-orange-600/30 text-orange-400 flex items-center justify-center">
+              <div className="w-7 h-7 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center font-bold">
                 <UserIcon className="w-4 h-4" />
               </div>
               <div>
-                <div className="font-bold text-slate-200 text-xs">{user.name}</div>
-                <div className="text-[10px] text-orange-400 font-bold">
+                <div className="font-bold text-slate-900 text-xs">{user.name}</div>
+                <div className="text-[10px] text-orange-600 font-bold">
                   {isOwner ? "👑 Owner Account" : "👤 Staff Account"}
                 </div>
               </div>
@@ -323,7 +323,7 @@ export default function Navbar({ user }: NavbarProps) {
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                    isActive ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm" : "text-slate-300 hover:bg-slate-700 hover:text-white"
+                    isActive ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm" : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                   }`}
                 >
                   <Icon className="w-4 h-4" />

@@ -117,7 +117,7 @@ function getOrderBadge(orderType: string, orderReference: string) {
       icon: "🥡",
       title: "Takeaway / Parcel",
       subText: orderReference && orderReference !== "Parcel" && orderReference !== "Takeaway" ? orderReference : null,
-      pillClass: "bg-amber-500 text-slate-950 border border-amber-400 font-black shadow-xs",
+      pillClass: "bg-amber-100 text-amber-900 border border-amber-300 font-extrabold shadow-xs",
     };
   }
 
@@ -127,7 +127,7 @@ function getOrderBadge(orderType: string, orderReference: string) {
       icon: "🎟️",
       title: orderReference || "Token",
       subText: null,
-      pillClass: "bg-purple-950 text-purple-200 border border-purple-700 font-black shadow-xs",
+      pillClass: "bg-purple-100 text-purple-900 border border-purple-300 font-extrabold shadow-xs",
     };
   }
 
@@ -137,7 +137,7 @@ function getOrderBadge(orderType: string, orderReference: string) {
     icon: "🪑",
     title: orderReference || "Table",
     subText: null,
-    pillClass: "bg-slate-950 text-emerald-400 border border-slate-700 font-black shadow-xs",
+    pillClass: "bg-emerald-100 text-emerald-900 border border-emerald-300 font-extrabold shadow-xs",
   };
 }
 
@@ -374,7 +374,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
             onClick={() => setStatusFilter("ALL")}
             className={`px-3.5 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all cursor-pointer ${
               statusFilter === "ALL"
-                ? "bg-slate-900 text-white shadow-sm"
+                ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm shadow-orange-500/20"
                 : "bg-slate-100 text-slate-700 hover:bg-slate-200"
             }`}
           >
@@ -626,7 +626,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                             }}
                             className={`p-2 rounded-xl font-black border transition-all ${
                               activeDropdownBillId === bill.id
-                                ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                                ? "bg-orange-500 text-white border-orange-500 shadow-sm"
                                 : "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
                             }`}
                             title="More Options"
@@ -688,9 +688,9 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                           setReceiptBill(bill);
                           setIsReprint(true);
                         }}
-                        className="py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-[0.98] cursor-pointer"
+                        className="py-2.5 px-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold rounded-xl text-xs transition-all shadow-sm shadow-orange-500/20 flex items-center justify-center gap-1.5 active:scale-[0.98] cursor-pointer"
                       >
-                        <Printer className="w-4 h-4 text-orange-400" />
+                        <Printer className="w-4 h-4 text-amber-200" />
                         <span>Reprint Receipt</span>
                       </button>
                     </div>
@@ -944,9 +944,9 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                       setReceiptBill(b);
                       setIsReprint(true);
                     }}
-                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer"
+                    className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-sm shadow-orange-500/20"
                   >
-                    <Printer className="w-3.5 h-3.5 text-orange-400" />
+                    <Printer className="w-3.5 h-3.5 text-amber-200" />
                     <span>Print Receipt</span>
                   </button>
                 )}

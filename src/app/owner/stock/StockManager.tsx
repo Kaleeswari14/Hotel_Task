@@ -303,7 +303,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
           onClick={() => setFilter("all")}
           className={`p-4 sm:p-5 rounded-2xl border cursor-pointer transition-all ${
             filter === "all"
-              ? "bg-slate-900 text-white border-slate-900 shadow-md"
+              ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white border-orange-500 shadow-md shadow-orange-500/20"
               : "bg-white text-slate-900 border-slate-200 hover:border-slate-300"
           }`}
         >
@@ -405,7 +405,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
             onClick={() => setCategoryFilter("all")}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
               categoryFilter === "all"
-                ? "bg-slate-900 text-white"
+                ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white"
                 : "bg-slate-100 text-slate-700 hover:bg-slate-200"
             }`}
           >
@@ -417,7 +417,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
               onClick={() => setCategoryFilter(c.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                 categoryFilter === c.id
-                  ? "bg-slate-900 text-white"
+                  ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white"
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
               }`}
             >
@@ -582,10 +582,10 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                         {/* Adjust / Custom Batch Modal Button */}
                         <button
                           onClick={() => openAdjustModal(item)}
-                          className="p-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg shadow-2xs transition-colors ml-1 cursor-pointer"
-                          title="Custom Batch &amp; Stock Details"
+                          className="p-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg shadow-2xs transition-colors ml-1 cursor-pointer"
+                          title="Custom Batch & Stock Details"
                         >
-                          <SlidersHorizontal className="w-4 h-4 text-emerald-400" />
+                          <SlidersHorizontal className="w-4 h-4 text-white" />
                         </button>
                       </div>
                     </td>
@@ -608,31 +608,36 @@ export default function StockManager({ initialStock }: StockManagerProps) {
       {/* Adjust Stock & Add Batch Modal */}
       {modalOpen && selectedStock && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full p-6 animate-scale-up">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-              <div>
-                <h3 className="font-extrabold text-lg text-slate-900">
-                  Update Batch &amp; Stock
-                </h3>
-                <p className="text-xs text-slate-500 font-semibold mt-0.5">
-                  {selectedStock.foodItem.name} &bull; Current:{" "}
-                  <span className="font-bold text-slate-800">
-                    {isItemUnlimited(selectedStock) ? "♾️ Unlimited" : formatHumanStock(selectedStock.currentQuantity, selectedStock.unitName)}
-                  </span>
-                </p>
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 space-y-5 animate-scale-up">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-orange-500/10 text-orange-600 rounded-xl">
+                  <SlidersHorizontal className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-900">
+                    Adjust Stock: {selectedStock.foodItem.name}
+                  </h3>
+                  <p className="text-xs text-slate-500 font-semibold mt-0.5">
+                    Current:{" "}
+                    <span className="font-bold text-slate-800">
+                      {isItemUnlimited(selectedStock) ? "♾️ Unlimited" : formatHumanStock(selectedStock.currentQuantity, selectedStock.unitName)}
+                    </span>
+                  </p>
+                </div>
               </div>
               <button
                 onClick={() => setModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100"
               >
-                <X className="w-5 h-5" />
+                ✕
               </button>
             </div>
 
             <form onSubmit={handleSaveStock} className="space-y-4">
               {/* Stock Tracking Mode selector */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                   Stock Tracking Mode:
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -641,7 +646,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                     onClick={() => setModalStockType("NO_TRACKING")}
                     className={`py-2.5 px-2 text-xs font-bold rounded-xl border transition-all text-center cursor-pointer ${
                       modalStockType === "NO_TRACKING"
-                        ? "bg-sky-700 text-white border-sky-700 shadow-sm"
+                        ? "bg-sky-600 text-white border-sky-600 shadow-sm"
                         : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                     }`}
                   >
@@ -656,7 +661,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                     onClick={() => setModalStockType("BATCH_ESTIMATE")}
                     className={`py-2.5 px-2 text-xs font-bold rounded-xl border transition-all text-center cursor-pointer ${
                       modalStockType !== "NO_TRACKING"
-                        ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                        ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white border-orange-500 shadow-sm shadow-orange-500/20"
                         : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                     }`}
                   >
@@ -706,7 +711,7 @@ export default function StockManager({ initialStock }: StockManagerProps) {
                         onClick={() => setAdjustMode("SET")}
                         className={`py-2.5 px-2 text-xs font-bold rounded-xl border transition-all text-center cursor-pointer ${
                           adjustMode === "SET"
-                            ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                            ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white border-orange-500 shadow-sm shadow-orange-500/20"
                             : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                         }`}
                       >

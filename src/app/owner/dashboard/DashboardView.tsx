@@ -101,9 +101,9 @@ export default function DashboardView({
 
           <Link
             href="/owner/day-closing"
-            className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer"
+            className="px-4 py-2.5 bg-orange-50 hover:bg-orange-100 text-orange-950 font-bold rounded-2xl text-xs transition-all border border-orange-200 shadow-2xs flex items-center gap-2 cursor-pointer"
           >
-            <CalendarCheck className="w-4 h-4 text-orange-400" />
+            <CalendarCheck className="w-4 h-4 text-orange-600" />
             <span>Day Closing</span>
           </Link>
 

@@ -122,17 +122,17 @@ export default function PaymentModal({
 
         <form onSubmit={handleConfirmPayment} className="space-y-5">
           {/* Amount Due Big Banner */}
-          <div className="p-4 bg-slate-900 text-white rounded-2xl flex items-center justify-between shadow-inner">
+          <div className="p-4 bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500 text-white rounded-2xl flex items-center justify-between shadow-lg shadow-orange-500/25">
             <div>
-              <div className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
+              <div className="text-xs text-orange-100 font-bold uppercase tracking-wider">
                 Total Balance Due
               </div>
-              <div className="text-3xl font-black text-orange-400 mt-0.5">
+              <div className="text-3xl font-black text-white mt-0.5">
                 {formatCurrency(balance)}
               </div>
             </div>
             <div className="text-right">
-              <span className="text-[11px] bg-orange-950/60 text-orange-300 px-2.5 py-1 rounded-lg border border-orange-500/30 font-bold">
+              <span className="text-[11px] bg-white/20 backdrop-blur-xs text-white px-2.5 py-1 rounded-lg border border-white/30 font-extrabold">
                 100% Secure
               </span>
             </div>

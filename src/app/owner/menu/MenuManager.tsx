@@ -726,7 +726,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
             onClick={() => setSelectedCatId("all")}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
               selectedCatId === "all"
-                ? "bg-slate-900 text-white shadow-sm"
+                ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm shadow-orange-500/20"
                 : "bg-slate-100 hover:bg-slate-200 text-slate-700"
             }`}
           >
@@ -1415,7 +1415,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                     onClick={() => setStockType("EXACT_COUNT")}
                     className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all border text-center cursor-pointer ${
                       stockType === "EXACT_COUNT"
-                        ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                        ? "bg-orange-500 text-white border-orange-500 shadow-sm shadow-orange-500/20"
                         : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
                     }`}
                   >
@@ -1426,7 +1426,7 @@ export default function MenuManager({ initialCategories, initialFoods }: Props) 
                     onClick={() => setStockType("BATCH_ESTIMATE")}
                     className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all border text-center cursor-pointer ${
                       stockType === "BATCH_ESTIMATE"
-                        ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                        ? "bg-orange-500 text-white border-orange-500 shadow-sm shadow-orange-500/20"
                         : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
                     }`}
                   >
