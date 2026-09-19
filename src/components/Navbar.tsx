@@ -51,7 +51,7 @@ export default function Navbar({ user }: NavbarProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  if (!user || pathname === "/login" || pathname === "/pos") {
+  if (!user || pathname === "/login") {
     return null;
   }
 

@@ -102,14 +102,6 @@ interface PosTerminalProps {
   userRole: string;
 }
 
-function getCurrentSession(): "ALL" | "MORNING" | "AFTERNOON" | "SNACKS" | "NIGHT" {
-  const hour = new Date().getHours();
-  if (hour >= 6 && hour < 11.5) return "MORNING";
-  if (hour >= 11.5 && hour < 16) return "AFTERNOON";
-  if (hour >= 16 && hour < 19) return "SNACKS";
-  return "NIGHT";
-}
-
 export default function PosTerminal({
   categories,
   foods: initialFoods,
@@ -134,10 +126,6 @@ export default function PosTerminal({
   const [customerPhone, setCustomerPhone] = useState("");
   const [discount, setDiscount] = useState<string>("");
 
-  // User Menu & Notification Dropdown State
-  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-
   // Portion selection map per food item
   const [selectedPortionMap, setSelectedPortionMap] = useState<Record<string, string>>({});
 
@@ -154,27 +142,10 @@ export default function PosTerminal({
     setTimeout(() => setToastMsg(null), 3500);
   };
 
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-      router.push("/login");
-      router.refresh();
-    } catch (err) {
-      router.push("/login");
-    }
-  };
-
   // Helper to count quantity of a food portion in cart
   const getFoodCartQuantity = (foodId: string, portionId: string) => {
     const item = cart.find((c) => c.foodItemId === foodId && c.portionId === portionId);
     return item ? item.quantity : 0;
-  };
-
-  // Get total count of any portion of a food item in cart
-  const getFoodTotalQuantity = (foodId: string) => {
-    return cart
-      .filter((c) => c.foodItemId === foodId)
-      .reduce((sum, item) => sum + item.quantity, 0);
   };
 
   // Add to cart with portion
@@ -425,7 +396,7 @@ export default function PosTerminal({
   });
 
   return (
-    <div className="w-full min-h-screen bg-[#faf5f2] text-slate-800 flex overflow-x-hidden font-sans">
+    <div className="w-full min-h-[calc(100vh-60px)] bg-[#faf5f2] text-slate-800 flex flex-col font-sans">
       {/* Toast Notification */}
       {toastMsg && (
         <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-2.5 border border-[#ff5722] text-sm font-bold animate-slide-up">
@@ -434,680 +405,467 @@ export default function PosTerminal({
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* 1. LEFT SLIM NAVIGATION RAIL (Fully Interactive & Clickable Links) */}
-      {/* ========================================================================= */}
-      <aside className="w-16 sm:w-20 shrink-0 bg-transparent flex flex-col items-center justify-between py-4 px-2 select-none z-30 sticky top-0 h-screen">
-        <div className="flex flex-col items-center gap-3 w-full">
-          {/* Chef Hat Brand Pill in Black -> Opens Owner Dashboard */}
-          <button
-            type="button"
-            onClick={() => router.push("/owner/dashboard")}
-            className="w-12 h-12 rounded-full bg-slate-950 text-white flex items-center justify-center shadow-md hover:scale-110 active:scale-95 transition-all cursor-pointer"
-            title="Hotel JB &bull; Dashboard"
-          >
-            <ChefHat className="w-6 h-6 text-white" />
-          </button>
+      {/* MAIN CONTENT AREA: Food Menu & Fast Order Stream + Checkout Drawer */}
+      <div className="flex-1 flex flex-col lg:flex-row min-w-0 p-3 sm:p-5 lg:p-6 gap-6">
+        
+        {/* ========================================================================= */}
+        {/* 1. LEFT & CENTER AREA: Search, Category Bar & Food Cards Grid */}
+        {/* ========================================================================= */}
+        <div className="flex-1 flex flex-col min-w-0 space-y-4">
+          
+          {/* TOP CONTROLS STRIP: Search Input + Mode Switcher + New Order */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-white/90 backdrop-blur-md p-3.5 sm:p-4 rounded-3xl border border-slate-200/80 shadow-sm">
+            {/* Search Input Box */}
+            <div className="flex-1 min-w-[240px] max-w-lg relative">
+              <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={isTamil ? "உணவின் பெயர் அல்லது குறியீடு தேடுங்கள்..." : "Search products or dishes..."}
+                className="w-full pl-11 pr-10 py-2.5 bg-slate-50 border border-slate-200/90 rounded-2xl text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff5722]/20 focus:border-[#ff5722] transition-all placeholder:text-slate-400"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-xs font-bold flex items-center justify-center cursor-pointer hover:bg-slate-300"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
 
-          {/* 1. Active POS Terminal Icon (Orange Coral Square) */}
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedCatId("all");
-              setSelectedDietary("ALL");
-              setSearchQuery("");
-              showToast(isTamil ? "POS மெனு தயார்" : "POS Menu Ready");
-            }}
-            className="w-11 h-11 rounded-2xl bg-[#ff5722] text-white flex items-center justify-center shadow-lg shadow-orange-500/30 hover:scale-105 active:scale-95 transition-all cursor-pointer"
-            title={isTamil ? "POS மெனு" : "POS Terminal"}
-          >
-            <LayoutGrid className="w-5 h-5" />
-          </button>
-
-          {/* 2. Orders / Bills Queue ($) */}
-          <button
-            type="button"
-            onClick={() => router.push("/bills")}
-            className="w-11 h-11 rounded-2xl bg-white text-slate-700 hover:text-[#ff5722] hover:bg-orange-50 border border-slate-200/90 flex items-center justify-center shadow-2xs hover:scale-105 active:scale-95 transition-all cursor-pointer"
-            title={isTamil ? "ஆர்டர்கள் & பில்கள் வரிசை" : "Bills & Orders Queue"}
-          >
-            <Receipt className="w-5 h-5" />
-          </button>
-
-          {/* 3. Live Stock & Inventory (Boxes) */}
-          <button
-            type="button"
-            onClick={() => router.push("/owner/stock")}
-            className="w-11 h-11 rounded-2xl bg-white text-slate-700 hover:text-[#ff5722] hover:bg-orange-50 border border-slate-200/90 flex items-center justify-center shadow-2xs hover:scale-105 active:scale-95 transition-all cursor-pointer"
-            title={isTamil ? "ஸ்டாக் மேலாண்மை" : "Stock & Inventory"}
-          >
-            <Boxes className="w-5 h-5" />
-          </button>
-
-          {/* 4. Day Closing & Settlement Ledger (FileText) */}
-          <button
-            type="button"
-            onClick={() => router.push("/owner/day-closing")}
-            className="w-11 h-11 rounded-2xl bg-white text-slate-700 hover:text-[#ff5722] hover:bg-orange-50 border border-slate-200/90 flex items-center justify-center shadow-2xs hover:scale-105 active:scale-95 transition-all cursor-pointer"
-            title={isTamil ? "டே குளோசிங்" : "Day Closing & Settlement"}
-          >
-            <FileText className="w-5 h-5" />
-          </button>
-
-          {/* 5. Dashboard Analytics & Reports (BarChart3) */}
-          <button
-            type="button"
-            onClick={() => router.push("/owner/dashboard")}
-            className="w-11 h-11 rounded-2xl bg-white text-slate-700 hover:text-[#ff5722] hover:bg-orange-50 border border-slate-200/90 flex items-center justify-center shadow-2xs hover:scale-105 active:scale-95 transition-all cursor-pointer"
-            title={isTamil ? "டாஷ்போர்டு புள்ளிவிவரங்கள்" : "Analytics & Dashboard"}
-          >
-            <BarChart3 className="w-5 h-5" />
-          </button>
-
-          {/* 6. Menu & Dishes Manager (UtensilsCrossed) */}
-          <button
-            type="button"
-            onClick={() => router.push("/owner/menu")}
-            className="w-11 h-11 rounded-2xl bg-white text-slate-700 hover:text-[#ff5722] hover:bg-orange-50 border border-slate-200/90 flex items-center justify-center shadow-2xs hover:scale-105 active:scale-95 transition-all cursor-pointer"
-            title={isTamil ? "உணவு மெனு மேலாண்மை" : "Menu & Dishes Manager"}
-          >
-            <UtensilsCrossed className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Bottom Rail: Table / Token Quick Switcher */}
-        <div className="flex flex-col items-center gap-2 w-full pt-2">
-          <button
-            type="button"
-            onClick={() => {
-              const nextType = orderType === "TOKEN" ? "TABLE" : "TOKEN";
-              setOrderType(nextType);
-              showToast(nextType === "TABLE" ? `டேபிள் மோட்: Table ${tableNumber}` : "டோக்கன் மோட் இயக்கப்பட்டது");
-            }}
-            className={`w-11 h-11 rounded-2xl flex flex-col items-center justify-center transition-all cursor-pointer border hover:scale-105 active:scale-95 ${
-              orderType === "TABLE"
-                ? "bg-gradient-to-br from-amber-500 to-[#ff5722] text-white border-transparent shadow-md font-black text-[10px]"
-                : "bg-white text-slate-700 border-slate-200 hover:bg-orange-50 font-black text-[10px] shadow-2xs"
-            }`}
-            title={orderType === "TABLE" ? `Table ${tableNumber}` : "Token Mode"}
-          >
-            <span className="text-[10px] uppercase">
-              {orderType === "TABLE" ? `T-${tableNumber}` : isTamil ? "டோக்" : "TOK"}
-            </span>
-          </button>
-        </div>
-      </aside>
-
-      {/* ========================================================================= */}
-      {/* 2. CENTER & TOP AREA: Header, Order Tabs, Categories & Food Cards Grid */}
-      {/* ========================================================================= */}
-      <div className="flex-1 flex flex-col min-w-0 p-3 sm:p-5 pl-0 pr-4 space-y-4">
-        {/* TOP HEADER: Search Bar & User / Utility Actions */}
-        <header className="flex flex-wrap items-center justify-between gap-3 pt-1 relative z-20">
-          {/* Search Input Box */}
-          <div className="flex-1 max-w-xl relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={isTamil ? "உணவின் பெயர் அல்லது குறியீடு தேடுங்கள்..." : "Search products..."}
-              className="w-full pl-11 pr-10 py-3 bg-white border border-slate-200/80 rounded-full text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff5722]/20 focus:border-[#ff5722] transition-all placeholder:text-slate-400 shadow-2xs"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold flex items-center justify-center cursor-pointer hover:bg-slate-200"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-
-          {/* Top Right Utilities: Notifications, Settings, Language Switcher, User Profile */}
-          <div className="flex items-center gap-2.5">
-            {/* Notification Bell */}
-            <button
-              type="button"
-              onClick={() => {
-                setNotificationsOpen(!notificationsOpen);
-                setUserDropdownOpen(false);
-              }}
-              className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer relative"
-              title={isTamil ? "அறிவிப்புகள்" : "Notifications"}
-            >
-              <Bell className="w-4 h-4" />
-              <span className="w-2 h-2 rounded-full bg-[#ff5722] absolute top-2 right-2 ring-2 ring-white"></span>
-            </button>
-
-            {/* Notifications Popover */}
-            {notificationsOpen && (
-              <div className="absolute right-36 top-14 w-72 bg-white rounded-3xl border border-slate-200 shadow-2xl p-4 z-40 animate-scale-up space-y-2.5">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                  <span className="font-extrabold text-xs text-slate-900">
-                    {isTamil ? "சமீபத்திய அறிவிப்புகள்" : "Notifications"}
-                  </span>
-                  <span className="text-[10px] bg-orange-100 text-[#ff5722] px-2 py-0.5 rounded-full font-bold">
-                    Live
-                  </span>
-                </div>
-                <div className="text-xs text-slate-600 space-y-2">
-                  <div className="p-2 bg-slate-50 rounded-xl border border-slate-100">
-                    <div className="font-bold text-slate-800">✅ POS Terminal Ready</div>
-                    <div className="text-[10px] text-slate-500">Thermal printer &amp; WhatsApp billing active.</div>
-                  </div>
-                </div>
+            {/* Quick Actions: Order #, Table Selector, Token/Table Mode, + New Order */}
+            <div className="flex items-center gap-2.5 flex-wrap">
+              {/* Order Pill */}
+              <div className="bg-[#ffe8e0] text-[#ff5722] border border-[#ffd3c4] font-black rounded-2xl px-3.5 py-2 flex items-center gap-2 text-xs shadow-2xs">
+                <span>{isTamil ? "ஆர்டர்" : "Order"} #{orderId}</span>
+                <button
+                  type="button"
+                  onClick={clearCart}
+                  className="w-4 h-4 rounded-full bg-[#ff5722]/15 text-[#ff5722] hover:bg-[#ff5722] hover:text-white flex items-center justify-center text-[10px] font-bold cursor-pointer transition-colors"
+                  title="Clear order"
+                >
+                  ✕
+                </button>
               </div>
-            )}
 
-            {/* Settings Link */}
-            <button
-              type="button"
-              onClick={() => router.push("/owner/dashboard")}
-              className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
-              title={isTamil ? "அமைப்புகள்" : "Settings & Admin"}
-            >
-              <Settings className="w-4 h-4" />
-            </button>
-
-            {/* Language Switcher Pill (EN ↔ தமிழ்) */}
-            <button
-              type="button"
-              onClick={() => {
-                const nextLang = isTamil ? "en" : "ta";
-                setLanguage(nextLang);
-                showToast(nextLang === "ta" ? "தமிழ் மொழி தேர்ந்தெடுக்கப்பட்டது" : "English Selected");
-              }}
-              className="h-10 px-3.5 rounded-full bg-white border border-slate-200 flex items-center gap-1.5 text-xs font-black text-slate-800 hover:border-[#ff5722] hover:text-[#ff5722] shadow-2xs transition-all cursor-pointer"
-              title="Toggle English / தமிழ்"
-            >
-              <span>{isTamil ? "🇮🇳 தமிழ்" : "🇬🇧 English"}</span>
-            </button>
-
-            {/* User Profile Pill & Dropdown */}
-            <div className="relative">
+              {/* Table / Token Toggle Button */}
               <button
                 type="button"
                 onClick={() => {
-                  setUserDropdownOpen(!userDropdownOpen);
-                  setNotificationsOpen(false);
+                  const nextType = orderType === "TOKEN" ? "TABLE" : "TOKEN";
+                  setOrderType(nextType);
+                  showToast(nextType === "TABLE" ? `டேபிள் மோட்: Table ${tableNumber}` : "டோக்கன் மோட் இயக்கப்பட்டது");
                 }}
-                className="flex items-center gap-2.5 bg-white border border-slate-200/80 rounded-full py-1.5 px-3 shadow-2xs cursor-pointer hover:border-[#ff5722]/50 transition-all"
+                className={`px-3.5 py-2 rounded-2xl flex items-center gap-1.5 transition-all cursor-pointer border text-xs font-black ${
+                  orderType === "TABLE"
+                    ? "bg-gradient-to-r from-amber-500 to-[#ff5722] text-white border-transparent shadow-xs"
+                    : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-orange-50"
+                }`}
               >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#ff5722] to-amber-400 flex items-center justify-center text-white font-extrabold text-xs shadow-inner">
-                  {userName.charAt(0).toUpperCase()}
-                </div>
-                <div className="hidden sm:flex flex-col text-left pr-1">
-                  <span className="text-xs font-black text-slate-900 leading-tight">
-                    {userName}
-                  </span>
-                  <span className="text-[10px] font-semibold text-slate-400 capitalize">
-                    {userRole.toLowerCase() === "owner" ? "Manager" : "Cashier"}
-                  </span>
-                </div>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                <span>{orderType === "TABLE" ? `🍽️ Table ${tableNumber}` : "🎟️ Token Mode"}</span>
               </button>
 
-              {userDropdownOpen && (
-                <div className="absolute right-0 top-12 w-48 bg-white rounded-2xl border border-slate-200 shadow-2xl p-1.5 z-40 animate-scale-up space-y-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setUserDropdownOpen(false);
-                      router.push("/owner/dashboard");
-                    }}
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 flex items-center gap-2 transition-colors cursor-pointer"
+              {/* Quick Table Selector if in Table mode */}
+              {orderType === "TABLE" && (
+                <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-2xl px-2.5 py-1.5 shadow-2xs">
+                  <select
+                    value={tableNumber}
+                    onChange={(e) => setTableNumber(e.target.value)}
+                    className="bg-transparent font-black text-xs text-slate-900 focus:outline-none cursor-pointer pr-1"
                   >
-                    <Settings className="w-4 h-4 text-slate-500" />
-                    <span>{isTamil ? "டாஷ்போர்டு" : "Owner Panel"}</span>
-                  </button>
-
-                  <div className="h-px bg-slate-100 my-1"></div>
-
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-rose-700 hover:bg-rose-50 flex items-center gap-2 transition-colors cursor-pointer"
-                  >
-                    <LogOut className="w-4 h-4 text-rose-600" />
-                    <span>{isTamil ? "வெளியேறு (Logout)" : "Logout"}</span>
-                  </button>
+                    {Array.from({ length: 30 }, (_, i) => i + 1).map((n) => (
+                      <option key={n} value={String(n)}>
+                        Table {n}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               )}
-            </div>
-          </div>
-        </header>
 
-        {/* SUB-HEADER: Active Order Tabs & Big "+ New Order" Button */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-          {/* Order Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1">
-            {/* Active Order Pill in soft peach/blush */}
-            <div className="bg-[#ffe8e0] text-[#ff5722] border border-[#ffd3c4] font-black rounded-2xl px-4 py-2 flex items-center gap-2 text-xs shadow-2xs">
-              <span>{isTamil ? "ஆர்டர்" : "Order"} #{orderId}</span>
+              {/* "+ New Order" Orange Action Button */}
               <button
                 type="button"
                 onClick={clearCart}
-                className="w-4 h-4 rounded-full bg-[#ff5722]/15 text-[#ff5722] hover:bg-[#ff5722] hover:text-white flex items-center justify-center text-[10px] font-bold cursor-pointer transition-colors"
-                title="Clear order"
+                className="bg-[#ff5722] hover:bg-[#f4511e] text-white px-4 py-2 rounded-2xl font-black text-xs flex items-center gap-1.5 shadow-md shadow-orange-500/20 active:scale-95 transition-all cursor-pointer"
               >
-                ✕
+                <Plus className="w-3.5 h-3.5" />
+                <span>{isTamil ? "புதிய ஆர்டர்" : "New Order"}</span>
               </button>
             </div>
-
-            {/* Quick Table Selector if in Table mode */}
-            {orderType === "TABLE" && (
-              <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-2xl px-2.5 py-1.5 shadow-2xs">
-                <span className="text-[11px] font-bold text-slate-400 pl-1">
-                  {isTamil ? "டேபிள்:" : "Table:"}
-                </span>
-                <select
-                  value={tableNumber}
-                  onChange={(e) => setTableNumber(e.target.value)}
-                  className="bg-transparent font-black text-xs text-slate-900 focus:outline-none cursor-pointer pr-1"
-                >
-                  {Array.from({ length: 30 }, (_, i) => i + 1).map((n) => (
-                    <option key={n} value={String(n)}>
-                      Table {n}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
           </div>
 
-          {/* "+ New Order" Orange Action Button */}
-          <button
-            type="button"
-            onClick={clearCart}
-            className="bg-[#ff5722] hover:bg-[#f4511e] text-white px-5 py-2.5 rounded-2xl font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-md shadow-orange-500/25 active:scale-95 transition-all cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ {isTamil ? "புதிய ஆர்டர்" : "New Order"}</span>
-          </button>
-        </div>
-
-        {/* HORIZONTAL CATEGORY PILLS BAR */}
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
-          {/* "All Menu" Pill */}
-          <button
-            type="button"
-            onClick={() => setSelectedCatId("all")}
-            className={`px-4 py-2 rounded-2xl text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer ${
-              selectedCatId === "all"
-                ? "border-2 border-[#ff5722] text-[#ff5722] bg-white shadow-xs"
-                : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 shadow-2xs"
-            }`}
-          >
-            {isTamil ? "அனைத்து உணவுகள்" : "All Menu"}
-          </button>
-
-          {/* Dynamic DB Categories */}
-          {categories.map((cat) => {
-            const isSelected = selectedCatId === cat.id;
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => setSelectedCatId(cat.id)}
-                className={`px-4 py-2 rounded-2xl text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer ${
-                  isSelected
-                    ? "border-2 border-[#ff5722] text-[#ff5722] bg-white shadow-xs"
-                    : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 shadow-2xs"
-                }`}
-              >
-                {getCategoryName(cat)}
-              </button>
-            );
-          })}
-
-          {/* Dietary Filter Pills */}
-          <div className="flex items-center gap-1 pl-2 border-l border-slate-300/80">
+          {/* HORIZONTAL CATEGORY PILLS & DIETARY FILTER BAR */}
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1">
+            {/* "All Menu" Pill */}
             <button
               type="button"
-              onClick={() => setSelectedDietary(selectedDietary === "VEG" ? "ALL" : "VEG")}
-              className={`px-3 py-1.5 rounded-2xl text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer ${
-                selectedDietary === "VEG"
-                  ? "bg-emerald-600 text-white shadow-xs"
-                  : "bg-white text-emerald-800 border border-emerald-200 shadow-2xs"
+              onClick={() => setSelectedCatId("all")}
+              className={`px-4 py-2 rounded-2xl text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer ${
+                selectedCatId === "all"
+                  ? "border-2 border-[#ff5722] text-[#ff5722] bg-white shadow-xs"
+                  : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 shadow-2xs"
               }`}
             >
-              🟢 {t("dietary.veg")}
+              {isTamil ? "அனைத்து உணவுகள்" : "All Menu"}
             </button>
-            <button
-              type="button"
-              onClick={() => setSelectedDietary(selectedDietary === "NON_VEG" ? "ALL" : "NON_VEG")}
-              className={`px-3 py-1.5 rounded-2xl text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer ${
-                selectedDietary === "NON_VEG"
-                  ? "bg-rose-600 text-white shadow-xs"
-                  : "bg-white text-rose-800 border border-rose-200 shadow-2xs"
-              }`}
-            >
-              🔴 {t("dietary.nonVeg")}
-            </button>
-          </div>
-        </div>
 
-        {/* ========================================================================= */}
-        {/* 3. FOOD DISH CARDS GRID (Realistic Photography, Bold Price, +Add Button) */}
-        {/* ========================================================================= */}
-        <div className="flex-1 overflow-y-auto pr-1">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-            {filteredFoods.map((food) => {
-              const isNoTracking = food.stockType === "NO_TRACKING";
-              const isOut = !isNoTracking && food.stock ? food.stock.currentQuantity <= 0 : false;
-              const foodImg = getFoodImage(food);
-
-              // Active Portion
-              const currentPortionId = selectedPortionMap[food.id] || food.portions[0]?.id;
-              const activePortion = food.portions.find((p) => p.id === currentPortionId) || food.portions[0];
-              const portionQty = activePortion ? getFoodCartQuantity(food.id, activePortion.id) : 0;
-
+            {/* Dynamic DB Categories */}
+            {categories.map((cat) => {
+              const isSelected = selectedCatId === cat.id;
               return (
-                <div
-                  key={food.id}
-                  className={`bg-white rounded-3xl p-3.5 sm:p-4 shadow-sm border border-slate-100/90 hover:shadow-xl hover:shadow-orange-500/10 hover:border-[#ff5722]/40 transition-all flex flex-col justify-between group ${
-                    isOut ? "opacity-60 bg-slate-50" : ""
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setSelectedCatId(cat.id)}
+                  className={`px-4 py-2 rounded-2xl text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer ${
+                    isSelected
+                      ? "border-2 border-[#ff5722] text-[#ff5722] bg-white shadow-xs"
+                      : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 shadow-2xs"
                   }`}
                 >
-                  <div>
-                    {/* Food Photo Top */}
-                    <div className="relative rounded-2xl h-36 sm:h-40 w-full overflow-hidden bg-slate-100 shadow-inner">
-                      <img
-                        src={foodImg}
-                        alt={food.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                      />
+                  {getCategoryName(cat)}
+                </button>
+              );
+            })}
 
-                      {/* Category Badge on Top of Image */}
-                      <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                        <span className="text-[10px] font-black uppercase text-slate-900 bg-white/90 backdrop-blur-xs px-2 py-0.5 rounded-lg shadow-2xs">
-                          {getCategoryName(food.category)}
-                        </span>
+            {/* Dietary Filter Pills */}
+            <div className="flex items-center gap-1 pl-2 border-l border-slate-300/80">
+              <button
+                type="button"
+                onClick={() => setSelectedDietary(selectedDietary === "VEG" ? "ALL" : "VEG")}
+                className={`px-3 py-1.5 rounded-2xl text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer ${
+                  selectedDietary === "VEG"
+                    ? "bg-emerald-600 text-white shadow-xs"
+                    : "bg-white text-emerald-800 border border-emerald-200 shadow-2xs"
+                }`}
+              >
+                🟢 {t("dietary.veg")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedDietary(selectedDietary === "NON_VEG" ? "ALL" : "NON_VEG")}
+                className={`px-3 py-1.5 rounded-2xl text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer ${
+                  selectedDietary === "NON_VEG"
+                    ? "bg-rose-600 text-white shadow-xs"
+                    : "bg-white text-rose-800 border border-rose-200 shadow-2xs"
+                }`}
+              >
+                🔴 {t("dietary.nonVeg")}
+              </button>
+            </div>
+          </div>
+
+          {/* FOOD DISH CARDS GRID (Spacious, Full-Width, Bold Price, +Add Button) */}
+          <div className="flex-1 overflow-y-auto pr-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredFoods.map((food) => {
+                const isNoTracking = food.stockType === "NO_TRACKING";
+                const isOut = !isNoTracking && food.stock ? food.stock.currentQuantity <= 0 : false;
+                const foodImg = getFoodImage(food);
+
+                // Active Portion
+                const currentPortionId = selectedPortionMap[food.id] || food.portions[0]?.id;
+                const activePortion = food.portions.find((p) => p.id === currentPortionId) || food.portions[0];
+                const portionQty = activePortion ? getFoodCartQuantity(food.id, activePortion.id) : 0;
+
+                return (
+                  <div
+                    key={food.id}
+                    className={`bg-white rounded-3xl p-3.5 sm:p-4 shadow-sm border border-slate-100/90 hover:shadow-xl hover:shadow-orange-500/10 hover:border-[#ff5722]/40 transition-all flex flex-col justify-between group ${
+                      isOut ? "opacity-60 bg-slate-50" : ""
+                    }`}
+                  >
+                    <div>
+                      {/* Food Photo Top */}
+                      <div className="relative rounded-2xl h-36 sm:h-40 w-full overflow-hidden bg-slate-100 shadow-inner">
+                        <img
+                          src={foodImg}
+                          alt={food.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                        />
+
+                        {/* Category Badge on Top of Image */}
+                        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                          <span className="text-[10px] font-black uppercase text-slate-900 bg-white/90 backdrop-blur-xs px-2 py-0.5 rounded-lg shadow-2xs">
+                            {getCategoryName(food.category)}
+                          </span>
+                        </div>
+
+                        {/* Stock Indicator if exact tracking */}
+                        {isOut && (
+                          <div className="absolute inset-0 bg-black/60 backdrop-blur-2xs flex items-center justify-center text-white font-black text-xs uppercase tracking-wider">
+                            {isTamil ? "தீர்ந்தது (Out of Stock)" : "Out of Stock"}
+                          </div>
+                        )}
                       </div>
 
-                      {/* Stock Indicator if exact tracking */}
-                      {isOut && (
-                        <div className="absolute inset-0 bg-black/60 backdrop-blur-2xs flex items-center justify-center text-white font-black text-xs uppercase tracking-wider">
-                          {isTamil ? "தீர்ந்தது (Out of Stock)" : "Out of Stock"}
+                      {/* Dish Title */}
+                      <h3 className="font-extrabold text-slate-900 text-sm sm:text-base line-clamp-1 mt-3 group-hover:text-[#ff5722] transition-colors">
+                        {getFoodName(food)}
+                      </h3>
+
+                      {/* Food Description */}
+                      <p className="text-xs text-slate-400 font-medium line-clamp-2 mt-1 min-h-[32px]">
+                        {food.description || (isTamil ? "சுவையான புதிய உணவு தயார் நிலையில் உள்ளது." : "Freshly prepared delicious meal made with high quality ingredients.")}
+                      </p>
+
+                      {/* Portion Selector Buttons if multi-portion */}
+                      {food.portions.length > 1 && (
+                        <div className="flex items-center gap-1.5 mt-2.5 flex-wrap">
+                          {food.portions.map((p) => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => setSelectedPortionMap((prev) => ({ ...prev, [food.id]: p.id }))}
+                              className={`px-2.5 py-1 rounded-xl text-[10px] font-extrabold transition-all cursor-pointer ${
+                                activePortion?.id === p.id
+                                  ? "bg-slate-900 text-white shadow-2xs font-black"
+                                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                              }`}
+                            >
+                              {getPortionName(p.portionName)}
+                            </button>
+                          ))}
                         </div>
                       )}
                     </div>
 
-                    {/* Dish Title */}
-                    <h3 className="font-extrabold text-slate-900 text-sm sm:text-base line-clamp-1 mt-3 group-hover:text-[#ff5722] transition-colors">
-                      {getFoodName(food)}
-                    </h3>
-
-                    {/* Food Description */}
-                    <p className="text-xs text-slate-400 font-medium line-clamp-2 mt-1 min-h-[32px]">
-                      {food.description || (isTamil ? "சுவையான புதிய உணவு தயார் நிலையில் உள்ளது." : "Freshly prepared delicious meal made with high quality ingredients.")}
-                    </p>
-
-                    {/* Portion Selector Buttons if multi-portion */}
-                    {food.portions.length > 1 && (
-                      <div className="flex items-center gap-1.5 mt-2.5 flex-wrap">
-                        {food.portions.map((p) => (
-                          <button
-                            key={p.id}
-                            type="button"
-                            onClick={() => setSelectedPortionMap((prev) => ({ ...prev, [food.id]: p.id }))}
-                            className={`px-2.5 py-1 rounded-xl text-[10px] font-extrabold transition-all cursor-pointer ${
-                              activePortion?.id === p.id
-                                ? "bg-slate-900 text-white shadow-2xs font-black"
-                                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                            }`}
-                          >
-                            {getPortionName(p.portionName)}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Card Bottom: Price and Add / Stepper Controls */}
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                    {/* Price in Bold */}
-                    <div className="flex flex-col">
-                      <span className="font-black text-slate-900 text-base sm:text-lg">
-                        {formatCurrency(activePortion ? activePortion.price : 0)}
-                      </span>
-                    </div>
-
-                    {/* Action Controls: + Add Button OR - [Qty] + Stepper */}
-                    {isOut ? (
-                      <span className="text-xs font-black text-rose-500 bg-rose-50 px-3 py-1 rounded-xl">
-                        {isTamil ? "தீர்ந்தது" : "Sold Out"}
-                      </span>
-                    ) : portionQty > 0 ? (
-                      <div className="bg-slate-100 p-1 rounded-2xl flex items-center gap-1.5 border border-slate-200/80 shadow-inner">
-                        <button
-                          type="button"
-                          onClick={() => handleCardDecrement(food, activePortion)}
-                          className="w-6 h-6 rounded-xl bg-white hover:bg-slate-200 text-slate-800 flex items-center justify-center font-black text-xs cursor-pointer shadow-2xs active:scale-90 transition-transform"
-                        >
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <span className="w-6 text-center font-black text-xs text-slate-900">
-                          {portionQty}
+                    {/* Card Bottom: Price and Add / Stepper Controls */}
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                      {/* Price in Bold */}
+                      <div className="flex flex-col">
+                        <span className="font-black text-slate-900 text-base sm:text-lg">
+                          {formatCurrency(activePortion ? activePortion.price : 0)}
                         </span>
+                      </div>
+
+                      {/* Action Controls: + Add Button OR - [Qty] + Stepper */}
+                      {isOut ? (
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                          {isTamil ? "தீர்ந்தது" : "Sold Out"}
+                        </span>
+                      ) : portionQty === 0 ? (
                         <button
                           type="button"
                           onClick={() => addToCart(food, activePortion)}
-                          className="w-6 h-6 rounded-xl bg-slate-950 text-white hover:bg-slate-800 flex items-center justify-center font-black text-xs cursor-pointer shadow-2xs active:scale-90 transition-transform"
+                          className="px-4 py-2 rounded-2xl bg-gradient-to-r from-orange-500 to-[#ff5722] hover:from-orange-600 hover:to-[#f4511e] text-white font-black text-xs shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
                         >
-                          <Plus className="w-3 h-3" />
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>+ {isTamil ? "சேர்" : "Add"}</span>
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-2xl p-1 shadow-2xs">
+                          <button
+                            type="button"
+                            onClick={() => handleCardDecrement(food, activePortion)}
+                            className="w-7 h-7 rounded-xl bg-white text-slate-700 hover:text-rose-600 flex items-center justify-center font-bold text-xs shadow-2xs active:scale-95 transition-all cursor-pointer"
+                          >
+                            <Minus className="w-3.5 h-3.5" />
+                          </button>
+                          <span className="font-black text-xs text-orange-950 px-1 min-w-[16px] text-center">
+                            {portionQty}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => addToCart(food, activePortion)}
+                            className="w-7 h-7 rounded-xl bg-gradient-to-r from-orange-500 to-[#ff5722] text-white flex items-center justify-center font-bold text-xs shadow-2xs active:scale-95 transition-all cursor-pointer"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* 2. RIGHT SIDEBAR: Order Ticket & Checkout Panel */}
+        {/* ========================================================================= */}
+        <div className="w-full lg:w-96 shrink-0 bg-white rounded-3xl p-5 shadow-luxury border border-slate-200/90 flex flex-col justify-between self-start sticky top-20 max-h-[calc(100vh-90px)] overflow-y-auto">
+          <div>
+            {/* Drawer Header: Order ID & Reset Action */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                  {orderType === "TABLE" ? `Table ${tableNumber}` : "Token Order"}
+                </span>
+                <span className="text-base font-black text-slate-900 tracking-tight">
+                  {isTamil ? "ஆர்டர் எண்" : "ORDER NO."} #{orderId}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={clearCart}
+                className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
+                title="Clear Cart"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Customer Contact Input */}
+            <div className="mt-3 space-y-2">
+              <input
+                type="text"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder={isTamil ? "வாடிக்கையாளர் பெயர்" : "Customer Name (Optional)"}
+                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#ff5722] focus:border-[#ff5722]"
+              />
+              <input
+                type="tel"
+                value={customerPhone}
+                maxLength={10}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+                placeholder={isTamil ? "வாட்ஸ்அப் எண்" : "WhatsApp No."}
+                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#ff5722] focus:border-[#ff5722]"
+              />
+            </div>
+
+            {/* Cart Items List */}
+            <div className="max-h-[36vh] overflow-y-auto space-y-3 py-3 pr-1">
+              {cart.map((item, idx) => {
+                const foodImg = getFoodImage({ name: item.foodName, nameTamil: item.foodNameTamil, imageUrl: item.imageUrl });
+                return (
+                  <div
+                    key={`${item.foodItemId}-${item.portionId}`}
+                    className="flex items-center justify-between gap-3 group"
+                  >
+                    {/* Left: Food Thumbnail Image */}
+                    <img
+                      src={foodImg}
+                      alt={item.foodName}
+                      className="w-11 h-11 rounded-2xl object-cover shrink-0 shadow-2xs bg-slate-100"
+                    />
+
+                    {/* Center: Quantity & Food Name */}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-bold text-slate-900 truncate">
+                        <span className="text-[#ff5722] font-black mr-1">{item.quantity}x</span>
+                        <span>{getFoodName({ name: item.foodName, nameTamil: item.foodNameTamil })}</span>
+                      </div>
+                      <div className="text-[10px] font-semibold text-slate-400">
+                        {getPortionName(item.portionName)}
+                      </div>
+                    </div>
+
+                    {/* Right: Controls / Price */}
+                    <div className="flex flex-col items-end shrink-0">
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => updateQuantity(idx, -1)}
+                          className="text-[10px] text-slate-400 hover:text-rose-600 font-bold flex items-center gap-0.5 cursor-pointer"
+                          title="Remove 1"
+                        >
+                          <Edit2 className="w-3 h-3 text-[#ff5722]" />
+                          <span className="text-[#ff5722]">{isTamil ? "மாற்று" : "Edit"}</span>
                         </button>
                       </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => addToCart(food, activePortion)}
-                        className="bg-[#ff5722] hover:bg-[#f4511e] text-white px-4 py-2 rounded-2xl font-black text-xs flex items-center gap-1 shadow-sm shadow-orange-500/25 active:scale-95 transition-all cursor-pointer"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>{isTamil ? "சேர்" : "+ Add"}</span>
-                      </button>
-                    )}
+                      <div className="font-black text-xs sm:text-sm text-slate-900 mt-0.5">
+                        {formatCurrency(item.unitPrice * item.quantity)}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
 
-            {filteredFoods.length === 0 && (
-              <div className="col-span-full bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400">
-                <UtensilsCrossed className="w-12 h-12 text-[#ff5722]/50 mx-auto mb-2" />
-                <div className="font-bold text-slate-700 text-sm">
-                  {isTamil ? "உணவுகள் எதுவும் கிடைக்கவில்லை" : "No dishes found"}
+              {cart.length === 0 && (
+                <div className="py-8 text-center text-slate-400 flex flex-col items-center justify-center">
+                  <ShoppingBag className="w-10 h-10 text-slate-300 mb-2" />
+                  <div className="font-bold text-xs text-slate-600">{t("cart.emptyTitle")}</div>
+                  <div className="text-[10px] text-slate-400">{t("cart.emptySubtitle")}</div>
                 </div>
-                <div className="text-xs mt-0.5">
-                  {isTamil ? "வேறு பெயரில் தேடவும் அல்லது வகை மாற்றவும்." : "Try searching with another food name or selecting a different category."}
-                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Financial Calculation & Action Buttons */}
+          <div className="pt-3 border-t border-slate-100 space-y-3">
+            {/* Subtotal, Discount & Grand Total */}
+            <div className="space-y-1.5 text-xs">
+              <div className="flex items-center justify-between text-slate-500 font-semibold">
+                <span>{isTamil ? "மொத்தத் தொகை" : "Subtotal"}</span>
+                <span className="font-bold text-slate-900">{formatCurrency(subtotal)}</span>
               </div>
-            )}
+
+              <div className="flex items-center justify-between text-slate-500 font-semibold">
+                <span className="flex items-center gap-1">
+                  <Tag className="w-3 h-3 text-[#ff5722]" />
+                  <span>{t("cart.discount")}</span>
+                </span>
+                <input
+                  type="number"
+                  min="0"
+                  value={discount}
+                  onChange={(e) => setDiscount(e.target.value)}
+                  placeholder="0"
+                  className="w-16 px-1.5 py-0.5 bg-slate-50 border border-slate-200 rounded-lg text-right font-bold text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#ff5722]"
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-sm sm:text-base font-black text-slate-900 pt-1 border-t border-slate-100">
+                <span>{isTamil ? "நிகரத் தொகை" : "Total"}</span>
+                <span className="text-[#ff5722] text-lg sm:text-xl font-black">{formatCurrency(grandTotal)}</span>
+              </div>
+            </div>
+
+            {/* Fast Action Buttons: Instant Cash & Print, Order Slip KOT */}
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => handleInstantPayAndPrint("CASH")}
+                disabled={cart.length === 0 || submitting}
+                className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-orange-500 via-[#ff5722] to-amber-500 hover:from-orange-600 hover:to-orange-700 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-orange-500/25 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                <Zap className="w-4 h-4" />
+                <span>{submitting ? "Processing..." : isTamil ? "பணம் செலுத்தி அச்சிடு (Cash & Print)" : "Instant Cash & Print (Enter)"}</span>
+              </button>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleInstantPayAndPrint("UPI")}
+                  disabled={cart.length === 0 || submitting}
+                  className="py-2.5 px-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <QrCode className="w-3.5 h-3.5 text-blue-600" />
+                  <span>UPI / QR</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSaveAndPrintOrderSlip}
+                  disabled={cart.length === 0 || submitting}
+                  className="py-2.5 px-3 rounded-2xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-orange-950 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5 text-[#ff5722]" />
+                  <span>{isTamil ? "KOT சீட்டு" : "Order Slip (KOT)"}</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* 4. RIGHT ORDER INVOICE PANEL (Table/Order Header, Cart Items & Totals) */}
-      {/* ========================================================================= */}
-      <aside className="w-80 sm:w-96 shrink-0 bg-white rounded-3xl p-5 shadow-sm border border-slate-100/90 flex flex-col justify-between h-[calc(100vh-2rem)] sticky top-4 my-3 mr-3">
-        <div>
-          {/* Top Invoice Header: Order No. & Table No. */}
-          <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
-            <div>
-              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                {isTamil ? "ஆர்டர் எண்" : "Order No."}
-              </div>
-              <div className="text-lg font-black text-slate-900 mt-0.5">
-                #{orderId}
-              </div>
-            </div>
-
-            <div className="text-right">
-              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                {orderType === "TABLE" ? (isTamil ? "டேபிள் எண்" : "Table No.") : (isTamil ? "டோக்கன்" : "Token")}
-              </div>
-              <div className="text-lg font-black text-slate-900 mt-0.5">
-                {orderType === "TABLE" ? tableNumber : "Token"}
-              </div>
-            </div>
-          </div>
-
-          {/* Customer Name & WhatsApp (Optional) */}
-          <div className="py-2.5 border-b border-slate-100 grid grid-cols-2 gap-2">
-            <input
-              type="text"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              placeholder={isTamil ? "பெயர் (Optional)" : "Customer Name"}
-              className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#ff5722] focus:border-[#ff5722]"
-            />
-            <input
-              type="tel"
-              value={customerPhone}
-              maxLength={10}
-              onChange={(e) => setCustomerPhone(e.target.value)}
-              placeholder={isTamil ? "வாட்ஸ்அப் எண்" : "WhatsApp No."}
-              className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#ff5722] focus:border-[#ff5722]"
-            />
-          </div>
-
-          {/* Cart Items List */}
-          <div className="max-h-[42vh] overflow-y-auto space-y-3 py-3 pr-1">
-            {cart.map((item, idx) => {
-              const foodImg = getFoodImage({ name: item.foodName, nameTamil: item.foodNameTamil, imageUrl: item.imageUrl });
-              return (
-                <div
-                  key={`${item.foodItemId}-${item.portionId}`}
-                  className="flex items-center justify-between gap-3 group"
-                >
-                  {/* Left: Food Thumbnail Image */}
-                  <img
-                    src={foodImg}
-                    alt={item.foodName}
-                    className="w-12 h-12 rounded-2xl object-cover shrink-0 shadow-2xs bg-slate-100"
-                  />
-
-                  {/* Center: Quantity & Food Name */}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-bold text-slate-900 truncate">
-                      <span className="text-[#ff5722] font-black mr-1">{item.quantity}x</span>
-                      <span>{getFoodName({ name: item.foodName, nameTamil: item.foodNameTamil })}</span>
-                    </div>
-                    <div className="text-[10px] font-semibold text-slate-400">
-                      {getPortionName(item.portionName)}
-                    </div>
-                  </div>
-
-                  {/* Right: Edit / Price */}
-                  <div className="flex flex-col items-end shrink-0">
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => updateQuantity(idx, -1)}
-                        className="text-[10px] text-slate-400 hover:text-rose-600 font-bold flex items-center gap-0.5 cursor-pointer"
-                        title="Remove or Edit"
-                      >
-                        <Edit2 className="w-3 h-3 text-[#ff5722]" />
-                        <span className="text-[#ff5722]">{isTamil ? "மாற்று" : "Edit"}</span>
-                      </button>
-                    </div>
-                    <div className="font-black text-xs sm:text-sm text-slate-900 mt-0.5">
-                      {formatCurrency(item.unitPrice * item.quantity)}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-
-            {cart.length === 0 && (
-              <div className="py-12 text-center text-slate-400 flex flex-col items-center justify-center">
-                <ShoppingBag className="w-10 h-10 text-slate-300 mb-2" />
-                <div className="font-bold text-xs text-slate-600">{t("cart.emptyTitle")}</div>
-                <div className="text-[10px] text-slate-400">{t("cart.emptySubtitle")}</div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Financial Calculation & Action Buttons */}
-        <div className="pt-3 border-t border-slate-100 space-y-3">
-          {/* Subtotal, Discount & Grand Total */}
-          <div className="space-y-1.5 text-xs">
-            <div className="flex items-center justify-between text-slate-500 font-semibold">
-              <span>{isTamil ? "மொத்தத் தொகை" : "Subtotal"}</span>
-              <span className="font-bold text-slate-900">{formatCurrency(subtotal)}</span>
-            </div>
-
-            <div className="flex items-center justify-between text-slate-500 font-semibold">
-              <span className="flex items-center gap-1">
-                <Tag className="w-3 h-3 text-[#ff5722]" />
-                <span>{t("cart.discount")}</span>
-              </span>
-              <input
-                type="number"
-                min="0"
-                value={discount}
-                onChange={(e) => setDiscount(e.target.value)}
-                placeholder="0"
-                className="w-16 px-1.5 py-0.5 bg-slate-50 border border-slate-200 rounded-lg text-right font-bold text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#ff5722]"
-              />
-            </div>
-
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-              <span className="font-extrabold text-sm text-slate-900">{isTamil ? "செலுத்த வேண்டிய தொகை" : "Total"}</span>
-              <span className="font-black text-2xl text-slate-900">{formatCurrency(grandTotal)}</span>
-            </div>
-          </div>
-
-          {/* Action Buttons: Cash & Print (Coral) and KOT Slip */}
-          <div className="space-y-2 pt-1">
-            <button
-              type="button"
-              onClick={() => handleInstantPayAndPrint("CASH")}
-              disabled={submitting || cart.length === 0}
-              className="w-full py-3.5 bg-[#ff5722] hover:bg-[#f4511e] disabled:opacity-40 text-white font-black rounded-2xl shadow-lg shadow-orange-500/30 active:scale-98 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
-            >
-              <Zap className="w-4 h-4 text-amber-200" />
-              <span>{t("cart.cashAndPrint")}</span>
-              <span className="text-[10px] bg-black/20 px-1.5 py-0.5 rounded font-mono">↵</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleSaveAndPrintOrderSlip}
-              disabled={submitting || cart.length === 0}
-              className="w-full py-2.5 bg-white hover:bg-orange-50/50 text-slate-800 disabled:opacity-40 border border-[#ff5722] font-bold rounded-2xl text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              <Receipt className="w-3.5 h-3.5 text-[#ff5722]" />
-              <span>{t("cart.orderSlip")} (KOT)</span>
-              <span className="text-[10px] bg-orange-100 text-[#ff5722] px-1.5 py-0.5 rounded font-mono">⇧↵</span>
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      {/* Payment Modal */}
-      {paymentBill && (
-        <PaymentModal
-          bill={paymentBill}
-          onClose={() => setPaymentBill(null)}
-          onPaymentSuccess={() => setPaymentBill(null)}
-        />
-      )}
-
-      {/* Thermal Receipt Modal */}
+      {/* Thermal Receipt Print Dialog */}
       {receiptBill && (
         <ThermalReceipt
           bill={receiptBill}
           initialMode={receiptInitialMode}
           autoPrint={receiptAutoPrint}
-          isReprint={false}
-          onClose={() => setReceiptBill(null)}
+          onClose={() => {
+            setReceiptBill(null);
+            setReceiptAutoPrint(false);
+          }}
         />
       )}
     </div>
