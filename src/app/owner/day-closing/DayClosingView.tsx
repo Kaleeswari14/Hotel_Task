@@ -22,7 +22,9 @@ import {
   Send,
   Smartphone,
   Sparkles,
-  Settings
+  Settings,
+  TrendingUp,
+  ArrowRight
 } from "lucide-react";
 import { formatCurrency, formatDateTime, formatHumanStock } from "@/lib/format";
 import { useLanguage } from "@/context/LanguageContext";
@@ -90,7 +92,7 @@ export default function DayClosingView({
   initialPreview,
   initialHistory,
 }: DayClosingViewProps) {
-  const { language, getFoodName, getCategoryName } = useLanguage();
+  const { language, isTamil, getFoodName, getCategoryName } = useLanguage();
   const [isClosed, setIsClosed] = useState(initialIsClosed);
   const [todayClosing, setTodayClosing] = useState<DayClosingData | null>(initialTodayClosing);
   const [preview, setPreview] = useState(initialPreview);
@@ -131,7 +133,7 @@ export default function DayClosingView({
     showToast(`✅ Owner WhatsApp Number set to +91 ${clean.slice(-10)}`);
   };
 
-  // Build Night Summary text (Pure English)
+  // Build Night Summary text
   const buildNightSummaryText = () => {
     const data = isClosed && todayClosing ? todayClosing : preview;
     const hotelName = process.env.NEXT_PUBLIC_HOTEL_NAME || "HOTEL JB";
@@ -160,7 +162,7 @@ ${isClosed && todayClosing?.notes ? `📝 *Closing Notes:* ${todayClosing.notes}
 *** End of Day Summary ***`;
   };
 
-  // 1. Direct API Send to Owner WhatsApp
+  // Direct API Send to Owner WhatsApp
   const handleSendViaApi = async () => {
     let targetPhone = ownerPhone;
     if (!targetPhone || targetPhone.length < 10) {
@@ -195,13 +197,6 @@ ${isClosed && todayClosing?.notes ? `📝 *Closing Notes:* ${todayClosing.notes}
     }
   };
 
-  // 2. Manual WhatsApp Web Share Link (Fallback)
-  const generateWhatsAppSummary = () => {
-    const text = buildNightSummaryText();
-    const encoded = encodeURIComponent(text);
-    window.open(`https://api.whatsapp.com/send?text=${encoded}`, "_blank");
-  };
-
   const handleCloseDay = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!confirm(`Are you sure you want to finalize and close the business day for ${todayDate}?`)) return;
@@ -234,29 +229,46 @@ ${isClosed && todayClosing?.notes ? `📝 *Closing Notes:* ${todayClosing.notes}
     }
   };
 
+  const data = isClosed && todayClosing ? todayClosing : preview;
+
+  // Dietary percentages
+  const totalDietarySales = (preview.todayVegSales || 0) + (preview.todayNonVegSales || 0) + (preview.todayEggSales || 0) || 1;
+  const vegPct = Math.round(((preview.todayVegSales || 0) / totalDietarySales) * 100);
+  const nonVegPct = Math.round(((preview.todayNonVegSales || 0) / totalDietarySales) * 100);
+  const eggPct = 100 - vegPct - nonVegPct;
+
+  // Payment percentages
+  const totalPayments = (data.cashCollected || 0) + (data.upiCollected || 0) + (data.cardCollected || 0) || 1;
+  const cashPct = Math.round(((data.cashCollected || 0) / totalPayments) * 100);
+  const upiPct = Math.round(((data.upiCollected || 0) / totalPayments) * 100);
+  const cardPct = 100 - cashPct - upiPct;
+
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-6 text-slate-800">
       {/* Toast */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-emerald-700 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-emerald-500 text-sm font-semibold animate-slide-up">
-          <Check className="w-5 h-5" />
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-2.5 border border-[#ff5722] text-sm font-bold animate-slide-up">
+          <CheckCircle2 className="w-5 h-5 text-[#ff5722] shrink-0" />
           <span>{toastMsg}</span>
         </div>
       )}
 
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/90 backdrop-blur-md p-6 rounded-3xl border border-slate-200/90 shadow-luxury">
+      {/* ========================================================================= */}
+      {/* 1. HEADER BANNER */}
+      {/* ========================================================================= */}
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Day Closing &amp; Night Summary
-            </h1>
-            <span className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[11px] font-black px-3 py-1 rounded-full shadow-glow-emerald tracking-wider uppercase">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span className="text-[11px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
               📅 {todayDate}
             </span>
           </div>
-          <p className="text-slate-500 text-xs sm:text-sm font-semibold">
-            Reconcile daily sales, collections, cash drawer balance, and dispatch automated WhatsApp report to owner.
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            {isTamil ? "நாள் முடிவு மற்றும் கணக்கு சமரசம்" : "Day Closing & Night Settlement"}
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium">
+            {isTamil ? "இன்றைய மொத்த விற்பனை, பணப் பெட்டி சமரசம் மற்றும் வாட்ஸ்அப் அறிக்கை அனுப்புதல்." : "Reconcile daily sales, collections, cash drawer balance, and dispatch automated WhatsApp report."}
           </p>
         </div>
 
@@ -265,12 +277,12 @@ ${isClosed && todayClosing?.notes ? `📝 *Closing Notes:* ${todayClosing.notes}
           <button
             type="button"
             onClick={() => setShowPhoneModal(true)}
-            className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-2xl border border-slate-300 flex items-center gap-2 shadow-2xs transition-all cursor-pointer"
+            className="px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-2xl border border-slate-200 flex items-center gap-2 shadow-2xs transition-all cursor-pointer"
             title="Configure Owner WhatsApp Phone Number"
           >
             <Smartphone className="w-4 h-4 text-emerald-600" />
             <span>
-              {ownerPhone ? `+91 ${ownerPhone.slice(-10)}` : "Set Owner Phone"}
+              {ownerPhone ? `+91 ${ownerPhone.slice(-10)}` : (isTamil ? "எண் மாற்ற" : "Set Owner Phone")}
             </span>
             <Settings className="w-3.5 h-3.5 text-slate-400" />
           </button>
@@ -280,216 +292,256 @@ ${isClosed && todayClosing?.notes ? `📝 *Closing Notes:* ${todayClosing.notes}
             type="button"
             onClick={handleSendViaApi}
             disabled={isSendingApi}
-            className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white font-black text-xs rounded-2xl shadow-glow-emerald flex items-center gap-2 active:scale-95 transition-all cursor-pointer"
+            className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-700 hover:to-teal-700 disabled:opacity-50 text-white font-black text-xs rounded-2xl shadow-md shadow-emerald-600/20 flex items-center gap-2 active:scale-95 transition-all cursor-pointer"
             title="Send Night Closing Report directly via WhatsApp API to owner mobile"
           >
             <Send className={`w-3.5 h-3.5 ${isSendingApi ? "animate-spin" : ""}`} />
-            <span>{isSendingApi ? "Sending API..." : "⚡ Send to Owner WhatsApp"}</span>
+            <span>{isSendingApi ? "Sending..." : (isTamil ? "வாட்ஸ்அப் அறிக்கை அனுப்பு" : "⚡ Send to Owner WhatsApp")}</span>
           </button>
 
           {isClosed ? (
             <div className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-emerald-50 text-emerald-800 font-black text-xs rounded-2xl border border-emerald-200 shadow-2xs">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>SETTLED &amp; CLOSED</span>
+              <span>{isTamil ? "கணக்கு முடிக்கப்பட்டது" : "SETTLED & CLOSED"}</span>
             </div>
           ) : (
             <div className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-amber-50 text-amber-800 font-black text-xs rounded-2xl border border-amber-200 shadow-2xs">
               <Clock className="w-4 h-4 text-amber-600" />
-              <span>ACTIVE (OPEN)</span>
+              <span>{isTamil ? "நடப்பில் உள்ளது" : "ACTIVE (OPEN)"}</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Today Settlement Summary Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+      {/* ========================================================================= */}
+      {/* 2. FOUR CORE METRIC CARDS (Clean Solid White Luxury Styling) */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
         {/* Total Sales */}
-        <div className="luxury-card p-5 rounded-3xl border border-slate-200/90 shadow-luxury flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">
-              Total Sales (Paid)
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all group flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
+              {isTamil ? "மொத்த விற்பனை (செலுத்தப்பட்டது)" : "Total Sales (Paid)"}
             </span>
-            <div className="text-2xl font-black text-slate-900 mt-1">
-              {formatCurrency(isClosed && todayClosing ? todayClosing.totalSales : preview.totalSales)}
-            </div>
-            <div className="text-[11px] text-slate-500 font-bold mt-1">
-              {isClosed && todayClosing ? todayClosing.paidBills : preview.paidBills} Completed Bills
+            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+              <IndianRupee className="w-5 h-5" />
             </div>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center shadow-glow-emerald">
-            <IndianRupee className="w-6 h-6" />
+          <div className="mt-3">
+            <div className="text-3xl font-black text-slate-900 tracking-tight">
+              {formatCurrency(data.totalSales)}
+            </div>
+            <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 mt-1">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>{data.paidBills} {isTamil ? "முடிக்கப்பட்ட பில்கள்" : "Completed Bills"}</span>
+            </div>
           </div>
         </div>
 
-        {/* Collected Income */}
-        <div className="luxury-card p-5 rounded-3xl border border-slate-200/90 shadow-luxury flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">
-              Total Collected
+        {/* Total Collected */}
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all group flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
+              {isTamil ? "வசூலான வருமானம்" : "Total Collected"}
             </span>
-            <div className="text-2xl font-black text-emerald-600 mt-1">
-              {formatCurrency(isClosed && todayClosing ? todayClosing.totalCollected : preview.totalCollected)}
+            <div className="w-10 h-10 rounded-2xl bg-teal-50 text-teal-600 border border-teal-100 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+              <TrendingUp className="w-5 h-5" />
             </div>
-            <div className="text-[11px] text-emerald-700 font-bold mt-1">Actual Money Received</div>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-teal-600 to-cyan-500 text-white flex items-center justify-center shadow-md">
-            <CalendarCheck className="w-6 h-6" />
+          <div className="mt-3">
+            <div className="text-3xl font-black text-teal-600 tracking-tight">
+              {formatCurrency(data.totalCollected)}
+            </div>
+            <div className="text-[11px] font-semibold text-slate-400 mt-1">
+              {isTamil ? "பெறப்பட்ட தொகை" : "Actual Money Received"}
+            </div>
           </div>
         </div>
 
         {/* Outstanding Unpaid */}
-        <div className="luxury-card p-5 rounded-3xl border border-slate-200/90 shadow-luxury flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">
-              Outstanding Unpaid
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-amber-300 transition-all group flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
+              {isTamil ? "நிலுவைத் தொகை" : "Outstanding Unpaid"}
             </span>
-            <div className="text-2xl font-black text-amber-600 mt-1">
-              {formatCurrency(isClosed && todayClosing ? todayClosing.outstandingAmount : preview.outstandingAmount)}
-            </div>
-            <div className="text-[11px] text-amber-700 font-bold mt-1">
-              {isClosed && todayClosing ? todayClosing.unpaidBills : preview.unpaidBills} Unpaid Orders
+            <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+              <Clock className="w-5 h-5" />
             </div>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-400 text-white flex items-center justify-center shadow-glow-amber">
-            <Clock className="w-6 h-6" />
+          <div className="mt-3">
+            <div className="text-3xl font-black text-amber-600 tracking-tight">
+              {formatCurrency(data.outstandingAmount)}
+            </div>
+            <div className="text-[11px] font-bold text-amber-700 mt-1">
+              {data.unpaidBills} {isTamil ? "நிலுவை ஆர்டர்கள்" : "Unpaid Orders"}
+            </div>
           </div>
         </div>
 
         {/* Cancelled / Void */}
-        <div className="luxury-card p-5 rounded-3xl border border-slate-200/90 shadow-luxury flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">
-              Cancelled / Void
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-rose-300 transition-all group flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
+              {isTamil ? "ரத்து செய்யப்பட்டவை" : "Cancelled / Void"}
             </span>
-            <div className="text-2xl font-black text-rose-600 mt-1">
-              {formatCurrency(isClosed && todayClosing ? todayClosing.cancelledAmount : preview.cancelledAmount)}
-            </div>
-            <div className="text-[11px] text-rose-700 font-bold mt-1">
-              {isClosed && todayClosing ? todayClosing.cancelledBills : preview.cancelledBills} Cancelled Orders
+            <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+              <Ban className="w-5 h-5" />
             </div>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-600 to-pink-500 text-white flex items-center justify-center shadow-md">
-            <Ban className="w-6 h-6" />
-          </div>
-        </div>
-      </div>
-
-      {/* Payment Channels Reconciliation */}
-      <div className="luxury-card p-6 rounded-3xl border border-slate-200/90 shadow-luxury space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-          <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
-            <Banknote className="w-5 h-5 text-emerald-600" />
-            Payment Channels Reconciliation
-          </h2>
-          <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Real-time Split</span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-4.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/90 flex items-center justify-between shadow-2xs">
-            <div>
-              <div className="text-xs font-black text-emerald-900 uppercase tracking-wider">💵 Cash In Drawer</div>
-              <div className="text-2xl font-black text-emerald-800 mt-1">
-                {formatCurrency(isClosed && todayClosing ? todayClosing.cashCollected : preview.cashCollected)}
-              </div>
-              <div className="text-[11px] text-emerald-700 font-bold mt-0.5">Physical Cash in Till</div>
+          <div className="mt-3">
+            <div className="text-3xl font-black text-rose-600 tracking-tight">
+              {formatCurrency(data.cancelledAmount)}
             </div>
-            <Banknote className="w-9 h-9 text-emerald-600 opacity-60" />
-          </div>
-
-          <div className="p-4.5 rounded-2xl bg-blue-50/70 border border-blue-200/90 flex items-center justify-between shadow-2xs">
-            <div>
-              <div className="text-xs font-black text-blue-900 uppercase tracking-wider">📱 UPI / QR In Bank</div>
-              <div className="text-2xl font-black text-blue-800 mt-1">
-                {formatCurrency(isClosed && todayClosing ? todayClosing.upiCollected : preview.upiCollected)}
-              </div>
-              <div className="text-[11px] text-blue-700 font-bold mt-0.5">Direct Bank Settlement</div>
+            <div className="text-[11px] font-bold text-rose-700 mt-1">
+              {data.cancelledBills} {isTamil ? "ரத்து செய்யப்பட்ட ஆர்டர்கள்" : "Cancelled Orders"}
             </div>
-            <QrCode className="w-9 h-9 text-blue-600 opacity-60" />
-          </div>
-
-          <div className="p-4.5 rounded-2xl bg-purple-50/70 border border-purple-200/90 flex items-center justify-between shadow-2xs">
-            <div>
-              <div className="text-xs font-black text-purple-900 uppercase tracking-wider">💳 Card Swipes</div>
-              <div className="text-2xl font-black text-purple-800 mt-1">
-                {formatCurrency(isClosed && todayClosing ? todayClosing.cardCollected : preview.cardCollected)}
-              </div>
-              <div className="text-[11px] text-purple-700 font-bold mt-0.5">POS Machine EDC</div>
-            </div>
-            <CreditCard className="w-9 h-9 text-purple-600 opacity-60" />
           </div>
         </div>
       </div>
 
-      {/* Dietary Classification Sales Breakdown */}
-      <div className="luxury-card p-6 rounded-3xl border border-slate-200/90 shadow-luxury space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-          <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
-            <UtensilsCrossed className="w-5 h-5 text-emerald-600" />
-            Dietary Category Breakdown
-          </h2>
-          <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Menu Portions</span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-4.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/90 flex items-center justify-between shadow-2xs">
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 shadow-glow-emerald"></span>
-                <span className="text-xs font-black text-emerald-900 uppercase tracking-wider">🟢 Pure Veg Sales</span>
-              </div>
-              <div className="text-2xl font-black text-emerald-800 mt-1">
-                {formatCurrency(preview.todayVegSales || 0)}
-              </div>
-              <div className="text-[11px] text-emerald-700 font-bold mt-0.5">
-                {preview.todayVegCount || 0} Portions Sold
-              </div>
-            </div>
-            <div className="text-3xl opacity-90">🥗</div>
-          </div>
-
-          <div className="p-4.5 rounded-2xl bg-rose-50/70 border border-rose-200/90 flex items-center justify-between shadow-2xs">
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-600 shadow-xs"></span>
-                <span className="text-xs font-black text-rose-900 uppercase tracking-wider">🔴 Non-Veg Sales</span>
-              </div>
-              <div className="text-2xl font-black text-rose-800 mt-1">
-                {formatCurrency(preview.todayNonVegSales || 0)}
-              </div>
-              <div className="text-[11px] text-rose-700 font-bold mt-0.5">
-                {preview.todayNonVegCount || 0} Portions Sold
-              </div>
-            </div>
-            <div className="text-3xl opacity-90">🍗</div>
-          </div>
-
-          <div className="p-4.5 rounded-2xl bg-amber-50/70 border border-amber-200/90 flex items-center justify-between shadow-2xs">
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-glow-amber"></span>
-                <span className="text-xs font-black text-amber-900 uppercase tracking-wider">🟡 Egg Sales</span>
-              </div>
-              <div className="text-2xl font-black text-amber-800 mt-1">
-                {formatCurrency(preview.todayEggSales || 0)}
-              </div>
-              <div className="text-[11px] text-amber-700 font-bold mt-0.5">
-                {preview.todayEggCount || 0} Portions Sold
-              </div>
-            </div>
-            <div className="text-3xl opacity-90">🍳</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Closing Stock Inventory Snapshot & Closure Action Form */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Closing Stock Snapshot */}
-        <div className="lg:col-span-7 luxury-card p-6 rounded-3xl border border-slate-200/90 shadow-luxury space-y-4">
+      {/* ========================================================================= */}
+      {/* 3. PAYMENT RECONCILIATION & DIETARY SPLIT (Two-Column Balanced Cards) */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Payment Channels Reconciliation Card */}
+        <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-sm space-y-5">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black">
+                <Banknote className="w-4 h-4" />
+              </div>
+              <h2 className="text-base font-black text-slate-900">
+                {isTamil ? "பண வரவு சமரசம்" : "Payment Channels Reconciliation"}
+              </h2>
+            </div>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              {isTamil ? "நேரடிப் பிரிவு" : "Real-time Split"}
+            </span>
+          </div>
+
+          {/* Progress Bar Split */}
+          <div className="space-y-1.5">
+            <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden flex">
+              <div style={{ width: `${cashPct}%` }} className="bg-[#ff5722] transition-all duration-500" title={`Cash: ${cashPct}%`}></div>
+              <div style={{ width: `${upiPct}%` }} className="bg-sky-500 transition-all duration-500" title={`UPI: ${upiPct}%`}></div>
+              <div style={{ width: `${cardPct}%` }} className="bg-purple-500 transition-all duration-500" title={`Card: ${cardPct}%`}></div>
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold uppercase">
+              <span>Cash {cashPct}%</span>
+              <span>UPI {upiPct}%</span>
+              <span>Card {cardPct}%</span>
+            </div>
+          </div>
+
+          {/* 3 Payment Channels */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 space-y-1">
+              <div className="flex items-center gap-1.5 text-slate-500 text-xs font-bold">
+                <span className="w-2 h-2 rounded-full bg-[#ff5722]"></span>
+                <span>{isTamil ? "ரொக்கம்" : "Cash in Till"}</span>
+              </div>
+              <div className="text-xl font-black text-slate-900">{formatCurrency(data.cashCollected)}</div>
+              <div className="text-[10px] text-slate-400 font-semibold">{cashPct}% share</div>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 space-y-1">
+              <div className="flex items-center gap-1.5 text-slate-500 text-xs font-bold">
+                <span className="w-2 h-2 rounded-full bg-sky-500"></span>
+                <span>{isTamil ? "UPI / QR" : "UPI / Online"}</span>
+              </div>
+              <div className="text-xl font-black text-slate-900">{formatCurrency(data.upiCollected)}</div>
+              <div className="text-[10px] text-slate-400 font-semibold">{upiPct}% share</div>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 space-y-1">
+              <div className="flex items-center gap-1.5 text-slate-500 text-xs font-bold">
+                <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                <span>{isTamil ? "கார்டு" : "Card POS"}</span>
+              </div>
+              <div className="text-xl font-black text-slate-900">{formatCurrency(data.cardCollected)}</div>
+              <div className="text-[10px] text-slate-400 font-semibold">{cardPct}% share</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Dietary Classification Sales Split Card */}
+        <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-sm space-y-5">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black">
+                <UtensilsCrossed className="w-4 h-4" />
+              </div>
+              <h2 className="text-base font-black text-slate-900">
+                {isTamil ? "உணவு வகை விற்பனை" : "Dietary Sales Split"}
+              </h2>
+            </div>
+            <span className="text-xs font-bold text-slate-400">
+              {isTamil ? "சமையலறை கணக்கு" : "Kitchen Breakdown"}
+            </span>
+          </div>
+
+          {/* Progress Bar Split */}
+          <div className="space-y-1.5">
+            <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden flex">
+              <div style={{ width: `${vegPct}%` }} className="bg-emerald-500 transition-all duration-500" title={`Veg: ${vegPct}%`}></div>
+              <div style={{ width: `${nonVegPct}%` }} className="bg-rose-500 transition-all duration-500" title={`Non-Veg: ${nonVegPct}%`}></div>
+              <div style={{ width: `${eggPct}%` }} className="bg-amber-400 transition-all duration-500" title={`Egg: ${eggPct}%`}></div>
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold uppercase">
+              <span>Veg {vegPct}%</span>
+              <span>Non-Veg {nonVegPct}%</span>
+              <span>Egg {eggPct}%</span>
+            </div>
+          </div>
+
+          {/* 3 Dietary Categories */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 space-y-1">
+              <div className="flex items-center gap-1.5 text-slate-600 text-xs font-bold">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>{isTamil ? "சைவம்" : "Pure Veg"}</span>
+              </div>
+              <div className="text-xl font-black text-slate-900">{formatCurrency(preview.todayVegSales || 0)}</div>
+              <div className="text-[10px] text-emerald-600 font-bold">{preview.todayVegCount || 0} {isTamil ? "ஆர்டர்கள்" : "portions"}</div>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 space-y-1">
+              <div className="flex items-center gap-1.5 text-slate-600 text-xs font-bold">
+                <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                <span>{isTamil ? "அசைவம்" : "Non-Veg"}</span>
+              </div>
+              <div className="text-xl font-black text-slate-900">{formatCurrency(preview.todayNonVegSales || 0)}</div>
+              <div className="text-[10px] text-rose-600 font-bold">{preview.todayNonVegCount || 0} {isTamil ? "ஆர்டர்கள்" : "portions"}</div>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 space-y-1">
+              <div className="flex items-center gap-1.5 text-slate-600 text-xs font-bold">
+                <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                <span>{isTamil ? "முட்டை" : "Egg"}</span>
+              </div>
+              <div className="text-xl font-black text-slate-900">{formatCurrency(preview.todayEggSales || 0)}</div>
+              <div className="text-[10px] text-amber-700 font-bold">{preview.todayEggCount || 0} {isTamil ? "ஆர்டர்கள்" : "portions"}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 4. CLOSING INVENTORY SNAPSHOT & FINAL SETTLEMENT ACTION */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        {/* Closing Stock Snapshot */}
+        <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-sm space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-2">
               <Boxes className="w-5 h-5 text-emerald-600" />
-              Closing Inventory Snapshot
-            </h2>
+              <h2 className="text-base font-black text-slate-900">
+                {isTamil ? "முடிவு இருப்புப் பட்டியல்" : "Closing Inventory Snapshot"}
+              </h2>
+            </div>
             <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
               {preview.stockSnapshot.length} Dishes
             </span>
@@ -538,11 +590,13 @@ ${isClosed && todayClosing?.notes ? `📝 *Closing Notes:* ${todayClosing.notes}
         </div>
 
         {/* Day Closing Action Box */}
-        <div className="lg:col-span-5 luxury-card p-6 rounded-3xl border border-slate-200/90 shadow-luxury flex flex-col justify-between space-y-4">
+        <div className="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-sm flex flex-col justify-between space-y-4">
           <div>
             <div className="flex items-center gap-2 pb-3 border-b border-slate-100 mb-4">
               <Lock className="w-5 h-5 text-amber-600" />
-              <h2 className="text-base font-black text-slate-900">End of Day Settlement</h2>
+              <h2 className="text-base font-black text-slate-900">
+                {isTamil ? "நாள் முடிவு பூட்டுதல்" : "End of Day Settlement"}
+              </h2>
             </div>
 
             {isClosed ? (
@@ -569,18 +623,18 @@ ${isClosed && todayClosing?.notes ? `📝 *Closing Notes:* ${todayClosing.notes}
                 <div className="p-3.5 bg-amber-50/80 border border-amber-200/90 rounded-2xl text-xs text-amber-900 font-bold flex items-start gap-2.5">
                   <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                   <div>
-                    Closing the business day creates an immutable snapshot of today's revenue, collections, and closing stock.
+                    {isTamil ? "நாள் முடிவு செய்வதன் மூலம் இன்றைய விற்பனை, வரவு மற்றும் இருப்பு நிலவரம் நிரந்தரமாக சேமிக்கப்படும்." : "Closing the business day creates an immutable snapshot of today's revenue, collections, and closing stock."}
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
-                    Closing Notes (Optional)
+                    {isTamil ? "குறிப்புகள் (விருப்பத்தேர்வு)" : "Closing Notes (Optional)"}
                   </label>
                   <textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="e.g. Cash counted and matched with register."
+                    placeholder={isTamil ? "எ.கா. பெட்டிப் பணம் மற்றும் கணக்கு சரிபார்க்கப்பட்டது." : "e.g. Cash counted and matched with register."}
                     rows={3}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all placeholder:text-slate-400"
                   />
@@ -589,10 +643,10 @@ ${isClosed && todayClosing?.notes ? `📝 *Closing Notes:* ${todayClosing.notes}
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-4 px-4 bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black rounded-2xl shadow-xl shadow-orange-500/25 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
+                  className="w-full py-3.5 px-4 bg-gradient-to-r from-orange-500 via-[#ff5722] to-amber-500 hover:from-orange-600 hover:to-orange-700 text-white font-black rounded-2xl shadow-lg shadow-orange-500/20 active:scale-98 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer"
                 >
-                  <Lock className="w-4 h-4 text-amber-200" />
-                  <span>{loading ? "Closing Day..." : `Finalize & Close Day (${todayDate})`}</span>
+                  <Lock className="w-4 h-4 text-white" />
+                  <span>{loading ? "Closing Day..." : (isTamil ? `நாள் முடிவு செய் (${todayDate})` : `Finalize & Close Day (${todayDate})`)}</span>
                 </button>
               </form>
             )}
@@ -604,13 +658,17 @@ ${isClosed && todayClosing?.notes ? `📝 *Closing Notes:* ${todayClosing.notes}
         </div>
       </div>
 
-      {/* Past Day Closings Audit History */}
-      <div className="luxury-card rounded-3xl border border-slate-200/90 shadow-luxury overflow-hidden space-y-4 p-6">
+      {/* ========================================================================= */}
+      {/* 5. PAST DAY CLOSINGS AUDIT HISTORY */}
+      {/* ========================================================================= */}
+      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden space-y-4 p-6 sm:p-7">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-          <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-slate-700" />
-            Past Day Closings History
-          </h2>
+            <h2 className="text-base font-black text-slate-900">
+              {isTamil ? "முந்தைய நாள் முடிவு வரலாறு" : "Past Day Closings History"}
+            </h2>
+          </div>
           <span className="text-xs text-slate-500 font-bold bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
             {history.length} Closings Logged
           </span>

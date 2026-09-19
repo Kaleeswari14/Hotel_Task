@@ -100,6 +100,7 @@ interface PosTerminalProps {
   foods: FoodItem[];
   userName: string;
   userRole: string;
+  initialNextBillNumber?: number;
 }
 
 export default function PosTerminal({
@@ -107,6 +108,7 @@ export default function PosTerminal({
   foods: initialFoods,
   userName,
   userRole,
+  initialNextBillNumber = 1001,
 }: PosTerminalProps) {
   const router = useRouter();
   const { isTamil, setLanguage, t, getFoodName, getPortionName, getCategoryName } = useLanguage();
@@ -121,7 +123,7 @@ export default function PosTerminal({
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orderType, setOrderType] = useState<"TOKEN" | "TABLE">("TABLE");
   const [tableNumber, setTableNumber] = useState<string>("12");
-  const [orderId, setOrderId] = useState<string>("5266");
+  const [currentBillNumber, setCurrentBillNumber] = useState<number>(initialNextBillNumber);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [discount, setDiscount] = useState<string>("");
@@ -228,7 +230,7 @@ export default function PosTerminal({
     setCustomerName("");
     setCustomerPhone("");
     setDiscount("");
-    setOrderId(String(Math.floor(1000 + Math.random() * 9000)));
+    // clear cart
   };
 
   // Calculations
@@ -297,6 +299,7 @@ export default function PosTerminal({
       setReceiptInitialMode("PAYMENT_RECEIPT");
       setReceiptAutoPrint(true);
       setReceiptBill(finalBill);
+      setCurrentBillNumber((prev) => (data.billNumber ? data.billNumber + 1 : prev + 1));
       clearCart();
     } catch (err: any) {
       alert(err.message);
@@ -338,6 +341,7 @@ export default function PosTerminal({
 
       setReceiptInitialMode("ORDER_SLIP");
       setReceiptAutoPrint(true);
+      setCurrentBillNumber((prev) => (data.billNumber ? data.billNumber + 1 : prev + 1));
       setReceiptBill(finalOrderBill);
       clearCart();
     } catch (err: any) {
@@ -438,18 +442,7 @@ export default function PosTerminal({
 
             {/* Quick Actions: Order #, Table Selector, Token/Table Mode, + New Order */}
             <div className="flex items-center gap-2.5 flex-wrap">
-              {/* Order Pill */}
-              <div className="bg-[#ffe8e0] text-[#ff5722] border border-[#ffd3c4] font-black rounded-2xl px-3.5 py-2 flex items-center gap-2 text-xs shadow-2xs">
-                <span>{isTamil ? "ஆர்டர்" : "Order"} #{orderId}</span>
-                <button
-                  type="button"
-                  onClick={clearCart}
-                  className="w-4 h-4 rounded-full bg-[#ff5722]/15 text-[#ff5722] hover:bg-[#ff5722] hover:text-white flex items-center justify-center text-[10px] font-bold cursor-pointer transition-colors"
-                  title="Clear order"
-                >
-                  ✕
-                </button>
-              </div>
+              
 
               {/* Table / Token Toggle Button */}
               <button
@@ -698,7 +691,7 @@ export default function PosTerminal({
                   {orderType === "TABLE" ? `Table ${tableNumber}` : "Token Order"}
                 </span>
                 <span className="text-base font-black text-slate-900 tracking-tight">
-                  {isTamil ? "ஆர்டர் எண்" : "ORDER NO."} #{orderId}
+                  {isTamil ? "பில் எண்" : "BILL"} #{currentBillNumber}
                 </span>
               </div>
               <button

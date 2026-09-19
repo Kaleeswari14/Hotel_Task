@@ -27,12 +27,20 @@ export default async function PosPage() {
     ],
   });
 
+  // Fetch real latest sequential bill number
+  const lastBill = await prisma.bill.findFirst({
+    orderBy: { billNumber: "desc" },
+    select: { billNumber: true },
+  });
+  const nextBillNumber = lastBill ? lastBill.billNumber + 1 : 1001;
+
   return (
     <PosTerminal
       categories={categories}
       foods={foods as any}
       userName={user?.name || "Cashier"}
       userRole={user?.role || "STAFF"}
+      initialNextBillNumber={nextBillNumber}
     />
   );
 }
