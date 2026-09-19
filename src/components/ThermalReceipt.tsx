@@ -256,17 +256,26 @@ export default function ThermalReceipt({
               </div>
             ) : (
               <div className="pt-0.5 space-y-0.5">
-                <div className="flex justify-between text-[11px] font-black text-orange-950 gap-1">
-                  <span className="truncate">
-                    PAID VIA {primaryPayment?.paymentMethod || "CASH"}:
-                  </span>
-                  <span className="font-mono shrink-0">
-                    ₹{(bill.paidAmount > 0 ? bill.paidAmount : bill.totalAmount).toFixed(0)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-[10px] font-black text-orange-800">
+                {bill.payments && bill.payments.length > 0 ? (
+                  bill.payments.map((p, idx) => (
+                    <div key={idx} className="flex justify-between text-[11px] font-bold text-slate-800 gap-1">
+                      <span className="truncate">PAID VIA {p.paymentMethod}:</span>
+                      <span className="font-mono shrink-0">₹{p.amount.toFixed(0)}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex justify-between text-[11px] font-black text-orange-950 gap-1">
+                    <span className="truncate">
+                      PAID VIA {primaryPayment?.paymentMethod || "CASH"}:
+                    </span>
+                    <span className="font-mono shrink-0">
+                      ₹{(bill.paidAmount > 0 ? bill.paidAmount : bill.totalAmount).toFixed(0)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between text-[10px] font-black text-orange-800 pt-0.5 border-t border-dashed border-slate-300">
                   <span>STATUS:</span>
-                  <span className="uppercase">PAID IN FULL</span>
+                  <span className="uppercase">{bill.status === "PAID" ? "PAID IN FULL" : bill.status}</span>
                 </div>
               </div>
             )}

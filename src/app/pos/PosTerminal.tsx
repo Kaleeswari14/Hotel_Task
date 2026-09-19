@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -42,7 +42,8 @@ import {
   FileText,
   BarChart3,
   SlidersHorizontal,
-  ChevronDown
+  ChevronDown,
+  DollarSign
 } from "lucide-react";
 import { formatCurrency, formatHumanStock } from "@/lib/format";
 import { getFoodImage } from "@/lib/foodImages";
@@ -133,6 +134,75 @@ export default function PosTerminal({
 
   // Payment & Thermal Receipt Modals
   const [submitting, setSubmitting] = useState(false);
+  // Split Payment Modal State
+  const [showSplitModal, setShowSplitModal] = useState(false);
+  const [splitCash, setSplitCash] = useState<string>("");
+  const [splitUpi, setSplitUpi] = useState<string>("");
+  const [splitCard, setSplitCard] = useState<string>("");
+
+  // Offline queue state
+  const [offlineBillsCount, setOfflineBillsCount] = useState<number>(0);
+
+  // Incoming Table Orders Alert State
+  const [incomingTableOrder, setIncomingTableOrder] = useState<any>(null);
+
+  // Auto-sync offline bills when online
+  useEffect(() => {
+    const syncOfflineBills = async () => {
+      if (!navigator.onLine) return;
+      try {
+        const raw = localStorage.getItem("offline_bills_queue");
+        if (!raw) return;
+        const queue = JSON.parse(raw);
+        if (!Array.isArray(queue) || queue.length === 0) return;
+
+        let syncedCount = 0;
+        for (const billPayload of queue) {
+          const res = await fetch("/api/bills", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(billPayload),
+          });
+          if (res.ok) syncedCount++;
+        }
+
+        localStorage.removeItem("offline_bills_queue");
+        setOfflineBillsCount(0);
+        if (syncedCount > 0) {
+          showToast(`✅ ${syncedCount} offline bill(s) synced to database!`);
+        }
+      } catch (err) {
+        console.error("Offline sync error:", err);
+      }
+    };
+
+    window.addEventListener("online", syncOfflineBills);
+    syncOfflineBills();
+
+    return () => window.removeEventListener("online", syncOfflineBills);
+  }, []);
+
+  // Poll for incoming customer table self-orders
+  useEffect(() => {
+    const checkTableOrders = async () => {
+      try {
+        const res = await fetch("/api/bills?limit=5");
+        const data = await res.json();
+        if (data.bills && Array.isArray(data.bills)) {
+          const latestTable = data.bills.find(
+            (b: any) => b.orderType === "TABLE" && b.status === "UNPAID" && (Date.now() - new Date(b.createdAt).getTime()) < 60000
+          );
+          if (latestTable) {
+            setIncomingTableOrder(latestTable);
+          }
+        }
+      } catch (e) {}
+    };
+
+    const interval = setInterval(checkTableOrders, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   const [paymentBill, setPaymentBill] = useState<any | null>(null);
   const [receiptBill, setReceiptBill] = useState<any | null>(null);
   const [receiptInitialMode, setReceiptInitialMode] = useState<"ORDER_SLIP" | "PAYMENT_RECEIPT">("PAYMENT_RECEIPT");
@@ -314,6 +384,108 @@ export default function PosTerminal({
       clearCart();
     } catch (err: any) {
       alert(`Billing Error: ${err.message}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+    // Split Payment Processor
+  const handleProcessSplitPayment = async () => {
+    if (cart.length === 0) return;
+    const cAmount = parseFloat(splitCash) || 0;
+    const uAmount = parseFloat(splitUpi) || 0;
+    const cardAmount = parseFloat(splitCard) || 0;
+    const totalSplit = cAmount + uAmount + cardAmount;
+
+    if (totalSplit <= 0) {
+      alert("Please enter at least one payment amount");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const orderRef = orderType === "TABLE" ? `Table ${tableNumber}` : "Token";
+      const payload = {
+        orderType: orderType,
+        orderReference: orderRef,
+        customerName: customerName.trim() || undefined,
+        customerPhone: customerPhone.trim() || undefined,
+        discount: discountVal,
+        splitPayments: [
+          { method: "CASH", amount: cAmount },
+          { method: "UPI", amount: uAmount },
+          { method: "CARD", amount: cardAmount },
+        ],
+        items: cart.map((c) => ({
+          foodItemId: c.foodItemId,
+          foodName: c.foodName,
+          portionId: c.portionId,
+          portionName: c.portionName,
+          unitMultiplier: c.unitMultiplier,
+          unitPrice: c.unitPrice,
+          quantity: c.quantity,
+        })),
+      };
+
+      // If offline, save in queue
+      if (!navigator.onLine) {
+        const raw = localStorage.getItem("offline_bills_queue") || "[]";
+        const queue = JSON.parse(raw);
+        queue.push(payload);
+        localStorage.setItem("offline_bills_queue", JSON.stringify(queue));
+        setOfflineBillsCount(queue.length);
+
+        const offlineBill = {
+          id: `offline-${Date.now()}`,
+          billNumber: currentBillNumber,
+          orderReference: orderRef,
+          customerName: customerName.trim() || null,
+          customerPhone: customerPhone.trim() || null,
+          createdAt: new Date(),
+          items: cart.map((c) => ({
+            foodName: c.foodName,
+            portionName: c.portionName,
+            quantity: c.quantity,
+            subtotal: c.unitPrice * c.quantity,
+            unitPrice: c.unitPrice,
+          })),
+          subtotal,
+          discount: discountVal,
+          totalAmount: grandTotal,
+          paidAmount: totalSplit,
+          status: totalSplit >= grandTotal ? "PAID" : "PARTIAL",
+        };
+
+        setCurrentBillNumber((prev) => prev + 1);
+        setReceiptInitialMode("PAYMENT_RECEIPT");
+        setReceiptAutoPrint(true);
+        setReceiptBill(offlineBill);
+        clearCart();
+        setShowSplitModal(false);
+        showToast("🟡 Offline Bill Generated & Queued for Auto-Sync!");
+        return;
+      }
+
+      const res = await fetch("/api/bills", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to create split bill");
+
+      setCurrentBillNumber((prev) => (data.billNumber ? data.billNumber + 1 : prev + 1));
+      setReceiptInitialMode("PAYMENT_RECEIPT");
+      setReceiptAutoPrint(true);
+      setReceiptBill(data);
+      clearCart();
+      setShowSplitModal(false);
+      setSplitCash("");
+      setSplitUpi("");
+      setSplitCard("");
+    } catch (err: any) {
+      alert(`Split Payment Error: ${err.message}`);
     } finally {
       setSubmitting(false);
     }
@@ -863,16 +1035,33 @@ export default function PosTerminal({
                 <span>{submitting ? "Processing..." : isTamil ? "பணம் செலுத்தி அச்சிடு (Cash & Print)" : "Instant Cash & Print (Enter)"}</span>
               </button>
 
-              <div className="grid grid-cols-2 gap-2">
-                {/* Instant UPI / QR Payment */}
+                            {/* Split Payment & More Methods */}
+              <div className="grid grid-cols-3 gap-2">
+                {/* Instant UPI */}
                 <button
                   type="button"
                   onClick={() => handleInstantPayAndPrint("UPI")}
                   disabled={cart.length === 0 || submitting}
-                  className="py-2.5 px-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="py-2.5 px-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-extrabold text-xs flex items-center justify-center gap-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   <QrCode className="w-3.5 h-3.5 text-blue-600" />
                   <span>UPI / QR</span>
+                </button>
+
+                {/* Split Payment Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSplitCash(String(grandTotal));
+                    setSplitUpi("");
+                    setSplitCard("");
+                    setShowSplitModal(true);
+                  }}
+                  disabled={cart.length === 0 || submitting}
+                  className="py-2.5 px-2 rounded-2xl bg-orange-100 hover:bg-orange-200 text-orange-950 font-extrabold text-xs flex items-center justify-center gap-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <DollarSign className="w-3.5 h-3.5 text-orange-600" />
+                  <span>{isTamil ? "பிரித்து செலுத்து" : "Split Pay"}</span>
                 </button>
 
                 {/* Option 2: Order Slip / KOT */}
@@ -880,16 +1069,183 @@ export default function PosTerminal({
                   type="button"
                   onClick={handleSaveAndPrintOrderSlip}
                   disabled={cart.length === 0 || submitting}
-                  className="py-2.5 px-3 rounded-2xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-orange-950 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="py-2.5 px-2 rounded-2xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-orange-950 font-extrabold text-xs flex items-center justify-center gap-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   <Printer className="w-3.5 h-3.5 text-[#ff5722]" />
-                  <span>{isTamil ? "KOT சீட்டு" : "Order Slip (KOT)"}</span>
+                  <span>{isTamil ? "KOT" : "KOT Slip"}</span>
                 </button>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+            {/* Incoming Online Table Order Notification */}
+      {incomingTableOrder && (
+        <div className="fixed top-20 right-6 z-50 bg-white border-2 border-orange-500 shadow-2xl p-4 rounded-3xl max-w-sm w-full animate-slide-down flex items-start gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-orange-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-orange-500/30 animate-bounce">
+            <UtensilsCrossed className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <span className="font-black text-xs text-orange-600 uppercase">
+                🔔 New Table Order!
+              </span>
+              <button
+                type="button"
+                onClick={() => setIncomingTableOrder(null)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-xs"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="font-black text-sm text-slate-900 mt-0.5">
+              {incomingTableOrder.orderReference} (#{incomingTableOrder.billNumber})
+            </div>
+            <div className="text-xs text-slate-500 font-mono">
+              ₹{incomingTableOrder.totalAmount} • {incomingTableOrder.items?.length || 1} items
+            </div>
+            <div className="pt-2 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setReceiptInitialMode("ORDER_SLIP");
+                  setReceiptAutoPrint(true);
+                  setReceiptBill(incomingTableOrder);
+                  setIncomingTableOrder(null);
+                }}
+                className="px-3 py-1.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black text-xs rounded-xl shadow-xs"
+              >
+                Print KOT Slip
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Split Payment Modal */}
+      {showSplitModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full p-6 animate-scale-up space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 font-black">
+                  ₹
+                </div>
+                <div>
+                  <h3 className="font-black text-base text-slate-900">
+                    {isTamil ? "பணம் பிரித்து செலுத்துதல் (Split Payment)" : "Split Payment"}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Total Bill: <span className="font-mono font-black text-orange-600">₹{grandTotal}</span>
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSplitModal(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              {/* Cash Input */}
+              <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 font-bold text-slate-700">
+                  <span className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs">💵</span>
+                  <span>Cash (ரொக்கம்):</span>
+                </div>
+                <input
+                  type="number"
+                  min="0"
+                  value={splitCash}
+                  onChange={(e) => setSplitCash(e.target.value)}
+                  placeholder="0"
+                  className="w-28 px-3 py-1.5 bg-white border border-slate-300 rounded-xl font-mono font-black text-right text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+              </div>
+
+              {/* UPI Input */}
+              <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 font-bold text-slate-700">
+                  <span className="w-7 h-7 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center text-xs">📱</span>
+                  <span>UPI / GPay:</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const c = parseFloat(splitCash) || 0;
+                      setSplitUpi(String(Math.max(0, grandTotal - c)));
+                    }}
+                    className="px-2 py-1 bg-white hover:bg-orange-50 border border-orange-200 text-orange-700 rounded-lg text-[10px] font-bold"
+                  >
+                    Remaining
+                  </button>
+                  <input
+                    type="number"
+                    min="0"
+                    value={splitUpi}
+                    onChange={(e) => setSplitUpi(e.target.value)}
+                    placeholder="0"
+                    className="w-28 px-3 py-1.5 bg-white border border-slate-300 rounded-xl font-mono font-black text-right text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                </div>
+              </div>
+
+              {/* Card Input */}
+              <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 font-bold text-slate-700">
+                  <span className="w-7 h-7 rounded-lg bg-purple-100 text-purple-800 flex items-center justify-center text-xs">💳</span>
+                  <span>Card / Swiping:</span>
+                </div>
+                <input
+                  type="number"
+                  min="0"
+                  value={splitCard}
+                  onChange={(e) => setSplitCard(e.target.value)}
+                  placeholder="0"
+                  className="w-28 px-3 py-1.5 bg-white border border-slate-300 rounded-xl font-mono font-black text-right text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+              </div>
+
+              {/* Total Summary */}
+              {(() => {
+                const totalPaid = (parseFloat(splitCash) || 0) + (parseFloat(splitUpi) || 0) + (parseFloat(splitCard) || 0);
+                const diff = grandTotal - totalPaid;
+                return (
+                  <div className="p-3 bg-orange-50/70 rounded-2xl border border-orange-200 flex items-center justify-between font-bold text-xs">
+                    <span>Total Paid: <b className="font-mono">₹{totalPaid}</b></span>
+                    <span className={diff === 0 ? "text-emerald-700 font-black" : diff > 0 ? "text-amber-700 font-black" : "text-red-600 font-black"}>
+                      {diff === 0 ? "✅ Fully Balanced" : diff > 0 ? `₹${diff} Remaining` : `₹${Math.abs(diff)} Extra`}
+                    </span>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowSplitModal(false)}
+                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 font-bold text-slate-700 rounded-xl"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleProcessSplitPayment}
+                disabled={submitting}
+                className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 font-black text-white rounded-xl shadow-md shadow-orange-500/20 active:scale-[0.98] transition-all"
+              >
+                {submitting ? "Processing..." : isTamil ? "பில் & ரசீது அச்சிடு" : "Confirm & Print Bill"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Thermal Receipt Print Dialog */}
       {receiptBill && (

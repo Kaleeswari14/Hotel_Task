@@ -136,12 +136,20 @@ export async function POST(req: NextRequest) {
 
     const discountAmount = Math.max(0, parseFloat(discount) || 0);
     const totalAmount = Math.max(0, subtotal - discountAmount);
-    const numericPaid = Math.max(0, parseFloat(paidAmount) || 0);
+    const splitPayments: Array<{ method: string; amount: number }> = Array.isArray(body.splitPayments)
+      ? body.splitPayments.filter((p: any) => typeof p?.amount === "number" && p.amount > 0)
+      : [];
+
+    let numericPaid = Math.max(0, parseFloat(paidAmount) || 0);
+    if (splitPayments.length > 0) {
+      numericPaid = splitPayments.reduce((acc, curr) => acc + curr.amount, 0);
+    }
+
     const isPaid = numericPaid >= totalAmount && totalAmount > 0;
     const status = isPaid ? "PAID" : numericPaid > 0 ? "PARTIAL" : "UNPAID";
     const balanceAmount = Math.max(0, totalAmount - numericPaid);
 
-    // Database transaction: Bill + Items + Payment + Stock Deduction
+    // Database transaction: Bill + Items + Payments + Stock Deduction
     const newBill = await prisma.$transaction(async (tx) => {
       // Find highest bill number, start from 1001
       const lastBill = await tx.bill.findFirst({
@@ -176,8 +184,24 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // If payment was made, record payment entry
-      if (numericPaid > 0) {
+      // If split payments were provided, record all split payment entries
+      if (splitPayments.length > 0) {
+        for (const sp of splitPayments) {
+          const validMethod = ["CASH", "UPI", "CARD"].includes(sp.method.toUpperCase())
+            ? sp.method.toUpperCase()
+            : "CASH";
+          await tx.payment.create({
+            data: {
+              billId: created.id,
+              amount: sp.amount,
+              paymentMethod: validMethod,
+              receivedById: user.userId,
+              notes: "Split POS payment",
+            },
+          });
+        }
+      } else if (numericPaid > 0) {
+        // Single payment record
         await tx.payment.create({
           data: {
             billId: created.id,

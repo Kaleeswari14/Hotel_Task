@@ -1,0 +1,24 @@
+{
+  "name": "HOTEL JB - POS & Restaurant Management",
+  "short_name": "HOTEL JB",
+  "description": "Ultra-Fast Offline-First Hotel POS & Management System",
+  "start_url": "/pos",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ea580c",
+  "orientation": "landscape-primary",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

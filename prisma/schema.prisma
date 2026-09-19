@@ -23,6 +23,7 @@ model User {
   payments     Payment[]      @relation("PaymentReceivedBy")
   cancellations Cancellation[] @relation("CancelledBy")
   dayClosings  DayClosing[]   @relation("DayClosedBy")
+  expenses     Expense[]      @relation("ExpenseCreatedBy")
 }
 
 model Category {
@@ -176,5 +177,21 @@ model SystemSetting {
   key       String   @unique
   value     String
   updatedAt DateTime @updatedAt
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  title       String   // e.g. "Milk 10 Litres", "Vegetables Market", "Gas Cylinder Refill", "Staff Wages"
+  category    String   // "RAW_MATERIALS" | "VEGETABLES" | "DAIRY" | "FUEL_GAS" | "SALARY" | "MAINTENANCE" | "OTHER"
+  amount      Float
+  paymentMode String   @default("CASH") // "CASH" | "UPI"
+  paidTo      String?  // Vendor / Person name
+  notes       String?
+  expenseDate String   // "YYYY-MM-DD"
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy   User     @relation("ExpenseCreatedBy", fields: [createdById], references: [id])
 }
 

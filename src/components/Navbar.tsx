@@ -19,7 +19,11 @@ import {
   MessageSquare,
   KeyRound,
   User as UserIcon,
-  ChevronDown
+  ChevronDown,
+  Wallet,
+  QrCode,
+  Wifi,
+  WifiOff
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -38,7 +42,27 @@ export default function Navbar({ user }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Online / Offline listener & Service Worker registration
+  useEffect(() => {
+    setIsOnline(navigator.onLine);
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -81,12 +105,14 @@ export default function Navbar({ user }: NavbarProps) {
     { href: "/bills", key: "nav.bills", fallback: "Bills", icon: Clock },
     { href: "/owner/menu", key: "nav.menu", fallback: "Menu", icon: UtensilsCrossed },
     { href: "/owner/stock", key: "nav.stock", fallback: "Stock", icon: Boxes },
+    { href: "/owner/expenses", key: "nav.expenses", fallback: "Expenses", icon: Wallet },
     { href: "/owner/payments", key: "nav.payments", fallback: "Payments", icon: IndianRupee },
     { href: "/owner/day-closing", key: "nav.dayClosing", fallback: "Day Closing", icon: CalendarCheck },
   ];
 
   const ownerIconOnlyLinks = [
-    { href: "/owner/whatsapp", key: "nav.whatsapp", title: "WhatsApp Service", icon: MessageSquare, iconColor: "text-orange-400" },
+    { href: "/owner/qr-codes", key: "nav.qrCodes", title: "Table QR Stickers", icon: QrCode, iconColor: "text-orange-500" },
+    { href: "/owner/whatsapp", key: "nav.whatsapp", title: "WhatsApp Service", icon: MessageSquare, iconColor: "text-orange-500" },
     { href: "/owner/cancelled", key: "nav.cancelled", title: "Cancelled Bills", icon: Ban, iconColor: "text-red-400" },
   ];
 
@@ -171,9 +197,31 @@ export default function Navbar({ user }: NavbarProps) {
           </nav>
 
           {/* ========================================================================= */}
-          {/* RIGHT SUITE: LANGUAGE SWITCHER + USER AVATAR */}
+          {/* RIGHT SUITE: PWA STATUS + LANGUAGE SWITCHER + USER AVATAR */}
           {/* ========================================================================= */}
           <div className="flex items-center space-x-2 shrink-0">
+            {/* 📶 ONLINE / OFFLINE PWA INDICATOR */}
+            <div
+              className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-all ${
+                isOnline
+                  ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                  : "bg-amber-50 text-amber-900 border-amber-300 animate-pulse"
+              }`}
+              title={isOnline ? "Online - Real-time Database Connected" : "Offline Mode - Bills Saved Locally"}
+            >
+              {isOnline ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span>Online</span>
+                </>
+              ) : (
+                <>
+                  <WifiOff className="w-3 h-3 text-amber-600" />
+                  <span>Offline</span>
+                </>
+              )}
+            </div>
+
             {/* 🌐 LANGUAGE SWITCHER PILL (ENGLISH ↔ தமிழ்) */}
             <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
               <button
