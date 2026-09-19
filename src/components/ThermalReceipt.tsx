@@ -156,7 +156,7 @@ export default function ThermalReceipt({
                 📋 ORDER SLIP / KOT (TOKEN COPY)
               </div>
             ) : (
-              <div className="mt-1.5 inline-block px-2.5 py-0.5 bg-emerald-100 text-emerald-900 text-[10px] font-black rounded border border-emerald-300 uppercase">
+              <div className="mt-1.5 inline-block px-2.5 py-0.5 bg-orange-100 text-orange-950 text-[10px] font-black rounded border border-orange-300 uppercase">
                 💳 TAX INVOICE / PAID RECEIPT
               </div>
             )}
@@ -256,7 +256,7 @@ export default function ThermalReceipt({
               </div>
             ) : (
               <div className="pt-0.5 space-y-0.5">
-                <div className="flex justify-between text-[11px] font-black text-emerald-800 gap-1">
+                <div className="flex justify-between text-[11px] font-black text-orange-950 gap-1">
                   <span className="truncate">
                     PAID VIA {primaryPayment?.paymentMethod || "CASH"}:
                   </span>
@@ -264,7 +264,7 @@ export default function ThermalReceipt({
                     ₹{(bill.paidAmount > 0 ? bill.paidAmount : bill.totalAmount).toFixed(0)}
                   </span>
                 </div>
-                <div className="flex justify-between text-[10px] font-black text-emerald-700">
+                <div className="flex justify-between text-[10px] font-black text-orange-800">
                   <span>STATUS:</span>
                   <span className="uppercase">PAID IN FULL</span>
                 </div>
@@ -293,7 +293,7 @@ export default function ThermalReceipt({
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs sm:text-sm transition-all"
+            className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs sm:text-sm transition-all cursor-pointer"
           >
             Close (Esc)
           </button>
@@ -301,10 +301,10 @@ export default function ThermalReceipt({
           <button
             type="button"
             onClick={handlePrint}
-            className={`flex-1 py-3 px-4 text-white font-black rounded-xl shadow-lg active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm ${
+            className={`flex-1 py-3 px-4 text-white font-black rounded-xl shadow-lg active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm cursor-pointer ${
               receiptMode === "ORDER_SLIP"
                 ? "bg-amber-600 hover:bg-amber-500 shadow-amber-600/20"
-                : "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20"
+                : "bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500 hover:from-orange-600 hover:to-orange-700 shadow-orange-500/20"
             }`}
           >
             <Printer className="w-4 h-4" />

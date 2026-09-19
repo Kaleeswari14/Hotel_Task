@@ -10,13 +10,14 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          500: '#10b981',
-          600: '#059669',
-          700: '#047857',
-          800: '#065f46',
-          900: '#064e3b',
+          50: '#fff7ed',
+          100: '#ffedd5',
+          200: '#fed7aa',
+          500: '#f97316',
+          600: '#ea580c',
+          700: '#c2410c',
+          800: '#9a3412',
+          900: '#7c2d12',
         },
         obsidian: {
           800: '#1e293b',
@@ -31,7 +32,8 @@ const config: Config = {
       },
       boxShadow: {
         'luxury': '0 10px 30px -10px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04)',
-        'luxury-hover': '0 20px 35px -12px rgba(15, 23, 42, 0.12), 0 8px 12px -6px rgba(15, 23, 42, 0.06)',
+        'luxury-hover': '0 20px 35px -12px rgba(249, 115, 22, 0.15), 0 8px 12px -6px rgba(15, 23, 42, 0.06)',
+        'glow-orange': '0 0 20px -3px rgba(249, 115, 22, 0.45)',
         'glow-emerald': '0 0 20px -3px rgba(16, 185, 129, 0.35)',
         'glow-indigo': '0 0 20px -3px rgba(99, 102, 241, 0.35)',
         'glow-amber': '0 0 20px -3px rgba(245, 158, 11, 0.35)',

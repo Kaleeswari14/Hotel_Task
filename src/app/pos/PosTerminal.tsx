@@ -465,19 +465,19 @@ export default function PosTerminal({
   });
 
   return (
-    <div className="w-full min-h-[calc(100vh-4rem)] bg-[#f4f6fa] p-3 sm:p-5 flex gap-4 xl:gap-5 select-none">
+    <div className="w-full min-h-[calc(100vh-4rem)] bg-[#fafaf8] p-3 sm:p-5 flex gap-4 xl:gap-5 select-none">
       {/* Toast Notification */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-2.5 border border-emerald-500 text-sm font-bold animate-slide-up">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-2.5 border border-orange-500 text-sm font-bold animate-slide-up">
+          <CheckCircle2 className="w-5 h-5 text-orange-400 shrink-0" />
           <span>{toastMsg}</span>
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* 1. LEFT SLIM CATEGORY RAIL (Easy POS Vertical Sidebar) */}
+      {/* 1. LEFT SLIM CATEGORY RAIL (Orange & White Vertical Sidebar) */}
       {/* ========================================================================= */}
-      <aside className="w-20 sm:w-24 shrink-0 flex flex-col justify-between items-center bg-white rounded-3xl p-2.5 sm:p-3 border border-slate-200/90 shadow-sm">
+      <aside className="w-20 sm:w-24 shrink-0 flex flex-col justify-between items-center bg-white rounded-3xl p-2.5 sm:p-3 border border-orange-100/90 shadow-sm">
         {/* Category Icons List */}
         <div className="w-full flex flex-col items-center gap-2.5 overflow-y-auto scrollbar-none py-1">
           {/* "All" Category Rail Item */}
@@ -486,8 +486,8 @@ export default function PosTerminal({
             onClick={() => setSelectedCatId("all")}
             className={`w-full aspect-square rounded-2xl flex flex-col items-center justify-center p-2 text-center transition-all cursor-pointer ${
               selectedCatId === "all"
-                ? "bg-[#00a86b] text-white shadow-md font-black scale-102"
-                : "bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                ? "bg-gradient-to-br from-orange-500 via-orange-600 to-amber-500 text-white shadow-md shadow-orange-500/30 font-black scale-102"
+                : "bg-orange-50/40 text-slate-600 hover:bg-orange-100/60 hover:text-orange-950 border border-orange-100/70"
             }`}
           >
             <LayoutGrid className="w-5 h-5 mb-1 shrink-0" />
@@ -507,8 +507,8 @@ export default function PosTerminal({
                 onClick={() => setSelectedCatId(cat.id)}
                 className={`w-full aspect-square rounded-2xl flex flex-col items-center justify-center p-2 text-center transition-all cursor-pointer ${
                   isSelected
-                    ? "bg-[#00a86b] text-white shadow-md font-black scale-102"
-                    : "bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                    ? "bg-gradient-to-br from-orange-500 via-orange-600 to-amber-500 text-white shadow-md shadow-orange-500/30 font-black scale-102"
+                    : "bg-orange-50/40 text-slate-600 hover:bg-orange-100/60 hover:text-orange-950 border border-orange-100/70"
                 }`}
               >
                 <Icon className="w-5 h-5 mb-1 shrink-0" />
@@ -521,14 +521,14 @@ export default function PosTerminal({
         </div>
 
         {/* Bottom Rail Utility: Order Mode / Table Switcher */}
-        <div className="w-full pt-2 border-t border-slate-100">
+        <div className="w-full pt-2 border-t border-orange-100">
           <button
             type="button"
             onClick={() => setOrderType(orderType === "TOKEN" ? "TABLE" : "TOKEN")}
             className={`w-full p-2 rounded-2xl flex flex-col items-center justify-center text-center transition-all cursor-pointer ${
               orderType === "TABLE"
-                ? "bg-amber-500 text-slate-950 font-black shadow-sm"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black shadow-sm"
+                : "bg-orange-50 text-orange-800 hover:bg-orange-100 border border-orange-200/60"
             }`}
             title="Toggle Token / Table Mode"
           >
@@ -541,38 +541,38 @@ export default function PosTerminal({
       </aside>
 
       {/* ========================================================================= */}
-      {/* 2. CENTER MAIN HUB: Header, Coral Pills, Search & Product Cards Grid */}
+      {/* 2. CENTER MAIN HUB: Header, Orange Pills, Search & Product Cards Grid */}
       {/* ========================================================================= */}
       <main className="flex-1 flex flex-col min-w-0 space-y-3 sm:space-y-4">
-        {/* Top Header & Coral Pills Navigation */}
-        <div className="bg-white rounded-3xl p-3.5 sm:p-4 border border-slate-200/90 shadow-sm space-y-3">
+        {/* Top Header & Orange Pills Navigation */}
+        <div className="bg-white rounded-3xl p-3.5 sm:p-4 border border-orange-100/90 shadow-sm space-y-3">
           {/* Top Row: Brand, Search Bar, and Top Controls */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             {/* Title & Brand Badge */}
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#00a86b] to-teal-400 flex items-center justify-center text-white font-black text-xs shadow-sm">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-orange-500 via-orange-600 to-amber-400 flex items-center justify-center text-white font-black text-xs shadow-glow-orange">
                 JB
               </div>
               <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
-                Hotel JB <span className="text-[#00a86b] font-mono text-sm uppercase">POS</span>
+                Hotel JB <span className="text-orange-500 font-mono text-sm uppercase">POS</span>
               </h1>
             </div>
 
             {/* Search Input Box */}
             <div className="flex-1 max-w-md relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-4 h-4 text-orange-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={isTamil ? "உணவின் பெயர் அல்லது எண் தேடுங்கள்..." : "Search food items, codes or categories..."}
-                className="w-full pl-10 pr-9 py-2 bg-[#f4f6fa] border border-slate-200 rounded-full text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#00a86b]/20 focus:border-[#00a86b] transition-all"
+                className="w-full pl-10 pr-9 py-2 bg-[#fbfbfa] border border-orange-200/80 rounded-full text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-400"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-slate-300 text-slate-700 text-[10px] font-bold flex items-center justify-center cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-orange-200 text-orange-800 text-[10px] font-bold flex items-center justify-center cursor-pointer hover:bg-orange-300"
                 >
                   ✕
                 </button>
@@ -582,14 +582,14 @@ export default function PosTerminal({
             {/* Top Right Utilities: Dietary & New Order / Clear */}
             <div className="flex items-center gap-2">
               {/* Dietary Filter Pills */}
-              <div className="hidden sm:flex items-center bg-[#f4f6fa] p-1 rounded-full border border-slate-200">
+              <div className="hidden sm:flex items-center bg-orange-50/50 p-1 rounded-full border border-orange-100">
                 <button
                   type="button"
                   onClick={() => setSelectedDietary("ALL")}
                   className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
                     selectedDietary === "ALL"
                       ? "bg-slate-900 text-white shadow-xs font-black"
-                      : "text-slate-600 hover:text-slate-900"
+                      : "text-slate-600 hover:text-orange-950"
                   }`}
                 >
                   {isTamil ? "அனைத்தும்" : "All"}
@@ -623,7 +623,7 @@ export default function PosTerminal({
                 <button
                   type="button"
                   onClick={clearCart}
-                  className="px-3.5 py-2 bg-[#ff5b36] hover:bg-[#e04825] text-white font-black text-xs rounded-full shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
+                  className="px-3.5 py-2 bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-xs rounded-full shadow-md shadow-orange-500/25 flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   <span>+ {isTamil ? "புதிய ஆர்டர்" : "New Order"}</span>
@@ -632,15 +632,15 @@ export default function PosTerminal({
             </div>
           </div>
 
-          {/* Secondary Filter: Coral Active Session Pills (All, Morning, Afternoon, Snacks, Night) */}
+          {/* Secondary Filter: Orange Active Session Pills (All, Morning, Afternoon, Snacks, Night) */}
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pt-1">
             <button
               type="button"
               onClick={() => setSelectedMealSession("ALL")}
               className={`px-4 py-1.5 rounded-full text-xs font-black whitespace-nowrap transition-all cursor-pointer ${
                 selectedMealSession === "ALL"
-                  ? "bg-[#ff5b36] text-white shadow-sm"
-                  : "bg-[#f4f6fa] text-slate-600 hover:bg-slate-200"
+                  ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm shadow-orange-500/25"
+                  : "bg-orange-50/60 text-slate-700 hover:bg-orange-100/80 border border-orange-100/60"
               }`}
             >
               🍽️ {t("pos.allSessions")}
@@ -650,8 +650,8 @@ export default function PosTerminal({
               onClick={() => setSelectedMealSession("MORNING")}
               className={`px-4 py-1.5 rounded-full text-xs font-black whitespace-nowrap transition-all cursor-pointer ${
                 selectedMealSession === "MORNING"
-                  ? "bg-[#ff5b36] text-white shadow-sm"
-                  : "bg-[#f4f6fa] text-slate-600 hover:bg-slate-200"
+                  ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm shadow-orange-500/25"
+                  : "bg-orange-50/60 text-slate-700 hover:bg-orange-100/80 border border-orange-100/60"
               }`}
             >
               🌅 {t("pos.morning")}
@@ -661,8 +661,8 @@ export default function PosTerminal({
               onClick={() => setSelectedMealSession("AFTERNOON")}
               className={`px-4 py-1.5 rounded-full text-xs font-black whitespace-nowrap transition-all cursor-pointer ${
                 selectedMealSession === "AFTERNOON"
-                  ? "bg-[#ff5b36] text-white shadow-sm"
-                  : "bg-[#f4f6fa] text-slate-600 hover:bg-slate-200"
+                  ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm shadow-orange-500/25"
+                  : "bg-orange-50/60 text-slate-700 hover:bg-orange-100/80 border border-orange-100/60"
               }`}
             >
               ☀️ {t("pos.afternoon")}
@@ -672,8 +672,8 @@ export default function PosTerminal({
               onClick={() => setSelectedMealSession("SNACKS")}
               className={`px-4 py-1.5 rounded-full text-xs font-black whitespace-nowrap transition-all cursor-pointer ${
                 selectedMealSession === "SNACKS"
-                  ? "bg-[#ff5b36] text-white shadow-sm"
-                  : "bg-[#f4f6fa] text-slate-600 hover:bg-slate-200"
+                  ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm shadow-orange-500/25"
+                  : "bg-orange-50/60 text-slate-700 hover:bg-orange-100/80 border border-orange-100/60"
               }`}
             >
               ☕ {t("pos.snacks")}
@@ -683,8 +683,8 @@ export default function PosTerminal({
               onClick={() => setSelectedMealSession("NIGHT")}
               className={`px-4 py-1.5 rounded-full text-xs font-black whitespace-nowrap transition-all cursor-pointer ${
                 selectedMealSession === "NIGHT"
-                  ? "bg-[#ff5b36] text-white shadow-sm"
-                  : "bg-[#f4f6fa] text-slate-600 hover:bg-slate-200"
+                  ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm shadow-orange-500/25"
+                  : "bg-orange-50/60 text-slate-700 hover:bg-orange-100/80 border border-orange-100/60"
               }`}
             >
               🌙 {t("pos.night")}
@@ -692,7 +692,7 @@ export default function PosTerminal({
           </div>
         </div>
 
-        {/* Product / Dish Grid (Easy POS Floating Dish Style) */}
+        {/* Product / Dish Grid (Orange & White Floating Dish Style) */}
         <div className="flex-1 overflow-y-auto pr-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
             {filteredFoods.map((food) => {
@@ -708,14 +708,14 @@ export default function PosTerminal({
               return (
                 <div
                   key={food.id}
-                  className={`bg-white rounded-3xl p-4 border border-slate-200/90 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group ${
+                  className={`bg-white rounded-3xl p-4 border border-orange-100/80 shadow-sm hover:shadow-xl hover:shadow-orange-500/10 hover:border-orange-400 transition-all flex flex-col justify-between group ${
                     isOut ? "opacity-60 bg-slate-50" : ""
                   }`}
                 >
                   {/* Card Top: Visual Food Graphic & Badges */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-black uppercase text-slate-500 bg-[#f4f6fa] px-2 py-0.5 rounded-lg">
+                      <span className="text-[10px] font-black uppercase text-orange-700 bg-orange-50 px-2 py-0.5 rounded-lg border border-orange-200/60">
                         {getCategoryName(food.category)}
                       </span>
                       {diet === "NON_VEG" ? (
@@ -734,12 +734,12 @@ export default function PosTerminal({
                     </div>
 
                     {/* Food Graphic Center */}
-                    <div className="w-20 h-20 mx-auto my-1 rounded-2xl bg-[#f8fafc] border border-slate-100 flex items-center justify-center text-4xl shadow-inner group-hover:scale-105 transition-transform">
+                    <div className="w-20 h-20 mx-auto my-1 rounded-2xl bg-orange-50/50 border border-orange-100 flex items-center justify-center text-4xl shadow-inner group-hover:scale-105 transition-transform">
                       {getFoodEmoji(food.name)}
                     </div>
 
                     {/* Dish Title */}
-                    <h3 className="font-extrabold text-slate-900 text-sm sm:text-base text-center mt-2 leading-tight line-clamp-1">
+                    <h3 className="font-extrabold text-slate-900 text-sm sm:text-base text-center mt-2 leading-tight line-clamp-1 group-hover:text-orange-600 transition-colors">
                       {getFoodName(food)}
                     </h3>
 
@@ -753,8 +753,8 @@ export default function PosTerminal({
                             onClick={() => setSelectedPortionMap((prev) => ({ ...prev, [food.id]: p.id }))}
                             className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
                               activePortion?.id === p.id
-                                ? "bg-slate-900 text-white font-black"
-                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                ? "bg-orange-600 text-white font-black shadow-xs"
+                                : "bg-orange-50 text-orange-800 hover:bg-orange-100"
                             }`}
                           >
                             {getPortionName(p.portionName)}
@@ -765,13 +765,13 @@ export default function PosTerminal({
                   </div>
 
                   {/* Card Bottom: Price and Interactive Stepper */}
-                  <div className="mt-4 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
-                    {/* Price in Coral Orange */}
+                  <div className="mt-4 pt-2.5 border-t border-orange-100 flex items-center justify-between gap-2">
+                    {/* Price in Orange */}
                     <div className="flex flex-col">
                       <span className="text-[10px] font-semibold text-slate-400 uppercase">
                         {activePortion ? getPortionName(activePortion.portionName) : "Price"}
                       </span>
-                      <span className="text-base font-black text-[#ff5b36]">
+                      <span className="text-base font-black text-orange-600">
                         {formatCurrency(activePortion ? activePortion.price : 0)}
                       </span>
                     </div>
@@ -782,7 +782,7 @@ export default function PosTerminal({
                         {isTamil ? "தீர்ந்தது" : "Out of Stock"}
                       </span>
                     ) : portionQty > 0 ? (
-                      <div className="flex items-center gap-1.5 bg-[#ff5b36] p-0.5 rounded-xl text-white shadow-sm">
+                      <div className="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-amber-500 p-0.5 rounded-xl text-white shadow-sm shadow-orange-500/25">
                         <button
                           type="button"
                           onClick={() => handleCardDecrement(food, activePortion)}
@@ -805,7 +805,7 @@ export default function PosTerminal({
                       <button
                         type="button"
                         onClick={() => addToCart(food, activePortion)}
-                        className="w-8 h-8 rounded-xl bg-[#f4f6fa] hover:bg-[#00a86b] text-slate-700 hover:text-white border border-slate-200 hover:border-[#00a86b] flex items-center justify-center font-black transition-all cursor-pointer shadow-xs active:scale-95"
+                        className="w-8 h-8 rounded-xl bg-orange-50 hover:bg-gradient-to-r hover:from-orange-500 hover:to-amber-500 text-orange-700 hover:text-white border border-orange-200/80 hover:border-orange-500 flex items-center justify-center font-black transition-all cursor-pointer shadow-xs active:scale-95"
                         title="Add to cart"
                       >
                         <Plus className="w-4 h-4" />
@@ -817,8 +817,8 @@ export default function PosTerminal({
             })}
 
             {filteredFoods.length === 0 && (
-              <div className="col-span-full bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400">
-                <UtensilsCrossed className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+              <div className="col-span-full bg-white rounded-3xl border border-orange-100 p-12 text-center text-slate-400">
+                <UtensilsCrossed className="w-12 h-12 text-orange-300 mx-auto mb-2" />
                 <div className="font-bold text-slate-600 text-sm">
                   {isTamil ? "உணவுகள் எதுவும் கிடைக்கவில்லை" : "No dishes found"}
                 </div>
@@ -832,18 +832,18 @@ export default function PosTerminal({
       </main>
 
       {/* ========================================================================= */}
-      {/* 3. RIGHT INVOICE & ORDER SUMMARY PANEL (Easy POS Style) */}
+      {/* 3. RIGHT INVOICE & ORDER SUMMARY PANEL (Orange & White Style) */}
       {/* ========================================================================= */}
-      <aside className="w-80 sm:w-96 shrink-0 bg-white rounded-3xl border border-slate-200/90 shadow-sm p-4 sm:p-5 flex flex-col justify-between h-[calc(100vh-6rem)] sticky top-20">
+      <aside className="w-80 sm:w-96 shrink-0 bg-white rounded-3xl border border-orange-100/90 shadow-sm p-4 sm:p-5 flex flex-col justify-between h-[calc(100vh-6rem)] sticky top-20">
         <div>
           {/* Invoice Top Header */}
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="flex items-center justify-between pb-3 border-b border-orange-100">
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-black text-slate-900 text-sm sm:text-base">
                   {t("cart.currentOrder")}
                 </span>
-                <span className="text-[10px] font-black bg-[#ff5b36]/10 text-[#ff5b36] px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-black bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full border border-orange-200/60">
                   #{orderType === "TABLE" ? `Table ${tableNumber}` : "Token"}
                 </span>
               </div>
@@ -865,13 +865,13 @@ export default function PosTerminal({
           </div>
 
           {/* Customer Name & WhatsApp (Optional) */}
-          <div className="py-2.5 border-b border-slate-100 grid grid-cols-2 gap-2">
+          <div className="py-2.5 border-b border-orange-100 grid grid-cols-2 gap-2">
             <input
               type="text"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
               placeholder={isTamil ? "பெயர்" : "Name"}
-              className="w-full px-3 py-1.5 bg-[#f4f6fa] border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#00a86b]"
+              className="w-full px-3 py-1.5 bg-[#fbfbfa] border border-orange-200/80 rounded-xl text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
             />
             <input
               type="tel"
@@ -879,7 +879,7 @@ export default function PosTerminal({
               maxLength={10}
               onChange={(e) => setCustomerPhone(e.target.value)}
               placeholder={isTamil ? "வாட்ஸ்அப் எண்" : "WhatsApp No."}
-              className="w-full px-3 py-1.5 bg-[#f4f6fa] border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#00a86b]"
+              className="w-full px-3 py-1.5 bg-[#fbfbfa] border border-orange-200/80 rounded-xl text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
             />
           </div>
 
@@ -888,23 +888,23 @@ export default function PosTerminal({
             {cart.map((item, idx) => (
               <div
                 key={`${item.foodItemId}-${item.portionId}`}
-                className="p-2.5 bg-[#f8fafc] rounded-2xl border border-slate-100 flex items-center justify-between gap-2"
+                className="p-2.5 bg-orange-50/40 rounded-2xl border border-orange-100/70 flex items-center justify-between gap-2"
               >
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-slate-900 text-xs truncate">
                     {getFoodName({ name: item.foodName, nameTamil: item.foodNameTamil })}
                   </div>
-                  <div className="text-[10px] font-bold text-slate-400">
+                  <div className="text-[10px] font-bold text-orange-700">
                     {getPortionName(item.portionName)} &bull; {formatCurrency(item.unitPrice)}
                   </div>
                 </div>
 
                 {/* Inline Stepper */}
-                <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-slate-200 shadow-2xs">
+                <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-orange-200 shadow-2xs">
                   <button
                     type="button"
                     onClick={() => updateQuantity(idx, -1)}
-                    className="w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-[10px] cursor-pointer"
+                    className="w-5 h-5 rounded bg-orange-50 hover:bg-orange-100 text-orange-800 flex items-center justify-center font-bold text-[10px] cursor-pointer"
                   >
                     <Minus className="w-2.5 h-2.5" />
                   </button>
@@ -914,7 +914,7 @@ export default function PosTerminal({
                   <button
                     type="button"
                     onClick={() => updateQuantity(idx, 1)}
-                    className="w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-[10px] cursor-pointer"
+                    className="w-5 h-5 rounded bg-orange-50 hover:bg-orange-100 text-orange-800 flex items-center justify-center font-bold text-[10px] cursor-pointer"
                   >
                     <Plus className="w-2.5 h-2.5" />
                   </button>
@@ -928,7 +928,7 @@ export default function PosTerminal({
 
             {cart.length === 0 && (
               <div className="py-10 text-center text-slate-400 flex flex-col items-center justify-center">
-                <ShoppingBag className="w-10 h-10 text-slate-300 mb-2" />
+                <ShoppingBag className="w-10 h-10 text-orange-200 mb-2" />
                 <div className="font-bold text-xs text-slate-600">{t("cart.emptyTitle")}</div>
                 <div className="text-[10px] text-slate-400">{t("cart.emptySubtitle")}</div>
               </div>
@@ -937,7 +937,7 @@ export default function PosTerminal({
         </div>
 
         {/* Invoice Footer: Calculation & Action Buttons */}
-        <div className="pt-3 border-t border-slate-100 space-y-3">
+        <div className="pt-3 border-t border-orange-100 space-y-3">
           {/* Subtotal, Discount & Grand Total */}
           <div className="space-y-1.5 text-xs">
             <div className="flex items-center justify-between text-slate-500 font-semibold">
@@ -947,7 +947,7 @@ export default function PosTerminal({
 
             <div className="flex items-center justify-between text-slate-500 font-semibold">
               <span className="flex items-center gap-1">
-                <Tag className="w-3 h-3 text-slate-400" />
+                <Tag className="w-3 h-3 text-orange-400" />
                 <span>{t("cart.discount")}</span>
               </span>
               <input
@@ -956,25 +956,25 @@ export default function PosTerminal({
                 value={discount}
                 onChange={(e) => setDiscount(e.target.value)}
                 placeholder="0"
-                className="w-16 px-1.5 py-0.5 bg-[#f4f6fa] border border-slate-200 rounded text-right font-bold text-xs text-slate-900 focus:outline-none"
+                className="w-16 px-1.5 py-0.5 bg-[#fbfbfa] border border-orange-200 rounded text-right font-bold text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-orange-500"
               />
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+            <div className="flex items-center justify-between pt-2 border-t border-orange-100">
               <span className="font-extrabold text-sm text-slate-900">{t("cart.totalPayable")}</span>
-              <span className="font-black text-xl text-[#00a86b]">{formatCurrency(grandTotal)}</span>
+              <span className="font-black text-2xl text-orange-600">{formatCurrency(grandTotal)}</span>
             </div>
           </div>
 
-          {/* Action Buttons: Print Invoice (Outline) & Payments (Green) */}
+          {/* Action Buttons: Print Invoice (Outline) & Payments (Orange) */}
           <div className="space-y-2 pt-1">
             <button
               type="button"
               onClick={() => handleInstantPayAndPrint("CASH")}
               disabled={submitting || cart.length === 0}
-              className="w-full py-3.5 bg-[#00a86b] hover:bg-[#00945e] disabled:opacity-40 text-white font-black rounded-2xl shadow-md active:scale-98 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
+              className="w-full py-3.5 bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-40 text-white font-black rounded-2xl shadow-lg shadow-orange-500/30 active:scale-98 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
             >
-              <Zap className="w-4 h-4 text-amber-300" />
+              <Zap className="w-4 h-4 text-amber-200" />
               <span>{t("cart.cashAndPrint")}</span>
               <span className="text-[10px] bg-black/20 px-1.5 py-0.5 rounded font-mono">↵</span>
             </button>
@@ -983,11 +983,11 @@ export default function PosTerminal({
               type="button"
               onClick={handleSaveAndPrintOrderSlip}
               disabled={submitting || cart.length === 0}
-              className="w-full py-2.5 bg-white hover:bg-slate-50 text-slate-800 disabled:opacity-40 border border-slate-300 font-bold rounded-2xl text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full py-2.5 bg-white hover:bg-orange-50 text-slate-800 disabled:opacity-40 border border-orange-300 font-bold rounded-2xl text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <Receipt className="w-3.5 h-3.5 text-slate-500" />
+              <Receipt className="w-3.5 h-3.5 text-orange-600" />
               <span>{t("cart.orderSlip")} (KOT)</span>
-              <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-mono">⇧↵</span>
+              <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-mono">⇧↵</span>
             </button>
           </div>
         </div>

@@ -98,8 +98,8 @@ export default function OwnerPermissionModal({
           </div>
 
           {userRole === "OWNER" ? (
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-800 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <div className="p-3 bg-orange-50 border border-orange-200 rounded-2xl text-xs text-orange-950 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-orange-600 shrink-0" />
               <span>You are logged in as <strong>OWNER</strong>. Click authorize to proceed.</span>
             </div>
           ) : (
@@ -115,7 +115,7 @@ export default function OwnerPermissionModal({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter owner password (e.g. admin123)"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white"
                 />
               </div>
             </div>
@@ -132,14 +132,14 @@ export default function OwnerPermissionModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-all"
+              className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-all cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs shadow-md active:scale-[0.98] disabled:opacity-50 transition-all flex items-center gap-1.5"
+              className="px-5 py-2.5 bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500 hover:from-orange-600 hover:to-orange-700 text-white font-black rounded-xl text-xs transition-all shadow-md shadow-orange-500/20 active:scale-[0.98] disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
             >
               <Lock className="w-3.5 h-3.5" />
               <span>{loading ? "Verifying..." : "Authorize Action"}</span>

@@ -161,52 +161,52 @@ export default function LoginPage() {
 
   if (checkingSetup) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+      <div className="min-h-screen flex items-center justify-center bg-stone-950 text-white">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-9 h-9 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-          <div className="text-xs font-semibold text-slate-400 tracking-wider uppercase">Loading System...</div>
+          <div className="w-9 h-9 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" />
+          <div className="text-xs font-semibold text-stone-400 tracking-wider uppercase">Loading System...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen relative flex flex-col justify-center items-center px-4 sm:px-6 bg-slate-950 text-slate-100 overflow-hidden py-12">
+    <div className="min-h-screen relative flex flex-col justify-center items-center px-4 sm:px-6 bg-stone-950 text-stone-100 overflow-hidden py-12">
       {/* Background Subtle Luxury Ambient Glows */}
-      <div className="absolute top-1/6 -left-32 w-[32rem] h-[32rem] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/6 -right-32 w-[32rem] h-[32rem] bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-96 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/6 -left-32 w-[32rem] h-[32rem] bg-orange-500/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/6 -right-32 w-[32rem] h-[32rem] bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-96 bg-orange-600/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10">
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-400 shadow-glow-emerald mb-4 border border-emerald-300/30 text-white transform hover:scale-105 transition-all">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-tr from-orange-600 via-orange-500 to-amber-400 shadow-glow-orange mb-4 border border-orange-300/30 text-white transform hover:scale-105 transition-all">
             <Utensils className="w-10 h-10" />
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-white via-stone-100 to-orange-200 bg-clip-text text-transparent tracking-tight">
             {hotelName}
           </h1>
-          <p className="text-emerald-400/90 text-xs sm:text-sm mt-1.5 font-bold tracking-wider uppercase">
+          <p className="text-orange-400/90 text-xs sm:text-sm mt-1.5 font-bold tracking-wider uppercase">
             {needsSetup ? "Initial Owner Account Setup" : "Enterprise Point of Sale & Management"}
           </p>
         </div>
 
         {/* Main Card */}
-        <div className="glass-panel-dark rounded-3xl border border-slate-800/90 shadow-2xl p-6 sm:p-8">
+        <div className="glass-panel-dark rounded-3xl border border-stone-800/90 shadow-2xl p-6 sm:p-8">
           {needsSetup ? (
             /* ========================================================================= */
             /* 1. INITIAL OWNER SETUP (FRESH INSTALLATION ONLY) */
             /* ========================================================================= */
             <div>
-              <div className="mb-6 pb-4 border-b border-slate-800 flex items-center justify-between">
+              <div className="mb-6 pb-4 border-b border-stone-800 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-black text-white flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-emerald-400" />
+                    <Sparkles className="w-5 h-5 text-orange-400" />
                     <span>Create Owner Account</span>
                   </h2>
-                  <p className="text-xs text-slate-400 mt-0.5">Setup master credentials for your restaurant</p>
+                  <p className="text-xs text-stone-400 mt-0.5">Setup master credentials for your restaurant</p>
                 </div>
-                <span className="text-[11px] bg-emerald-950/80 text-emerald-300 font-bold px-2.5 py-1 rounded-full border border-emerald-500/30">
+                <span className="text-[11px] bg-orange-950/80 text-orange-300 font-bold px-2.5 py-1 rounded-full border border-orange-500/30">
                   Initial Setup
                 </span>
               </div>
@@ -222,19 +222,19 @@ export default function LoginPage() {
               )}
 
               {setupSuccess ? (
-                <div className="p-8 bg-emerald-950/60 border border-emerald-500/40 rounded-2xl text-center space-y-3 text-emerald-200">
-                  <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto animate-bounce" />
+                <div className="p-8 bg-orange-950/60 border border-orange-500/40 rounded-2xl text-center space-y-3 text-orange-200">
+                  <CheckCircle2 className="w-12 h-12 text-orange-400 mx-auto animate-bounce" />
                   <div className="font-black text-lg text-white">Account Created Successfully!</div>
-                  <div className="text-xs text-emerald-300">Launching Dashboard...</div>
+                  <div className="text-xs text-orange-300">Launching Dashboard...</div>
                 </div>
               ) : (
                 <form onSubmit={handleSetupSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-bold text-stone-300 uppercase tracking-wider mb-1.5">
                       Owner Full Name
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
                         <User className="w-4 h-4" />
                       </div>
                       <input
@@ -242,18 +242,18 @@ export default function LoginPage() {
                         value={setupOwnerName}
                         onChange={(e) => setSetupOwnerName(e.target.value)}
                         placeholder="e.g. Restaurant Owner"
-                        className="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm font-medium transition-all"
+                        className="w-full pl-10 pr-4 py-3 bg-stone-950 border border-stone-700/80 rounded-xl text-white placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm font-medium transition-all"
                         required
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-bold text-stone-300 uppercase tracking-wider mb-1.5">
                       Username or Email
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
                         <User className="w-4 h-4" />
                       </div>
                       <input
@@ -261,18 +261,18 @@ export default function LoginPage() {
                         value={setupUsername}
                         onChange={(e) => setSetupUsername(e.target.value)}
                         placeholder="e.g. owner or admin@restaurant.com"
-                        className="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm font-medium transition-all"
+                        className="w-full pl-10 pr-4 py-3 bg-stone-950 border border-stone-700/80 rounded-xl text-white placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm font-medium transition-all"
                         required
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-bold text-stone-300 uppercase tracking-wider mb-1.5">
                       Password
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
                         <Lock className="w-4 h-4" />
                       </div>
                       <input
@@ -280,13 +280,13 @@ export default function LoginPage() {
                         value={setupPassword}
                         onChange={(e) => setSetupPassword(e.target.value)}
                         placeholder="Create strong password"
-                        className="w-full pl-10 pr-11 py-3 bg-slate-950 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm font-medium transition-all"
+                        className="w-full pl-10 pr-11 py-3 bg-stone-950 border border-stone-700/80 rounded-xl text-white placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm font-medium transition-all"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowSetupPassword(!showSetupPassword)}
-                        className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-200 transition-colors"
+                        className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-200 transition-colors"
                       >
                         {showSetupPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -294,11 +294,11 @@ export default function LoginPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-bold text-stone-300 uppercase tracking-wider mb-1.5">
                       Confirm Password
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
                         <Lock className="w-4 h-4" />
                       </div>
                       <input
@@ -306,7 +306,7 @@ export default function LoginPage() {
                         value={setupConfirmPassword}
                         onChange={(e) => setSetupConfirmPassword(e.target.value)}
                         placeholder="Repeat your password"
-                        className="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm font-medium transition-all"
+                        className="w-full pl-10 pr-4 py-3 bg-stone-950 border border-stone-700/80 rounded-xl text-white placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm font-medium transition-all"
                         required
                       />
                     </div>
@@ -315,7 +315,7 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full mt-2 py-3.5 px-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold rounded-2xl shadow-xl shadow-emerald-700/30 focus:outline-none focus:ring-2 focus:ring-emerald-400 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
+                    className="w-full mt-2 py-3.5 px-4 bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 hover:from-orange-500 hover:to-amber-500 text-white font-extrabold rounded-2xl shadow-xl shadow-orange-700/30 focus:outline-none focus:ring-2 focus:ring-orange-400 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
                   >
                     {loading ? (
                       <div className="flex items-center gap-2">
@@ -337,16 +337,16 @@ export default function LoginPage() {
             /* 2. STANDARD SECURE PROFESSIONAL LOGIN SCREEN */
             /* ========================================================================= */
             <div>
-              <div className="mb-6 pb-4 border-b border-slate-800 flex items-center justify-between">
+              <div className="mb-6 pb-4 border-b border-stone-800 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-black text-white flex items-center gap-2">
-                    <KeyRound className="w-5 h-5 text-emerald-400" />
+                    <KeyRound className="w-5 h-5 text-orange-400" />
                     <span>Sign In to Terminal</span>
                   </h2>
-                  <p className="text-xs text-slate-400 mt-0.5">Enter your authorized credentials</p>
+                  <p className="text-xs text-stone-400 mt-0.5">Enter your authorized credentials</p>
                 </div>
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 text-[11px] font-bold">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-950/60 border border-orange-500/30 text-orange-300 text-[11px] font-bold">
+                  <ShieldCheck className="w-3.5 h-3.5 text-orange-400" />
                   <span>Secure Access</span>
                 </div>
               </div>
@@ -363,11 +363,11 @@ export default function LoginPage() {
 
               <form onSubmit={handleLoginSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-bold text-stone-300 uppercase tracking-wider mb-1.5">
                     Username or Email
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
                       <User className="w-4 h-4" />
                     </div>
                     <input
@@ -375,7 +375,7 @@ export default function LoginPage() {
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       placeholder="Enter your username or email"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base font-medium transition-all"
+                      className="w-full pl-10 pr-4 py-3 bg-stone-950 border border-stone-700/80 rounded-xl text-white placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base font-medium transition-all"
                       required
                       autoFocus
                     />
@@ -384,12 +384,12 @@ export default function LoginPage() {
 
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                    <label className="block text-xs font-bold text-stone-300 uppercase tracking-wider">
                       Password
                     </label>
                   </div>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
                       <Lock className="w-4 h-4" />
                     </div>
                     <input
@@ -397,13 +397,13 @@ export default function LoginPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
-                      className="w-full pl-10 pr-11 py-3 bg-slate-950 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base font-medium transition-all"
+                      className="w-full pl-10 pr-11 py-3 bg-stone-950 border border-stone-700/80 rounded-xl text-white placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base font-medium transition-all"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-200 transition-colors"
+                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-200 transition-colors"
                       tabIndex={-1}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -414,7 +414,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full mt-2 py-3.5 px-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold rounded-2xl shadow-xl shadow-emerald-700/30 focus:outline-none focus:ring-2 focus:ring-emerald-400 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
+                  className="w-full mt-2 py-3.5 px-4 bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 hover:from-orange-500 hover:to-amber-500 text-white font-extrabold rounded-2xl shadow-xl shadow-orange-700/30 focus:outline-none focus:ring-2 focus:ring-orange-400 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
                 >
                   {loading ? (
                     <div className="flex items-center gap-2">
@@ -435,20 +435,20 @@ export default function LoginPage() {
 
         {/* Feature Highlights Pills */}
         <div className="mt-8 grid grid-cols-3 gap-2 text-center">
-          <div className="bg-slate-900/40 border border-slate-800/60 rounded-xl p-2.5">
+          <div className="bg-stone-900/60 border border-stone-800/80 rounded-xl p-2.5">
             <Zap className="w-4 h-4 text-amber-400 mx-auto mb-1" />
-            <div className="text-[11px] font-bold text-slate-300">1-Click Billing</div>
-            <div className="text-[10px] text-slate-500">Fast Counter POS</div>
+            <div className="text-[11px] font-bold text-stone-300">1-Click Billing</div>
+            <div className="text-[10px] text-stone-500">Fast Counter POS</div>
           </div>
-          <div className="bg-slate-900/40 border border-slate-800/60 rounded-xl p-2.5">
-            <Printer className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
-            <div className="text-[11px] font-bold text-slate-300">Thermal Print</div>
-            <div className="text-[10px] text-slate-500">58mm & 80mm KOT</div>
+          <div className="bg-stone-900/60 border border-stone-800/80 rounded-xl p-2.5">
+            <Printer className="w-4 h-4 text-orange-400 mx-auto mb-1" />
+            <div className="text-[11px] font-bold text-stone-300">Thermal Print</div>
+            <div className="text-[10px] text-stone-500">58mm & 80mm KOT</div>
           </div>
-          <div className="bg-slate-900/40 border border-slate-800/60 rounded-xl p-2.5">
-            <MessageSquare className="w-4 h-4 text-teal-400 mx-auto mb-1" />
-            <div className="text-[11px] font-bold text-slate-300">WhatsApp Invoicing</div>
-            <div className="text-[10px] text-slate-500">Instant Free Delivery</div>
+          <div className="bg-stone-900/60 border border-stone-800/80 rounded-xl p-2.5">
+            <MessageSquare className="w-4 h-4 text-amber-400 mx-auto mb-1" />
+            <div className="text-[11px] font-bold text-stone-300">WhatsApp Invoicing</div>
+            <div className="text-[10px] text-stone-500">Instant Free Delivery</div>
           </div>
         </div>
 

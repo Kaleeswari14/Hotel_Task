@@ -296,31 +296,31 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
     <div className="space-y-6">
       {/* Toast Notification */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-emerald-700 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-emerald-500 text-sm font-semibold animate-slide-up">
+        <div className="fixed bottom-6 right-6 z-50 bg-orange-600 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-orange-400 text-sm font-semibold animate-slide-up">
           <Check className="w-5 h-5" />
           <span>{toastMsg}</span>
         </div>
       )}
 
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/90 backdrop-blur-md p-6 rounded-3xl border border-slate-200/90 shadow-luxury">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/90 backdrop-blur-md p-6 rounded-3xl border border-orange-100/90 shadow-luxury">
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Active Bills &amp; Invoice Queue</h1>
-            <span className="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 text-xs font-black px-3 py-1 rounded-full shadow-glow-amber border border-amber-400/50">
+            <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-black px-3 py-1 rounded-full shadow-glow-orange border border-orange-300/40">
               {activeUnpaidCount} Pending
             </span>
           </div>
           <p className="text-slate-500 text-sm mt-1 font-semibold">
             Orders waiting for payment confirmation. Outstanding total:{" "}
-            <span className="font-black text-amber-700">{formatCurrency(activeUnpaidTotal)}</span>
+            <span className="font-black text-orange-600">{formatCurrency(activeUnpaidTotal)}</span>
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           <button
             onClick={refreshBills}
-            className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl border border-slate-300 transition-all cursor-pointer shadow-2xs"
+            className="p-2.5 bg-slate-100 hover:bg-orange-50 text-slate-700 rounded-2xl border border-slate-300 transition-all cursor-pointer shadow-2xs"
             title="Refresh Queue"
           >
             <RefreshCw className="w-4 h-4" />
@@ -328,7 +328,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
 
           <Link
             href="/pos"
-            className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black rounded-2xl text-xs sm:text-sm transition-all shadow-glow-emerald flex items-center gap-2 cursor-pointer"
+            className="px-5 py-2.5 bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500 hover:from-orange-600 hover:to-orange-700 text-white font-black rounded-2xl text-xs sm:text-sm transition-all shadow-glow-orange flex items-center gap-2 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>+ Create New Bill</span>
@@ -337,14 +337,14 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="bg-white/90 backdrop-blur-md p-4 rounded-3xl border border-slate-200/90 shadow-luxury flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white/90 backdrop-blur-md p-4 rounded-3xl border border-orange-100/90 shadow-luxury flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Status Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
           <button
             onClick={() => setStatusFilter("ACTIVE")}
             className={`px-3.5 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all cursor-pointer ${
               statusFilter === "ACTIVE"
-                ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-glow-amber font-black ring-1 ring-amber-400"
+                ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-glow-orange font-black ring-1 ring-orange-400"
                 : "bg-slate-100 text-slate-700 hover:bg-slate-200"
             }`}
           >
@@ -354,7 +354,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
             onClick={() => setStatusFilter("PAID")}
             className={`px-3.5 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all cursor-pointer ${
               statusFilter === "PAID"
-                ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-glow-emerald font-black ring-1 ring-emerald-400/40"
+                ? "bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-glow-orange font-black ring-1 ring-orange-400/40"
                 : "bg-slate-100 text-slate-700 hover:bg-slate-200"
             }`}
           >
@@ -387,7 +387,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value as any)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer"
           >
             <option value="ALL">{isTamil ? "அனைத்து வகைகள்" : "All Types"}</option>
             <option value="TABLE">{isTamil ? "🪑 டேபிள்" : "🪑 Tables"}</option>
@@ -402,7 +402,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={isTamil ? "பில் # அல்லது டேபிள் தேடுங்கள்..." : "Search Bill # or Table..."}
-              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900"
+              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500 text-slate-900"
             />
           </div>
         </div>
@@ -427,9 +427,9 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                     ? "border-rose-300 ring-1 ring-rose-200"
                     : elapsed.status === "warning"
                     ? "border-amber-300"
-                    : "border-slate-200 hover:border-slate-300"
+                    : "border-orange-100 hover:border-orange-300"
                   : isPaid
-                  ? "border-emerald-200/80 bg-gradient-to-b from-white to-emerald-50/10"
+                  ? "border-orange-200/80 bg-gradient-to-b from-white to-orange-50/20"
                   : "border-slate-200 opacity-75"
               }`}
             >
@@ -465,7 +465,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                             ? "bg-rose-100 text-rose-800 border-rose-300 animate-pulse"
                             : elapsed.status === "warning"
                             ? "bg-amber-100 text-amber-900 border-amber-300"
-                            : "bg-emerald-50 text-emerald-800 border-emerald-200"
+                            : "bg-orange-50 text-orange-900 border-orange-200"
                         }`}
                         title={`Created: ${formatDateTime(bill.createdAt)}`}
                       >
@@ -475,7 +475,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                               ? "text-rose-600"
                               : elapsed.status === "warning"
                               ? "text-amber-600"
-                              : "text-emerald-600"
+                              : "text-orange-600"
                           }`}
                         />
                         <span>{elapsed.text}</span>
@@ -484,7 +484,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                       <span
                         className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold ${
                           isPaid
-                            ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                            ? "bg-orange-100 text-orange-900 border border-orange-300"
                             : "bg-red-100 text-red-800 border border-red-300"
                         }`}
                       >
@@ -503,12 +503,12 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
 
                 {/* Customer Details Row (if present) */}
                 {(bill.customerName || bill.customerPhone) && (
-                  <div className="bg-emerald-50/90 border border-emerald-200 rounded-xl px-2.5 py-1.5 mb-3 text-xs flex items-center justify-between gap-2 text-emerald-950 font-bold">
+                  <div className="bg-orange-50/90 border border-orange-200 rounded-xl px-2.5 py-1.5 mb-3 text-xs flex items-center justify-between gap-2 text-orange-950 font-bold">
                     <span className="truncate flex items-center gap-1">
                       👤 {bill.customerName || "Customer"}
                     </span>
                     {bill.customerPhone && (
-                      <span className="font-mono text-[11px] bg-emerald-100 px-1.5 py-0.5 rounded-lg border border-emerald-300 text-emerald-900 shrink-0">
+                      <span className="font-mono text-[11px] bg-orange-100 px-1.5 py-0.5 rounded-lg border border-orange-300 text-orange-900 shrink-0">
                         📞 {bill.customerPhone}
                       </span>
                     )}
@@ -524,7 +524,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                     >
                       <div className="font-semibold text-slate-800">
                         {getFoodName({ name: item.foodName, nameTamil: (item as any).foodNameTamil })}{" "}
-                        <span className="text-emerald-700 font-bold">({getPortionName(item.portionName)})</span>{" "}
+                        <span className="text-orange-600 font-bold">({getPortionName(item.portionName)})</span>{" "}
                         &times; <strong className="text-slate-900">{item.quantity}</strong>
                       </div>
                       <div className="font-black text-slate-800">
@@ -567,7 +567,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                             setSelectedPaymentMethod("CASH");
                             setPaymentBill(bill);
                           }}
-                          className="flex-1 py-3 px-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs sm:text-sm transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5 active:scale-[0.98]"
+                          className="flex-1 py-3 px-3.5 bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500 hover:from-orange-600 hover:to-orange-700 text-white font-black rounded-xl text-xs sm:text-sm transition-all shadow-md shadow-orange-500/20 flex items-center justify-center gap-1.5 active:scale-[0.98] cursor-pointer"
                         >
                           <IndianRupee className="w-4 h-4" />
                           <span>Collect ({formatCurrency(bill.balanceAmount)})</span>
@@ -688,9 +688,9 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                           setReceiptBill(bill);
                           setIsReprint(true);
                         }}
-                        className="py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-[0.98]"
+                        className="py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-[0.98] cursor-pointer"
                       >
-                        <Printer className="w-4 h-4 text-emerald-400" />
+                        <Printer className="w-4 h-4 text-orange-400" />
                         <span>Reprint Receipt</span>
                       </button>
                     </div>
@@ -700,7 +700,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                       <button
                         type="button"
                         onClick={() => setViewBill(bill)}
-                        className="px-2.5 py-1 bg-white hover:bg-red-100 text-red-800 font-bold rounded-lg border border-red-300 text-[11px]"
+                        className="px-2.5 py-1 bg-white hover:bg-red-100 text-red-800 font-bold rounded-lg border border-red-300 text-[11px] cursor-pointer"
                       >
                         View Reason
                       </button>
@@ -777,7 +777,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
       {/* Detailed View Bill Modal */}
       {viewBill && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 animate-scale-up my-6">
+          <div className="bg-white rounded-3xl border border-orange-100 shadow-2xl max-w-lg w-full p-6 animate-scale-up my-6">
             {/* Modal Header */}
             <div className="flex items-start justify-between pb-4 border-b border-slate-100">
               <div>
@@ -788,7 +788,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                   <span
                     className={`px-2.5 py-0.5 rounded-full text-xs font-black ${
                       viewBill.status === "PAID"
-                        ? "bg-emerald-100 text-emerald-800"
+                        ? "bg-orange-100 text-orange-900 border border-orange-200"
                         : viewBill.status === "UNPAID"
                         ? "bg-amber-100 text-amber-800"
                         : "bg-red-100 text-red-800"
@@ -807,10 +807,10 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                 )}
 
                 {(viewBill.customerName || viewBill.customerPhone) && (
-                  <div className="mt-2.5 inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-1 text-xs text-emerald-950 font-bold">
+                  <div className="mt-2.5 inline-flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-3 py-1 text-xs text-orange-950 font-bold">
                     <span>👤 {viewBill.customerName || "Customer"}</span>
                     {viewBill.customerPhone && (
-                      <span className="font-mono bg-emerald-100 px-1.5 py-0.2 rounded border border-emerald-300 text-emerald-900 text-[11px]">
+                      <span className="font-mono bg-orange-100 px-1.5 py-0.2 rounded border border-orange-300 text-orange-900 text-[11px]">
                         📞 {viewBill.customerPhone}
                       </span>
                     )}
@@ -819,7 +819,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
               </div>
               <button
                 onClick={() => setViewBill(null)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -867,7 +867,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
               )}
               <div className="flex justify-between text-sm font-black text-slate-900 pt-1.5 border-t border-slate-200">
                 <span>Total Amount:</span>
-                <span className="text-emerald-700 text-base">{formatCurrency(viewBill.totalAmount)}</span>
+                <span className="text-orange-600 text-base">{formatCurrency(viewBill.totalAmount)}</span>
               </div>
               {viewBill.status === "UNPAID" && (
                 <div className="flex justify-between text-xs font-black text-amber-800 pt-1">
@@ -882,7 +882,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
               <button
                 type="button"
                 onClick={() => setViewBill(null)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-all"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-all cursor-pointer"
               >
                 Close
               </button>
@@ -898,7 +898,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                         setViewBill(null);
                         requestEditBill(b);
                       }}
-                      className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl text-xs flex items-center gap-1.5 border border-indigo-200"
+                      className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl text-xs flex items-center gap-1.5 border border-indigo-200 cursor-pointer"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                       <span>Edit Bill</span>
@@ -912,7 +912,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                         setViewBill(null);
                         requestCancelBill(b);
                       }}
-                      className="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-700 font-bold rounded-xl text-xs flex items-center gap-1.5 border border-red-200"
+                      className="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-700 font-bold rounded-xl text-xs flex items-center gap-1.5 border border-red-200 cursor-pointer"
                     >
                       <Ban className="w-3.5 h-3.5" />
                       <span>Cancel Bill</span>
@@ -926,7 +926,7 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                         setViewBill(null);
                         setPaymentBill(b);
                       }}
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs transition-all shadow-md flex items-center gap-1.5"
+                      className="px-4 py-2 bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500 hover:from-orange-600 hover:to-orange-700 text-white font-black rounded-xl text-xs transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
                     >
                       <IndianRupee className="w-3.5 h-3.5" />
                       <span>Pay Now</span>
@@ -944,9 +944,9 @@ export default function BillsQueue({ initialBills, userRole }: BillsQueueProps) 
                       setReceiptBill(b);
                       setIsReprint(true);
                     }}
-                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5"
+                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer"
                   >
-                    <Printer className="w-3.5 h-3.5 text-emerald-400" />
+                    <Printer className="w-3.5 h-3.5 text-orange-400" />
                     <span>Print Receipt</span>
                   </button>
                 )}

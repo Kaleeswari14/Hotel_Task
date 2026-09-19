@@ -410,7 +410,7 @@ export default function EditBillModal({
 
             <div className="flex justify-between text-sm font-black text-slate-900 pt-1 border-t border-slate-200">
               <span>Updated Total:</span>
-              <span className="text-emerald-700 text-base">{formatCurrency(grandTotal)}</span>
+              <span className="text-orange-600 text-base">{formatCurrency(grandTotal)}</span>
             </div>
           </div>
 
@@ -425,14 +425,14 @@ export default function EditBillModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-all"
+              className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-all cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || items.length === 0}
-              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-xl text-xs shadow-md active:scale-[0.98] disabled:opacity-50 transition-all flex items-center gap-1.5"
+              className="px-5 py-2.5 bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500 hover:from-orange-600 hover:to-orange-700 text-white font-black rounded-xl text-xs shadow-md shadow-orange-500/20 active:scale-[0.98] disabled:opacity-50 transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <Save className="w-3.5 h-3.5" />
               <span>{loading ? "Saving Changes..." : "Save & Update Bill"}</span>

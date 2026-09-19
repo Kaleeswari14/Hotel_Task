@@ -98,16 +98,16 @@ export default function PaymentModal({
     <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 my-8 animate-scale-up">
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+        <div className="flex items-center justify-between pb-3 border-b border-orange-100 mb-4">
           <div>
-            <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-orange-700 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
               Bill #{bill.billNumber} &bull; {bill.orderReference}
             </span>
             <h2 className="text-xl font-black text-slate-900 mt-1">Collect Payment</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-orange-50 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -127,12 +127,12 @@ export default function PaymentModal({
               <div className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
                 Total Balance Due
               </div>
-              <div className="text-3xl font-black text-emerald-400 mt-0.5">
+              <div className="text-3xl font-black text-orange-400 mt-0.5">
                 {formatCurrency(balance)}
               </div>
             </div>
             <div className="text-right">
-              <span className="text-[11px] bg-emerald-900/60 text-emerald-300 px-2.5 py-1 rounded-lg border border-emerald-500/30 font-bold">
+              <span className="text-[11px] bg-orange-950/60 text-orange-300 px-2.5 py-1 rounded-lg border border-orange-500/30 font-bold">
                 100% Secure
               </span>
             </div>
@@ -150,13 +150,13 @@ export default function PaymentModal({
                   setPaymentMethod("CASH");
                   setTenderAmount(String(balance));
                 }}
-                className={`py-3 px-3 rounded-2xl border-2 font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1.5 transition-all ${
+                className={`py-3 px-3 rounded-2xl border-2 font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   paymentMethod === "CASH"
-                    ? "bg-emerald-50 border-emerald-600 text-emerald-900 shadow-sm"
+                    ? "bg-orange-50 border-orange-600 text-orange-950 shadow-sm"
                     : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
                 }`}
               >
-                <Banknote className="w-6 h-6 text-emerald-600" />
+                <Banknote className="w-6 h-6 text-orange-600" />
                 <span>💵 CASH</span>
               </button>
 
@@ -166,7 +166,7 @@ export default function PaymentModal({
                   setPaymentMethod("UPI");
                   setTenderAmount(String(balance));
                 }}
-                className={`py-3 px-3 rounded-2xl border-2 font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1.5 transition-all ${
+                className={`py-3 px-3 rounded-2xl border-2 font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   paymentMethod === "UPI"
                     ? "bg-blue-50 border-blue-600 text-blue-900 shadow-sm"
                     : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
@@ -182,7 +182,7 @@ export default function PaymentModal({
                   setPaymentMethod("CARD");
                   setTenderAmount(String(balance));
                 }}
-                className={`py-3 px-3 rounded-2xl border-2 font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1.5 transition-all ${
+                className={`py-3 px-3 rounded-2xl border-2 font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   paymentMethod === "CARD"
                     ? "bg-purple-50 border-purple-600 text-purple-900 shadow-sm"
                     : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
@@ -196,10 +196,10 @@ export default function PaymentModal({
 
           {/* Cash Tender & Change Calculator (Shown when CASH is selected) */}
           {paymentMethod === "CASH" && (
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+            <div className="p-4 bg-orange-50/40 rounded-2xl border border-orange-200 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
-                  <Calculator className="w-4 h-4 text-emerald-600" />
+                  <Calculator className="w-4 h-4 text-orange-600" />
                   Cash Received (Tender)
                 </span>
 
@@ -210,7 +210,7 @@ export default function PaymentModal({
                       key={idx}
                       type="button"
                       onClick={() => setTenderAmount(String(p.val))}
-                      className="px-2 py-0.5 bg-white hover:bg-slate-200 text-slate-700 font-bold text-[11px] rounded border border-slate-300"
+                      className="px-2 py-0.5 bg-white hover:bg-orange-100 text-slate-700 font-bold text-[11px] rounded border border-orange-200 transition-colors cursor-pointer"
                     >
                       {p.label}
                     </button>
@@ -228,15 +228,15 @@ export default function PaymentModal({
                   min="1"
                   value={tenderAmount}
                   onChange={(e) => setTenderAmount(e.target.value)}
-                  className="w-full pl-8 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-lg font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full pl-8 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-lg font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
                   required
                 />
               </div>
 
               {/* Change Return Display */}
-              <div className="flex items-center justify-between p-3 bg-emerald-100/70 border border-emerald-300 rounded-xl text-emerald-950">
+              <div className="flex items-center justify-between p-3 bg-orange-100/80 border border-orange-300 rounded-xl text-orange-950">
                 <span className="text-xs font-bold uppercase">Change to Return:</span>
-                <span className="text-lg font-black text-emerald-900">
+                <span className="text-lg font-black text-orange-900">
                   {formatCurrency(changeReturn)}
                 </span>
               </div>
@@ -273,7 +273,7 @@ export default function PaymentModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-all"
+              className="px-5 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
             >
               Cancel
             </button>
@@ -281,7 +281,7 @@ export default function PaymentModal({
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl shadow-lg shadow-emerald-600/20 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
+              className="flex-1 py-3.5 px-4 bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500 hover:from-orange-600 hover:to-orange-700 text-white font-black rounded-xl shadow-lg shadow-orange-500/25 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
             >
               {loading ? (
                 <span>Confirming Transaction...</span>
