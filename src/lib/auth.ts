@@ -43,7 +43,7 @@ export async function getCurrentUser(): Promise<SessionPayload | null> {
 export function setSessionCookie(response: NextResponse, token: string) {
   response.cookies.set(AUTH_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: false, // Allow HTTP over local LAN & localhost
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 24, // 24 hours
@@ -53,7 +53,7 @@ export function setSessionCookie(response: NextResponse, token: string) {
 export function clearSessionCookie(response: NextResponse) {
   response.cookies.set(AUTH_COOKIE_NAME, "", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: false,
     sameSite: "lax",
     path: "/",
     maxAge: 0,

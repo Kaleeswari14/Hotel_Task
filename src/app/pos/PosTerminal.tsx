@@ -51,6 +51,7 @@ import ThermalReceipt from "@/components/ThermalReceipt";
 import PaymentModal from "@/components/PaymentModal";
 import { sendWhatsAppBillAndOffer } from "@/lib/whatsapp";
 import { useLanguage } from "@/context/LanguageContext";
+import { playKitchenAlertBell } from "@/lib/sound";
 
 interface Portion {
   id: string;
@@ -182,6 +183,8 @@ export default function PosTerminal({
     return () => window.removeEventListener("online", syncOfflineBills);
   }, []);
 
+  const lastAlertedOrderIdRef = React.useRef<string | null>(null);
+
   // Poll for incoming customer table self-orders
   useEffect(() => {
     const checkTableOrders = async () => {
@@ -193,13 +196,17 @@ export default function PosTerminal({
             (b: any) => b.orderType === "TABLE" && b.status === "UNPAID" && (Date.now() - new Date(b.createdAt).getTime()) < 60000
           );
           if (latestTable) {
+            if (lastAlertedOrderIdRef.current !== latestTable.id) {
+              lastAlertedOrderIdRef.current = latestTable.id;
+              playKitchenAlertBell();
+            }
             setIncomingTableOrder(latestTable);
           }
         }
       } catch (e) {}
     };
 
-    const interval = setInterval(checkTableOrders, 10000);
+    const interval = setInterval(checkTableOrders, 8000);
     return () => clearInterval(interval);
   }, []);
 

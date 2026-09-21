@@ -10,11 +10,17 @@ const AUTH_COOKIE_NAME = "hotel_pos_session";
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Skip static files, images, favicon, api routes for auth
+  // Skip static files, images, favicon, public order routes, and public APIs
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/whatsapp") ||
+    pathname.startsWith("/api/foods") ||
+    pathname.startsWith("/api/categories") ||
+    pathname.startsWith("/api/orders/table") ||
+    pathname.startsWith("/order") ||
+    pathname.startsWith("/manifest.json") ||
+    pathname.startsWith("/sw.js") ||
     pathname === "/favicon.ico"
   ) {
     return NextResponse.next();

@@ -16,8 +16,11 @@ import {
   Check,
   ChevronRight,
   Flame,
-  ArrowLeft
+  ArrowLeft,
+  BellRing,
+  Volume2
 } from "lucide-react";
+import { playCustomerSuccessSound } from "@/lib/sound";
 
 interface Portion {
   id: string;
@@ -64,10 +67,31 @@ export default function CustomerOrderView({ tableId }: { tableId: string }) {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [orderSuccess, setOrderSuccess] = useState<{ orderNumber: number; total: number } | null>(null);
+  const [orderSuccess, setOrderSuccess] = useState<{
+    orderNumber: number;
+    total: number;
+    orderItems: CartItem[];
+    isAppended?: boolean;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeBill, setActiveBill] = useState<any | null>(null);
+  const [showActiveBillModal, setShowActiveBillModal] = useState(false);
 
   const formattedTable = tableId.toUpperCase().startsWith("T") ? tableId.toUpperCase() : `Table ${tableId}`;
+
+  const fetchActiveBill = async () => {
+    try {
+      const res = await fetch(`/api/orders/table?tableId=${encodeURIComponent(tableId)}`);
+      const data = await res.json();
+      if (data.activeBill) {
+        setActiveBill(data.activeBill);
+      } else {
+        setActiveBill(null);
+      }
+    } catch {
+      // ignore
+    }
+  };
 
   useEffect(() => {
     async function loadMenu() {
@@ -79,8 +103,18 @@ export default function CustomerOrderView({ tableId }: { tableId: string }) {
         ]);
         const foodsData = await foodsRes.json();
         const catsData = await catsRes.json();
-        if (foodsData.foods) setFoods(foodsData.foods);
-        if (catsData.categories) setCategories(catsData.categories);
+        
+        if (Array.isArray(foodsData)) {
+          setFoods(foodsData);
+        } else if (foodsData && Array.isArray(foodsData.foods)) {
+          setFoods(foodsData.foods);
+        }
+
+        if (Array.isArray(catsData)) {
+          setCategories(catsData);
+        } else if (catsData && Array.isArray(catsData.categories)) {
+          setCategories(catsData.categories);
+        }
       } catch (err) {
         console.error("Failed to load menu", err);
       } finally {
@@ -88,7 +122,8 @@ export default function CustomerOrderView({ tableId }: { tableId: string }) {
       }
     }
     loadMenu();
-  }, []);
+    fetchActiveBill();
+  }, [tableId]);
 
   const addToCart = (food: FoodItem, portion: Portion) => {
     setCart((prev) => {
@@ -133,6 +168,7 @@ export default function CustomerOrderView({ tableId }: { tableId: string }) {
 
   const handlePlaceOrder = async () => {
     if (cart.length === 0) return;
+    const itemsSnapshot = [...cart];
     try {
       setSubmitting(true);
       const res = await fetch("/api/orders/table", {
@@ -148,9 +184,18 @@ export default function CustomerOrderView({ tableId }: { tableId: string }) {
 
       const data = await res.json();
       if (data.success) {
-        setOrderSuccess({ orderNumber: data.orderNumber, total: cartTotal });
+        // Trigger customer sound notification and mobile vibration!
+        playCustomerSuccessSound();
+
+        setOrderSuccess({
+          orderNumber: data.orderNumber,
+          total: data.order?.totalAmount || cartTotal,
+          orderItems: itemsSnapshot,
+          isAppended: data.isAppended,
+        });
         setCart([]);
         setShowCartDrawer(false);
+        fetchActiveBill();
       } else {
         alert(data.error || "Failed to place order");
       }
@@ -206,7 +251,7 @@ export default function CustomerOrderView({ tableId }: { tableId: string }) {
       </header>
 
       {/* Hero Welcome Pill */}
-      <div className="p-4 max-w-lg mx-auto">
+      <div className="p-4 max-w-lg mx-auto space-y-3">
         <div className="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white p-4 rounded-3xl shadow-md shadow-orange-500/20 flex items-center justify-between gap-3">
           <div>
             <span className="px-2 py-0.5 bg-white/20 text-white rounded-full text-[10px] font-black uppercase">
@@ -221,6 +266,31 @@ export default function CustomerOrderView({ tableId }: { tableId: string }) {
           </div>
           <UtensilsCrossed className="w-8 h-8 text-white/40 shrink-0" />
         </div>
+
+        {/* Active Running Order Pill if exists */}
+        {activeBill && (
+          <button
+            type="button"
+            onClick={() => setShowActiveBillModal(true)}
+            className="w-full p-3 bg-amber-500/10 border border-amber-300/80 rounded-2xl flex items-center justify-between text-amber-950 text-xs font-bold hover:bg-amber-500/15 transition-all shadow-xs"
+          >
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
+              <span>
+                {isTamil ? "தற்போதைய டேபிள் பில்:" : "Active Table Tab:"}
+              </span>
+              <span className="font-mono font-black text-amber-900">
+                ₹{activeBill.totalAmount}
+              </span>
+              <span className="text-[10px] text-amber-700 bg-amber-200/60 px-1.5 py-0.5 rounded font-bold">
+                {activeBill.items?.length || 0} {isTamil ? "உணவுகள்" : "items"}
+              </span>
+            </div>
+            <span className="text-[11px] text-orange-700 underline font-black">
+              {isTamil ? "பட்டியல் பார்க்க →" : "View Details →"}
+            </span>
+          </button>
+        )}
       </div>
 
       {/* Search & Dietary Filters */}
@@ -555,35 +625,178 @@ export default function CustomerOrderView({ tableId }: { tableId: string }) {
       {/* Order Success Popup */}
       {orderSuccess && (
         <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-orange-200 shadow-2xl max-w-sm w-full p-6 text-center space-y-4 animate-scale-up">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 text-white flex items-center justify-center mx-auto shadow-lg shadow-orange-500/30">
-              <CheckCircle2 className="w-8 h-8" />
+          <div className="bg-white rounded-3xl border border-orange-200 shadow-2xl max-w-sm w-full p-6 text-center space-y-4 animate-scale-up max-h-[90vh] overflow-y-auto">
+            {/* Header Icon & Sound Indicator */}
+            <div className="relative inline-block mx-auto">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/30 animate-bounce">
+                <CheckCircle2 className="w-8 h-8" />
+              </div>
+              <div className="absolute -top-1 -right-1 bg-emerald-500 text-white p-1 rounded-full shadow-md animate-pulse">
+                <Volume2 className="w-3.5 h-3.5" />
+              </div>
             </div>
 
             <div>
-              <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-black">
-                {formattedTable}
-              </span>
-              <h3 className="text-lg font-black text-slate-900 mt-2">
-                {isTamil ? "ஆர்டர் வெற்றிகரமாக அனுப்பப்பட்டது! 🎉" : "Order Placed Successfully! 🎉"}
+              <div className="flex items-center justify-center gap-2">
+                <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-black">
+                  {formattedTable}
+                </span>
+                <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-mono font-black">
+                  Order #{orderSuccess.orderNumber}
+                </span>
+              </div>
+
+              <h3 className="text-lg font-black text-slate-900 mt-2.5">
+                {orderSuccess.isAppended
+                  ? (isTamil ? "கூடுதல் உணவு சேர்க்கப்பட்டது! 🍛" : "Extra Items Added to Table! 🍛")
+                  : (isTamil ? "ஆர்டர் வெற்றிகரமாக அனுப்பப்பட்டது! 🎉" : "Order Placed Successfully! 🎉")}
               </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Order #{orderSuccess.orderNumber} • ₹{orderSuccess.total}
-              </p>
-              <p className="text-[11px] text-slate-600 bg-orange-50/60 p-3 rounded-2xl border border-orange-100 mt-3">
-                {isTamil 
-                  ? "உங்கள் உணவு சமையலறையில் தயாராகிக்கொண்டிருக்கிறது. சுடச்சுட கொண்டு வரப்படும்!"
-                  : "Kitchen staff is preparing your delicious food. It will be served shortly!"}
-              </p>
+
+              {/* Total Amount Pill */}
+              <div className="mt-2 py-2 px-4 bg-orange-50 rounded-2xl border border-orange-200 flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-600">
+                  {isTamil ? "டேபிள் மொத்த தொகை:" : "Total Amount:"}
+                </span>
+                <span className="text-base font-black text-orange-600 font-mono">
+                  ₹{orderSuccess.total.toLocaleString("en-IN")}
+                </span>
+              </div>
+
+              {/* Estimated Serving Time Alert Banner */}
+              <div className="mt-3 p-3.5 bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-amber-500/15 rounded-2xl border border-orange-300 text-left space-y-1.5 shadow-xs">
+                <div className="flex items-center gap-1.5 text-xs font-black text-orange-950">
+                  <Clock className="w-4 h-4 text-orange-600 shrink-0" />
+                  <span>
+                    {isTamil ? "உணவு தயாராகும் நேரம்:" : "Estimated Serving Time:"}
+                  </span>
+                  <span className="px-2 py-0.5 bg-orange-500 text-white rounded-md text-[11px] font-black">
+                    15 - 20 Mins
+                  </span>
+                </div>
+                <p className="text-[11px] text-orange-900 leading-relaxed">
+                  {isTamil 
+                    ? "உங்கள் சுவையான உணவு சமையலறையில் தயாராகிக்கொண்டிருக்கிறது. சுமார் 15 முதல் 20 நிமிடங்களில் உங்கள் டேபிளுக்கு சுடச்சுட கொண்டு வரப்படும்!"
+                    : "Your delicious meal is being prepared hot in the kitchen. It will be served to your table in approx 15–20 minutes!"}
+                </p>
+              </div>
+
+              {/* Ordered Items Summary */}
+              {orderSuccess.orderItems && orderSuccess.orderItems.length > 0 && (
+                <div className="mt-3 p-3 bg-slate-50 rounded-2xl border border-slate-200 text-left space-y-1.5 text-xs">
+                  <div className="font-bold text-slate-500 text-[10px] uppercase">
+                    {isTamil ? "இந்த சுற்றில் ஆர்டர் செய்த உணவுகள்:" : "Items Ordered:"}
+                  </div>
+                  <div className="space-y-1">
+                    {orderSuccess.orderItems.map((item, i) => (
+                      <div key={i} className="flex justify-between items-center text-slate-800">
+                        <span className="font-bold">{item.quantity} × {item.foodName} ({item.portionName})</span>
+                        <span className="font-mono font-bold text-slate-600">₹{item.unitPrice * item.quantity}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            <button
-              type="button"
-              onClick={() => setOrderSuccess(null)}
-              className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black text-xs rounded-2xl shadow-md"
-            >
-              {isTamil ? "கூடுதல் உணவு ஆர்டர் செய்" : "Order More Items"}
-            </button>
+            {/* Actions */}
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setOrderSuccess(null)}
+                className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-xs rounded-2xl shadow-md active:scale-[0.98] transition-all"
+              >
+                {isTamil ? "+ கூடுதல் உணவு ஆர்டர் செய் (Order More)" : "+ Order More Items"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setOrderSuccess(null);
+                  setShowActiveBillModal(true);
+                }}
+                className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition-all"
+              >
+                {isTamil ? "டேபிள் மொத்த பட்டியல் பார்க்க" : "View Full Table Tab"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Active Table Running Bill Modal */}
+      {showActiveBillModal && activeBill && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full p-5 space-y-4 animate-scale-up max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="font-black text-base text-slate-900 flex items-center gap-2">
+                  <span>{isTamil ? "டேபிள் ஆர்டர் விவரங்கள்" : "Running Table Order"}</span>
+                  <span className="px-2 py-0.5 bg-orange-100 text-orange-800 rounded-full text-[10px] font-black">
+                    {formattedTable}
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Bill #{activeBill.billNumber} • Status: <span className="font-bold text-amber-600">{activeBill.status}</span>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowActiveBillModal(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* List of Ordered items */}
+            <div className="overflow-y-auto flex-1 space-y-2 pr-1">
+              {activeBill.items?.map((item: any) => (
+                <div
+                  key={item.id}
+                  className="bg-slate-50 p-3 rounded-2xl border border-slate-200/80 flex items-center justify-between gap-2"
+                >
+                  <div>
+                    <div className="font-black text-xs text-slate-900">{item.foodName}</div>
+                    <div className="text-[10px] text-slate-500">
+                      {item.portionName} • ₹{item.unitPrice} × {item.quantity}
+                    </div>
+                  </div>
+                  <div className="font-mono font-black text-xs text-slate-900">
+                    ₹{item.subtotal}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Total and notes */}
+            <div className="pt-3 border-t border-slate-100 space-y-3">
+              <div className="flex items-center justify-between font-black text-sm">
+                <span>{isTamil ? "டேபிள் மொத்த தொகை:" : "Total Table Amount:"}</span>
+                <span className="text-lg text-orange-600 font-mono">
+                  ₹{activeBill.totalAmount}
+                </span>
+              </div>
+
+              <div className="p-3 bg-amber-50/80 rounded-2xl border border-amber-200/80 text-[11px] text-amber-900 space-y-1">
+                <div className="font-black flex items-center gap-1.5">
+                  <span>ℹ️</span>
+                  <span>{isTamil ? "ஆர்டர் மாற்றம் அல்லது ரத்து செய்ய:" : "Order Modification / Cancellation:"}</span>
+                </div>
+                <p className="text-amber-800 leading-relaxed text-[10px]">
+                  {isTamil 
+                    ? "சமையலறையில் உணவு தயாராகிக்கொண்டிருக்கும்போது வீணாகாமல் இருக்க, ஏதேனும் உணவை ரத்து செய்ய அல்லது மாற்ற விரும்பினால் வெயிட்டர் அல்லது கவுண்டரில் தெரிவிக்கவும்."
+                    : "To prevent food wastage once cooking begins, please notify the waiter or cashier counter to modify or cancel an item."}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowActiveBillModal(false)}
+                className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black text-xs rounded-2xl shadow-md active:scale-98 transition-all"
+              >
+                {isTamil ? "+ கூடுதல் உணவு ஆர்டர் செய்ய தொடரவும்" : "+ Add More Items to Table"}
+              </button>
+            </div>
           </div>
         </div>
       )}
